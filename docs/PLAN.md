@@ -86,6 +86,42 @@ generation.
   the graph.
 - Stop there. No more tiers.
 
+### What the LLM actually sees (the I/O contract)
+
+**Not the codebase.** The model receives a bounded, structured **verdict request**:
+
+```
+VerdictRequest {
+  candidate:   { rule_id, cwe_hint, file, line_range, sink, source, scanner_confidence }
+  code_slice:  { enclosing_function, dataflow_path, sanitizers_present,
+                 direct_callers, direct_callees, line_numbers }   # minimal, graph-selected
+  repo_context:{ language, framework, threat_model }               # metadata only
+  retrieval:   [ cwe_definition, similar_past_findings, fix_pattern_from_db ]
+  budget:      { max_tokens }
+}
+→ Verdict { disposition, cwe, severity, confidence, evidence_refs[], rationale, abstain }
+```
+
+Rules:
+
+- **Never the whole repo, never whole files by default.** A *code slice* is
+  selected by the graph around the candidate (function + dataflow + immediate
+  callers/callees). Small files may be sent verbatim; repos never are.
+- **Every `evidence_ref` must resolve to a real CPG node / file:line**, or the
+  verdict is rejected. The model cannot assert without citing.
+- **All code and tool output is untrusted data, never instructions** (defends
+  against adversarial comments).
+- **The model adjudicates; it does not discover.** Discovery is T0/T1.
+- **Backend-configurable:** a single `LLMBackend` interface with an
+  `OpenAICompatibleBackend` (any cloud API) and a `LocalBackend`
+  (ollama / llama.cpp / vLLM). Chosen by config; a `MockBackend` for tests.
+
+**Why not dump the codebase:** context limits and cost explode, precision
+collapses ("lost in the middle"), results stop being reproducible, it cannot
+scale to real repos, and it hands an attacker unbounded surface. It is also
+exactly the strawman our E1 measurement is designed to beat — so we must not
+become it.
+
 ## 7. Experiments (in order)
 
 | ID | Experiment | Needs training? | Purpose |
