@@ -12,6 +12,9 @@ code problems across arbitrary codebases.
   risk register.
 - [`docs/issues.md`](docs/issues.md) — tracked backlog (IDs A1–D6) with severity,
   owner, state, and resolution criteria.
+- [`docs/compute-and-model-strategy.md`](docs/compute-and-model-strategy.md) —
+  compute estimates by phase/scenario and the model-selection plus
+  training-ladder strategy under the hardware constraint.
 
 ## Status
 

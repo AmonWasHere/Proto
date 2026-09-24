@@ -174,10 +174,13 @@ IDs are permanent; do not renumber. State changes should be made in place.
   model-judged reward contribution until calibrated.
 
 ### B7 — No compute budget estimate
-- **Severity:** High · **State:** open · **Owner:** TBD
+- **Severity:** High · **State:** in-progress · **Owner:** TBD
 - **Problem:** No GPU-hours, token spend, or sandbox-minute estimate.
 - **Impact:** The ablation gate (RL vs SFT) is undecidable; costs can explode.
 - **Resolution:** Cost model per phase with hard caps; align with C1.
+- **Progress (2026-09-24):** Phase/scenario estimates recorded in
+  `docs/compute-and-model-strategy.md` (Pilot $1k–$4k; Serious $3k–$15k;
+  Frontier $15k–$75k). Remaining: hard caps per phase and sign-off on B1.
 - **Depends on:** B1.
 
 ### B8 — Privacy/redaction architecture not concrete
@@ -238,12 +241,15 @@ OpenJDK 27-ea, torch/transformers/datasets/tree_sitter present, `trl`/`vllm`
 absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 
 ### C1 — 8 GB VRAM / 15 GB RAM cannot support the stated plan
-- **Severity:** Blocker · **State:** open · **Owner:** TBD
+- **Severity:** Blocker · **State:** in-progress · **Owner:** TBD
 - **Problem:** No headroom to fine-tune or serve a competitive tool-using LLM
   locally; RL rollout workers infeasible at scale here.
 - **Impact:** The plan implies training the decision layer; this host cannot.
 - **Resolution:** Decide architecture (API-based policy + local lightweight
   router, or remote training) and record as ADR. Update plan's compute section.
+- **Progress (2026-09-24):** `docs/compute-and-model-strategy.md` documents a
+  laptop-as-orchestrator architecture: local 7B Q4 inference + CPU tooling,
+  training/eval rented. Verdict table added. Remaining: ADR for B1.
 - **Depends on:** B1.
 
 ### C2 — Python 3.14; no trl/vllm; dependency risk
@@ -311,10 +317,13 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
   contaminated-benchmark gains as suspect.
 
 ### D3 — RL premise unvalidated and currently unaffordable
-- **Severity:** Medium · **State:** open · **Owner:** TBD
+- **Severity:** Medium · **State:** in-progress · **Owner:** TBD
 - **Problem:** The ablation gate is correct but undecidable on this hardware.
 - **Resolution:** Stage offline RL / DPO from logs first; revisit online RL only
   with adequate compute (C1).
+- **Progress (2026-09-24):** Training ladder (prompt → SFT → DPO → GRPO → distill)
+  and kill criteria in `docs/compute-and-model-strategy.md`; offline-first path
+  adopted.
 - **Depends on:** C1, B7.
 
 ### D4 — No threat model for the analyzer itself
@@ -343,3 +352,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | Date | Change |
 |---|---|
 | 2026-09-24 | Initial backlog created from project review; IDs A1–D6 assigned. |
+| 2026-09-24 | B7, C1, D3 moved to in-progress; compute/model strategy added. |
