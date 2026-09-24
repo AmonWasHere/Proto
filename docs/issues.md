@@ -54,7 +54,7 @@ IDs are permanent; do not renumber. State changes should be made in place.
 | E1 | Blocker | resolved | novelty | Plan is not novel; core overlaps VulAgentRL / Antares |
 | E2 | Blocker | resolved | novelty | No single declared research contribution |
 | E3 | Medium | resolved | repo | Working name "VulnGym" collides with published work |
-| F1 | High | open | reuse | `sastaudit` is Java-centric; E1 targets C/C++ |
+| F1 | High | in-progress | reuse | `sastaudit` is Java-centric; E1 targets C/C++ |
 | F2 | Medium | open | reuse | Two-repo coupling vs freezing Patch |
 | F3 | High | open | reuse | Self-overlap with FINDINGS.md |
 | F4 | Medium | open | reuse | Wrapper trap |
@@ -379,11 +379,15 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 ## F. Reuse & integration risks (from `~/Projects/Patch`)
 
 ### F1 — `sastaudit` is Java-centric; E1 targets C/C++
-- **Severity:** High · **State:** open · **Owner:** TBD
+- **Severity:** High · **State:** in-progress · **Owner:** TBD
 - **Problem:** the harness corpora (OWASP BenchmarkJava, JavaVFC) and rules are
   Java; E1's natural data is C/C++ (the 15 cloned repos, 179K commit pairs).
 - **Resolution:** extend the corpus/tool layer to C/C++ using the existing repos
   and commit pairs; keep the four-way decomposition language-agnostic.
+- **Progress (2026-09-24):** **Python added** — a pinned minimal ruleset
+  (`rewardaudit/rules/python-minimal.yaml`), 5 labelled revision pairs, and 3
+  canaries; the four-way decomposition is language-agnostic and tested on Python.
+  C/C++ still pending.
 
 ### F2 — Two-repo coupling vs freezing Patch
 - **Severity:** Medium · **State:** open · **Owner:** TBD
@@ -429,3 +433,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-24 | Post-Patch deltas: E1 sharpened to four-way decomposition on LLM verifiers; B10 resolved; D1/D5 in-progress; new reuse risks F1–F4. |
 | 2026-09-24 | Added `docs/tools.md`: Java+Python(+C/C++) coverage and analyzer inventory. |
 | 2026-09-24 | **M0 built and passing**: `rewardaudit/` reproduces opengrep 12/18 vulnerable, 1/3 safe; 26 tests. A1/A2/A4 resolved, A3 in-progress. |
+| 2026-09-24 | **M1 built**: assets pinned under `pinned/`, Python support + rules + pairs + canaries, four-way decomposition, evidence ledger; 40 tests. F1 in-progress. |

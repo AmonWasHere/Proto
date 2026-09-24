@@ -31,9 +31,11 @@ security verdict trustworthy.
 
 ## Status
 
-**M0 complete.** `rewardaudit/` reproduces the pinned opengrep control result
-(12/18 vulnerable, 1/3 safe flagged) through the new interface; 26 tests green.
-Next: **M1** (evidence ledger + V1/V2 across Java + Python), then **M2 (E1)**.
+**M0 + M1 complete.** `rewardaudit/` reproduces the pinned opengrep Java control
+result (12/18 vulnerable, 1/3 safe flagged); supports Java + Python; implements
+the **four-way decomposition** and an evidence ledger; canary set shows 0 false
+positives. 40 tests green. Next: **M2 (E1)** — adversarial comment generator and
+the four-way decomposition applied to LLM verdicts.
 
 ## Status (design)
 

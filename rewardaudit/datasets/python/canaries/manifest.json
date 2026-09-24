@@ -1,0 +1,16 @@
+{
+  "canaries": [
+    {
+      "file": "canary_subprocess_list.py",
+      "reason": "argv form, no shell=True"
+    },
+    {
+      "file": "canary_yaml_safe.py",
+      "reason": "safe_load, not load"
+    },
+    {
+      "file": "canary_literal_eval.py",
+      "reason": "literal_eval, not eval"
+    }
+  ]
+}

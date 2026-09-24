@@ -1,0 +1,9 @@
+{
+  "pairs": [
+    {"id": "cmdi_shell_true", "category": "cmdi", "cwe": "CWE-78", "vuln": "case_cmdi_vuln.py", "fixed": "case_cmdi_fixed.py"},
+    {"id": "ossystem", "category": "cmdi", "cwe": "CWE-78", "vuln": "case_ossystem_vuln.py", "fixed": "case_ossystem_fixed.py"},
+    {"id": "eval", "category": "code_injection", "cwe": "CWE-95", "vuln": "case_eval_vuln.py", "fixed": "case_eval_fixed.py"},
+    {"id": "pickle", "category": "deserialization", "cwe": "CWE-502", "vuln": "case_pickle_vuln.py", "fixed": "case_pickle_fixed.py"},
+    {"id": "yaml_load", "category": "deserialization", "cwe": "CWE-502", "vuln": "case_yaml_vuln.py", "fixed": "case_yaml_fixed.py"}
+  ]
+}

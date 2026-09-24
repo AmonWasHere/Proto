@@ -1,0 +1,42 @@
+rules:
+  - id: ra-python-subprocess-shell-true
+    languages: [python]
+    severity: WARNING
+    message: subprocess executed with shell=True
+    metadata:
+      cwe: "CWE-78"
+    pattern: subprocess.$FUNC(..., shell=True, ...)
+
+  - id: ra-python-os-system
+    languages: [python]
+    severity: WARNING
+    message: os.system executes a command through the shell
+    metadata:
+      cwe: "CWE-78"
+    pattern: os.system(...)
+
+  - id: ra-python-eval
+    languages: [python]
+    severity: WARNING
+    message: eval() on possibly untrusted input
+    metadata:
+      cwe: "CWE-95"
+    pattern: eval(...)
+
+  - id: ra-python-pickle
+    languages: [python]
+    severity: WARNING
+    message: insecure deserialization via pickle
+    metadata:
+      cwe: "CWE-502"
+    pattern-either:
+      - pattern: pickle.loads(...)
+      - pattern: pickle.load(...)
+
+  - id: ra-python-yaml-load
+    languages: [python]
+    severity: WARNING
+    message: yaml.load without a safe loader
+    metadata:
+      cwe: "CWE-502"
+    pattern: yaml.load(...)

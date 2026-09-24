@@ -21,6 +21,11 @@ node_modules/
 dist/
 build/
 
+# Pinned assets: binaries and bulk data are not committed; see pinned/README.md
+pinned/bin/
+pinned/corpus/
+pinned/data/
+
 # Logs / artifacts
 *.log
 runs/

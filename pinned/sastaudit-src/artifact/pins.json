@@ -1,0 +1,250 @@
+{
+  "_comment": "Every external artifact this study depends on, pinned. Nothing in the evaluation loop may be a moving target: the whole point is that a reviewer can re-run this and land on the same numbers.",
+  "pinned_on": "2026-09-14",
+  "repositories": {
+    "benchmarkjava": {
+      "url": "https://github.com/OWASP-Benchmark/BenchmarkJava.git",
+      "commit": "20cbf3d11123347e47ed89541e6942836def53f7",
+      "role": "Test cases and ground truth (expectedresults-1.2.csv); published scorecards used as the validation target.",
+      "clone_path": "upstream/benchmarkjava"
+    },
+    "benchmarkutils": {
+      "url": "https://github.com/OWASP-Benchmark/BenchmarkUtils.git",
+      "commit": "beb6ef94ad8828e101598e2e9624374e7219e33c",
+      "role": "The scorer being audited. scoring/owasp_original.py is a port of this exact revision.",
+      "clone_path": "upstream/benchmarkutils",
+      "notes": [
+        "A branch named 'generalizeScoring' exists upstream, suggesting the maintainers are themselves revising scoring. Check it before publishing; if our finding is already addressed there, it changes the framing from 'undocumented' to 'known but unreleased'."
+      ],
+      "generalizeScoring_branch": {
+        "commit": "a279082d199d31d066fcb02bc495cd7fc18d7bb0",
+        "checked_on": "2026-09-14",
+        "scale": "201 files changed, +9980/-5035; a substantial rewrite (CategoryResults -> CategoryMetrics, ToolResults -> ToolMetrics)",
+        "what_it_fixes": "The hardcoded tool-specific leniency is DELETED. compare() no longer special-cases CWE 564->89 or 328->327-for-AppScan/Veracode/CodeQL. It now does exact match, then a uniform ChildOf/ParentOf walk over the CWE category hierarchy via Categories.getCategoryByCWE(), applied to every tool identically. This is the fix for the cross-tool comparability defect.",
+        "what_it_does_not_fix": "The macro-averaging is unchanged. BenchmarkScore.java on the branch still does metrics.setTruePositiveRate(totalTPRate / numCategories) and setFalsePositiveRate(totalFPRate / numCategories) -- an unweighted mean over categories, not over cases. CategoryMetrics.java:67 still has `this.score = tpr - fpr`.",
+        "consequence_for_framing": "The comparability finding must be written as 'defect in the reference scorer, already addressed on an unreleased upstream branch'. The aggregation finding stands on its own and is NOT addressed, so it remains the durable contribution."
+      }
+    }
+  },
+  "datasets": {
+    "javavfc": {
+      "url": "https://zenodo.org/records/13731781",
+      "path": "sastaudit/data/javavfc/javavfc.jsonl",
+      "sha256": "fe781197d3b1ac9e7bc59a7008d70a4dd4a6b7b92943c6bc49ac2a0b42c90d68",
+      "bytes": 18098802,
+      "records": 784,
+      "advertised_as": "manually-verified Java vulnerability-fixing commits",
+      "measured_composition": {
+        "genuine_security_fix_rate": 0.18,
+        "ci95": [
+          0.104,
+          0.295
+        ],
+        "not_security_rate": 0.623,
+        "not_security_range_under_rubric_variation": {
+          "_why": "The most contested rubric choice is whether availability failures count as security. The answer is not one number -- it depends on the vocabulary -- so both measured ends are given and the range between them is this row's error bar. DoS is CWE-400, so a reader may reasonably disagree with the applied rubric, and the disagreement is not small.",
+          "as_applied_availability_is_reliability": 0.623,
+          "availability_is_security_narrow_vocabulary": 0.475,
+          "availability_is_security_wide_vocabulary": 0.426,
+          "range": [
+            0.426,
+            0.623
+          ],
+          "flagged_of_38_N_labelled": {
+            "narrow": 9,
+            "wide": 12
+          },
+          "a_correction": "An earlier draft quoted a single generous figure of 44.3%, with 36% as the low end of the range. That number was computed nowhere in this codebase and could not be re-derived -- an unpinned statistic of exactly the kind this study criticises, sitting in this study's own write-up. Both ends are now computed in eval/corpus_audit.py and persisted. The wide vocabulary is deliberately not extended further: widening a proxy until it reproduces a preferred figure is the practice being documented."
+        },
+        "method": "hand labels, two disjoint interleaved systematic samples (usables[::26] and usables[13::26]), labelled separately, n=61",
+        "interleaved_halves": {
+          "A_n31": {
+            "genuine_security_fix_rate": 0.161,
+            "ci95": [
+              0.071,
+              0.326
+            ],
+            "not_security_rate": 0.613
+          },
+          "B_n30": {
+            "genuine_security_fix_rate": 0.2,
+            "ci95": [
+              0.095,
+              0.373
+            ],
+            "not_security_rate": 0.633
+          }
+        },
+        "halves_note": "Reported separately rather than only pooled. A single labeller cannot supply inter-rater agreement; what two independently-read disjoint halves supply is a check that the rate is not an artefact of one reading. They agree, and the agreement is stability, not correctness.",
+        "rubric": "Y = a specific exploitable flaw fixed in code, or a security defect eliminated. P = security-motivated but not a code-level flaw fix (CVE dependency bump, resource-exhaustion limit, test-only, hardening). N = crash, deadlock, infinite recursion, overflow, OOM, performance, functional bug. DoS is N, matching this study's own shipped-alternative taxonomy, which classes it as reliability.",
+        "report": "results/javavfc_composition.json"
+      },
+      "notes": [
+        "`files` field is an empty list in all 784 records; unusable. The diff must be parsed out of `diff_raw`.",
+        "`diff_raw` is verbatim `git show` output, so both revisions of every changed file are reconstructible without cloning: fetch the file at the fix commit, then `git apply -R` the patch for the vulnerable side.",
+        "The corpus is temporally narrow (705 of 784 commits in 2023, 79 in 2024), which forecloses a temporal-split design.",
+        "The shipped VULNERABILITY_PATTERN admits `fix ... crash|clashing|bypass|auth` within 50 characters, which is how non-security commits enter. See corpus/security_filter.py.",
+        "Duplicate and backported fixes are present, and the sha does not reveal them. The 120-commit security stratum carries 117 distinct shas but only 111 distinct patch sets: the same upstream fix arrives through forks -- frameworks_base and platform_frameworks_base are one project, as are android_packages_apps_Trebuchet and lawnchair -- and one Jenkins commit appears three times. Counting repeats as independent observations would inflate n and narrow the interval around the headline rate without adding a fact. Analyses report n on distinct patches and state both numbers."
+      ]
+    },
+    "owasp_benchmark": {
+      "source": "sastaudit/upstream/benchmarkjava",
+      "ground_truth": "expectedresults-1.2.csv",
+      "cases": 2740,
+      "vulnerable": 1415,
+      "safe": 1325,
+      "revisions_in_corpus": 0,
+      "revisions_note": "The corpus is 2,740 separate static files with no revision anywhere: no case is presented as a before and an after. So the quantity Section 3.2 measures -- does a tool's verdict move when the vulnerability is removed -- is not merely unmeasured on this corpus, it is not expressible. This is a property of what the benchmark contains, not a judgement about it.",
+      "safe_case_construction": {
+        "measured_by": "sastaudit/eval/benchmark_structure.py -> results/benchmark_structure.json",
+        "method": "Each safe case paired one-to-one with the most similar vulnerable case in its own category, at line granularity over non-blank stripped lines, counting at >= 0.90. Candidates above the threshold are assigned greedily strongest-first, each case used at most once; scoring each safe case against its own best match independently is NOT a pairing, because the generator's shared scaffolding inflates similarity across a whole category. A heuristic, not ground truth: an unpaired case is a limit of the search, not a statement about the corpus.",
+        "threshold": 0.9,
+        "paired": 185,
+        "of_safe": 1325,
+        "unpaired": 1140,
+        "kinds": {
+          "substitution": 185,
+          "purely_additive": 0,
+          "pure_deletion": 0,
+          "identical": 0
+        },
+        "what_it_supports": "Where the benchmark's safe cases pair to a twin at all, every one differs by substitution -- a construct replaced, never one added. That is the shape the claim in Section 3.3 requires, and the shape 20.7% of real fixes do not take.",
+        "agrees_with_the_real_stratum_on": "substitution dominates and a purely additive pair does not occur",
+        "a_correction": "Two earlier versions of this number are recorded because both were wrong in instructive ways. The write-up first carried 675 paired / 674 substitution / 1 pure deletion / 650 unpaired as a bare figure not reproducible from any code in this repository -- the same defect Section 4 corrects at 44.3%, committed here first. The first runnable version of the search then reported 218 pairs, which the one-to-one check in tests/test_benchmark_structure.py disproved: those 218 claimed only 171 distinct vulnerable cases, so 47 were matches to the shared scaffold rather than to a twin. Enforcing a bijection gives 185. Only the qualitative claim -- substitution yes, addition no -- survives all three, and it is the only part the argument uses.",
+        "open": "A character-level variant would pair more cases than the line-level search does. Not run: the match is CPU-bound and the CodeQL stratum was in flight, and Section 7 records resource contention starving that run to a tenth of its speed. It would raise the paired count, not change the qualitative claim, which holds at both the strict and the loose end.",
+        "paired_rate": 0.1396
+      }
+    }
+  },
+  "tools": {
+    "semgrep": {
+      "version": "1.177.0",
+      "install": "pip install semgrep==1.177.0 into /home/amon/Projects/Patch/venv",
+      "rulesets": {
+        "p-java.yaml": {
+          "source": "https://semgrep.dev/c/p/java",
+          "sha256": "5e652fa9ac09c9fac36bbadc3562a0c8eed1a47438a9d1f545e021ae3c5648b1",
+          "rules": 60
+        },
+        "p-java-best.yaml": {
+          "source": "deduplicated union of https://semgrep.dev/c/p/java, /p/security-audit, /p/owasp-top-ten",
+          "sha256": "77df32e0ff678337dcf842b7429c702ff469876142daa5446d7478d5ac78ac64",
+          "rules": 690,
+          "role": "The evaluation ruleset. Chosen to give Semgrep its maximum chance, so that any coverage shortfall is attributable to the tool rather than to a thin ruleset.",
+          "why_pinned": "The registry URL resolves to whatever is current on the day. Pinning the bytes is what makes the coverage number reproducible."
+        }
+      },
+      "verified_detection_baseline": {
+        "detected": [
+          "SQL string concatenation (java...formatted-sql-string)",
+          "ProcessBuilder(userInput) (java...tainted-cmd-from-http-request)"
+        ],
+        "not_detected": [
+          "Runtime.getRuntime().exec(userInput) -- the canonical Java command injection, missed even at 690 rules, in three syntactic variants"
+        ],
+        "report": "recorded in results/semgrep_security.json under positive_control"
+      }
+    },
+    "opengrep": {
+      "version": "1.30.0",
+      "install": "unpacked into sastaudit/tools/bin/opengrep (no PyPI package)",
+      "role": "A fork of the Semgrep engine, so it is NOT an independent implementation -- agreement between the two would be weak evidence. It is reported as a separate data point because the two were measured to disagree.",
+      "divergence_from_semgrep": {
+        "on_controls": "identical: same 12/18 detections, same 1/3 false positives, byte-identical finding sets on all 21 files",
+        "on_owasp_benchmark": "materially different, on the SAME ruleset bytes (sha256 77df32e0): opengrep scores 42.54% (TPR 79.79%, FPR 37.25%) against Semgrep's 35.88% (TPR 77.97%, FPR 42.09%). +30 true positives, -56 false positives overall, with the differences concentrated in the taint-shaped categories (sqli +14/-39, xss +18/-17, cmdi +8/-36, pathtraver +10/-11) and absent from the categories where both are already perfect or already at zero (crypto, hash, securecookie, weakrand).",
+        "why_it_matters": "A 6.7-point swing in the published score, produced by swapping one build of an engine family for another while holding the corpus and the rule bytes fixed. Published OWASP scorecards name a tool, not a build, so this variation is unattributable from the scorecard alone.",
+        "consequence": "The earlier claim that the two are interchangeable was an over-generalisation from 21 files and has been retracted. Every table reports them separately.",
+        "divergence_is_confined_to_the_benchmark": {
+          "on_the_real_stratum": "Identical in every verdict-bearing respect. All 120 commits agree on vuln_rules, fixed_rules, finding counts and line numbers -- 0 of 120 differ in any of those. Totals match exactly: 26 findings on vulnerable revisions, 23 on fixed, 9 distinct rules, coverage 7.50%, residual 6.67%, decomposition 8 both / 1 vuln-only / 0 fixed-only / 111 neither, verdict flip 0.83%, 0 findings on a removed line. Each commit is scanned as two isolated revisions, so this is agreement over 240 scans. ONE difference exists, and it is the only one found: all 9 commits carrying a finding disagree on the CWE display string -- Semgrep records the full name ('CWE-611: Improper Restriction of XML External Entity Reference'), opengrep the bare identifier ('CWE-611'). No CWE identifier differs; normalised, 120 of 120 agree and the remaining 111 have no CWE to compare. An earlier version of this entry said '0 of 120 commits differ in any respect', which the comparison of vuln_cwes/fixed_cwes across the two result files disproves. It does not reach the benchmark half of the comparison, which parses the bare CWE-<n> tag out of each SARIF rule (benchmark_owasp.py:83) and dropped zero findings for an unparseable CWE -- so the divergence is a property of the two binaries' SARIF formatting on the real corpus, not of what they detect.",
+          "the_three_way_picture": {
+            "controls_21_files": "identical",
+            "real_stratum_120_commits": "identical",
+            "owasp_benchmark_2740_cases": "differ by +30 TP / -56 FP (6.7 score points)"
+          },
+          "why_this_matters_more_than_the_swing_alone": "The two builds differ only where the synthetic corpus is. Whatever engine-internal behaviour separates them, it has no observable effect on any of 120 real security fixes, while moving the published score by 6.7 points. A statistic that responds to a variable with no measurable effect on the quantity it claims to measure is not measuring that quantity. This is the clearest single piece of evidence in the study that the benchmark score is not a proxy for real detection capability -- and it requires both halves of the study to see, since either measurement alone shows nothing unusual.",
+          "caveat": "Semgrep and opengrep are one engine family, so agreement between them is weak evidence about detection in general; it is strong evidence about engine-build sensitivity specifically, which is the claim being made. The real-stratum comparison is over the single-file security stratum at n=120, not the CVE stratum."
+        }
+      },
+      "engine_divergence": "opengrep removed telemetry and rejects --metrics, which Semgrep accepts. The adapter carries an _engine_flags() hook for exactly this; a shared command line would have made one of the two fail outright."
+    },
+    "codeql": {
+      "version": "2.27.0",
+      "install": "unpacked into sastaudit/tools/bin/codeql",
+      "role": "The independent implementation. Taint-tracking via a compiled database of QL queries, methodologically unlike the Semgrep family's pattern matching -- which is what makes the two-way comparison worth making.",
+      "suite": "codeql/java-queries:codeql-suites/java-security-extended.qls",
+      "queries_in_suite": 124,
+      "build_mode": "none",
+      "build_mode_note": "The load-bearing configuration choice. With no build mode, CodeQL extracts each source file on its own rather than compiling a project, which is the only way to analyse a single reconstructed revision of one file. Verified empirically rather than assumed: on the isolated control files, with no servlet jar on the classpath, it still resolved HttpServletRequest.getParameter as a taint source and tracked it interprocedurally. GitHub rates this mode 'Good' rather than 'Best' accuracy and does not analyse generated code; both caveats are carried into every result file as note_on_mode.",
+      "query_packs": {
+        "_why": "A suite name alone is not a reproducible description -- the pack behind it is updated independently of the CLI. These two pins are what actually determine the findings: the first is the query source, the second is the library the queries compile against.",
+        "codeql/java-queries": "1.11.10",
+        "codeql/java-all": "9.3.0",
+        "codeql/suite-helpers": "1.0.57",
+        "codeql/util": "2.0.44",
+        "codeql/dataflow": "2.1.13"
+      },
+      "resolution_method": "`codeql resolve queries <suite>` prints 'Recording pack reference <name> at <path>/<version>' lines. The adapter parses those (tools/codeql.py:_PACK_REF) rather than trusting a version string in the log, so each result file records the packs that were genuinely loaded. `resolve queries --format=json` was tried first and does not emit JSON.",
+      "measured_on_controls": {
+        "detected": "16/18 canonical vulnerabilities",
+        "negative_controls_flagged": "0/3",
+        "not_detected": [
+          "ctrl_weakrand_random",
+          "ctrl_hardcoded_password"
+        ],
+        "report": "results/controls_matrix.json"
+      },
+      "known_limitations": {
+        "commit_loss_under_memory_pressure": {
+          "observed": "When a query in the suite runs out of heap, the evaluator dies, CodeQL exits NONZERO and writes no SARIF, so the WHOLE COMMIT is lost -- not one query's results. Seen on the JavaVFC security stratum: Security/CWE/CWE-020/OverlyLargeRange.ql OOM'd ('Java heap (and arrays) maximum: 813 MiB') and the commit was recorded as `ToolError: database analyze failed`, 2 of the first 15 commits attempted.",
+          "a_correction": "This entry previously stated the opposite: that CodeQL 'exits 0 when an individual query runs out of heap and simply omits its results from the SARIF, which is indistinguishable from that query running and matching nothing'. That was written from expectation and is wrong for this failure mode. It was corrected after the run recorded a hard analyze failure whose stderr was a query OOM. The error is recorded here rather than quietly deleted because it is an instance of this study's own subject -- a plausible mechanism asserted without measurement, which survived until something measured it.",
+          "why_the_distinction_matters": "Losing a query is SILENT: it is indistinguishable from that query running and matching nothing, which is the exact conflation this study exists to name. Losing a commit is LOUD: it lands in `scan_failures`, the run is marked `incomplete`, and --resume retries failures (load_partial deliberately does not recover them). So the expensive failure is the recoverable one, and the sample can be completed rather than being quietly thinned.",
+          "what_is_not_established": "Whether some other class of query failure is non-fatal and DOES exit 0 with a partial SARIF. `real_corpus.failed_queries()` parses stderr for that case; if the OOM behaviour above is the only failure mode, that parser never fires. It is retained because it is correct for the case it describes, not because it has been observed to fire.",
+          "cause": "CodeQL bounds its total footprint by --ram and derives a smaller JVM heap from it. MEASURED, not inferred: --ram=1500 yields a heap maximum of 772-813 MiB, read off the evaluator's own OOM message on UnreleasedLock.ql and OverlyLargeRange.ql. Both are marginal queries -- a concurrency lint and a range-width check that merely ship inside the security-extended suite -- and they exhaust the heap on a small number of commits. An earlier version of this entry additionally claimed that the flag's documented 2048 MB minimum meant 1500 'was already being rounded up'. That is contradicted by those same measurements and has been removed.",
+          "ram_revision": {
+            "what_changed": "The --ram budget for the JavaVFC security stratum was raised from 1500 to 3072, part-way through the run, on resume.",
+            "why": "1500 was chosen to avoid memory pressure on a host shared with a desktop session. The reasoning was sound but its PREMISE was false: the pressure came from leaked CodeQL process trees (see process_tree_leak_on_timeout below), not from the evaluator's own footprint. With that leak fixed, ~5.5 GB is free and the budget being defended is no longer needed.",
+            "why_this_does_not_compromise_the_comparison": "Heap size is a resource parameter, not a measurement condition. It determines whether a query COMPLETES; it never changes what a query MATCHES. A scan that succeeds at 772 MiB produces byte-identical findings at 1.6 GiB. Every pinned condition -- suite, pack versions, build mode, ruleset, corpus -- is untouched. The revision's only effect is that commits which previously crashed now yield data: it fills in missing observations rather than adding favourable ones. Failure counts under each budget are reported separately so the boundary is visible.",
+            "why_not_a_clean_restart": "Considered and rejected as unnecessary: the 15 commits that succeeded under 1500 are valid observations, and re-running them would spend ~40 minutes reproducing identical findings. Recorded here rather than done silently, because the study's subject is precisely the practice of changing a parameter mid-measurement and not saying so."
+          }
+        },
+        "process_tree_leak_on_timeout": {
+          "observed": "`subprocess.run(..., timeout=)` kills only the DIRECT child on timeout. For CodeQL that child is the `/bin/sh` launcher, and the java extractor it forked survives as an orphan -- still resident, still holding the pipes it inherited. MEASURED against the real binary, not reasoned about: a 2-second timeout on `database create` raises ToolError at exactly 2.0s and leaves 2 java processes behind.",
+          "cost": "One extractor tree peaks at 2234 MB RSS against ~3.6 GB available on this host. Several accumulated over a 120-commit run, after which every commit ran at roughly a tenth of its speed. The run emitted no output for ~2 hours and was diagnosed as hung. It was not hung -- it was STARVED. Freeing the leaked trees mid-run restored throughput immediately: 14 -> 15 commits in about a minute, against ~10 minutes per commit while the leaks were resident.",
+          "why_it_matters_here": "This is an instance of the study's own subject: a silent stall indistinguishable from 'still working'. The harness's timeout reported success on schedule, and nothing observable at the call site could reveal the leak. Only looking for the survivors exposed it -- which is what the regression test now does.",
+          "two_wrong_hypotheses": "Recorded because both were plausible and both were disproved by measurement, which is the standard this study asks of others. (1) 'subprocess.run's timeout is defeated by a process tree, so the timeout never fires.' False: a faithful synthetic tree raises TimeoutExpired on schedule. (2) '--build-mode=none is not being honoured, because stderr shows autobuild.sh running.' False: under no-build mode CodeQL still invokes autobuild.sh, which in that mode only enumerates files and indexes them via index-files.sh; it never compiles. Both were caught by running the thing instead of reasoning about it.",
+          "fixed": "tools/codeql.py:_run now launches with start_new_session=True and SIGKILLs the entire process group via os.killpg on timeout, then verifies the group is empty and says so in the error rather than reporting a clean timeout. tests/test_codeql_reclaim.py pins the behaviour, including a test against the real binary; the hermetic test was confirmed to FAIL against the old implementation, so it discriminates rather than passing vacuously.",
+          "one_failure_is_self_inflicted": "The `database create failed` record on commit index 16 was produced by killing the stuck tree by hand during diagnosis. It is not a CodeQL behaviour. --resume retries it. Called out so the failure tally is not read as a tool property.",
+          "testing_note": "The regression test for this fix then failed for a third reason, which is the same failure mode reappearing inside the guard written against it. It counted the scanner's processes globally, before and after; any concurrent CodeQL run had children appear between the two snapshots and counted as survivors. It passed alone and failed under the full suite -- and failed under the full suite precisely while a real stratum was being scanned. It is now scoped to the temp directory that test alone creates, and the detection was re-proved sensitive by leaking a real tree deliberately: four processes survive a direct-child-only kill and the scoped detector names all four.",
+          "test_timeout_seconds": 5,
+          "test_timeout_note": "5s: measured on this host, the java process is resident within ~1s and a single-file `database create` takes ~18s, so the timeout lands after the JVM is up and before the command completes. The test asserts which path it took and skips rather than passing if the command finished first or no tree was ever observed -- a survivor check that saw no tree proves nothing."
+        }
+      }
+    }
+  },
+  "control_set": {
+    "_why": "A zero from a misconfigured scanner and a zero from a working scanner are the same number. Every scan in this study is preceded by a run against this set, and a result file without a positive control is treated as void.",
+    "path": "sastaudit/controls/src",
+    "manifest": "sastaudit/controls/manifest.json",
+    "manifest_sha256": "4f887d8b14f0b35fb548132d1894d6637d4d3ea1fe75a142ab1b10f457d59084",
+    "files": 21,
+    "composition": "18 canonical vulnerabilities spanning the benchmark's own categories, 3 negative controls (safe variants of a vulnerable case, each declaring pairs_with so the matrix compares like with like)",
+    "matrix": "results/controls_matrix.json"
+  },
+  "excluded_tools": {
+    "_why": "The question 'why is <scanner> not here' is one a reviewer will ask, and the answer is a property of the study design rather than of the tool. Reasons are kept in code (tools/__init__.py:EXCLUDED) so they cannot drift from the runs they justify, and mirrored here so the artifact is self-contained.",
+    "pmd": "Its category/java/security.xml contains exactly two rules (HardCodedCryptoKey, InsecureCryptoIv) and includes no SQL injection, XSS, or path traversal rule. It is a linter, not a taint analyser, so scoring it on the OWASP Benchmark would measure its purpose rather than its quality -- the precise error this study criticises. Confirmed by inspecting the shipped jar, after an initial run returned files:[] which was not trusted.",
+    "spotbugs": "FindSecBugs analyses compiled bytecode, which the real-world corpus cannot supply: reconstructing a buildable project from one changed file is not possible. Including it would also force a build on the OWASP side, giving the two halves of the study different measurement conditions.",
+    "infer": "Same bytecode requirement as SpotBugs, plus a per-commit compilation database the reconstruction method cannot produce."
+  },
+  "benchmark_versions": {
+    "1.2": {
+      "ground_truth": "upstream/benchmarkjava/expectedresults-1.2.csv",
+      "cases": 2740,
+      "categories": 11
+    },
+    "1.1": {
+      "cases_reported_in_scorecards": 2708,
+      "note": "v1.1 appears in the historical per-category scorecards. Not yet used; v1.2 is the primary corpus."
+    }
+  }
+}

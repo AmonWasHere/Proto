@@ -1,0 +1,29 @@
+{
+  "note": "One shared control set, scanned by every tool in the study. Each file is a minimal, hand-checked instance of a single vulnerability class, plus three negative controls that are not vulnerable. The point is to make tool capability a measurement rather than an assertion: a matrix of detection rates is only interpretable alongside the same tools' behaviour on code that should NOT be flagged, so the safe files carry equal weight here.",
+  "provenance": "Written for this study. Deliberately shaped after the OWASP Benchmark categories so the matrix speaks to the benchmark's own axes, but not copied from it -- the benchmark's cases are synthetic multi-file servlets, and these are single self-contained classes.",
+  "caveat": "These are canonical instances, not a random sample of real code. A tool that detects 18/18 here is not thereby good; it is only shown not to be blind to the textbook forms. The real-corpus measurement is what tests generalisation.",
+  "cases": [
+    {"file": "src/ctrl_cmdi_runtime_exec.java", "expect": "vulnerable", "cwe": "CWE-78", "category": "cmdi", "shape": "Runtime.getRuntime().exec(userInput)"},
+    {"file": "src/ctrl_cmdi_processbuilder_inline.java", "expect": "vulnerable", "cwe": "CWE-78", "category": "cmdi", "shape": "new ProcessBuilder(userInput).start()"},
+    {"file": "src/ctrl_cmdi_processbuilder_assigned.java", "expect": "vulnerable", "cwe": "CWE-78", "category": "cmdi", "shape": "assigned ProcessBuilder, then start()"},
+    {"file": "src/ctrl_sqli_concat.java", "expect": "vulnerable", "cwe": "CWE-89", "category": "sqli", "shape": "Statement.executeQuery with concatenation"},
+    {"file": "src/ctrl_pathtraver_file.java", "expect": "vulnerable", "cwe": "CWE-22", "category": "pathtraver", "shape": "new File(base + userInput)"},
+    {"file": "src/ctrl_xpathi.java", "expect": "vulnerable", "cwe": "CWE-643", "category": "xpathi", "shape": "XPath.evaluate with concatenation"},
+    {"file": "src/ctrl_ldapi.java", "expect": "vulnerable", "cwe": "CWE-90", "category": "ldapi", "shape": "DirContext.search with concatenated filter"},
+    {"file": "src/ctrl_xxe_documentbuilder.java", "expect": "vulnerable", "cwe": "CWE-611", "category": "xxe", "shape": "DocumentBuilder.parse, no hardening"},
+    {"file": "src/ctrl_weakrand_random.java", "expect": "vulnerable", "cwe": "CWE-330", "category": "weakrand", "shape": "java.util.Random for a token"},
+    {"file": "src/ctrl_hash_md5_password.java", "expect": "vulnerable", "cwe": "CWE-328", "category": "hash", "shape": "unsalted MD5 over a password"},
+    {"file": "src/ctrl_crypto_des_ecb.java", "expect": "vulnerable", "cwe": "CWE-327", "category": "crypto", "shape": "DES/ECB encryption"},
+    {"file": "src/ctrl_xss_writer.java", "expect": "vulnerable", "cwe": "CWE-79", "category": "xss", "shape": "unescaped value into the response writer"},
+    {"file": "src/ctrl_insecurecookie.java", "expect": "vulnerable", "cwe": "CWE-614", "category": "securecookie", "shape": "Cookie without Secure/HttpOnly"},
+    {"file": "src/ctrl_trustbound.java", "expect": "vulnerable", "cwe": "CWE-501", "category": "trustbound", "shape": "request value stored in the session"},
+    {"file": "src/ctrl_deserialization.java", "expect": "vulnerable", "cwe": "CWE-502", "category": "deserialization", "shape": "ObjectInputStream.readObject on request bytes"},
+    {"file": "src/ctrl_ssrf_url.java", "expect": "vulnerable", "cwe": "CWE-918", "category": "ssrf", "shape": "URL.openConnection on a client-supplied URL"},
+    {"file": "src/ctrl_open_redirect.java", "expect": "vulnerable", "cwe": "CWE-601", "category": "open_redirect", "shape": "sendRedirect to a client-supplied target"},
+    {"file": "src/ctrl_hardcoded_password.java", "expect": "vulnerable", "cwe": "CWE-798", "category": "hardcoded", "shape": "credential literal in source"},
+
+    {"file": "src/ctrl_sqli_safe_prepared.java", "expect": "safe", "cwe": "CWE-89", "category": "sqli", "shape": "same query, bound parameter", "pairs_with": "src/ctrl_sqli_concat.java"},
+    {"file": "src/ctrl_safe_fixed_command.java", "expect": "safe", "cwe": "CWE-78", "category": "cmdi", "shape": "same sink, constant command", "pairs_with": "src/ctrl_cmdi_runtime_exec.java"},
+    {"file": "src/ctrl_safe_path_canonical.java", "expect": "safe", "cwe": "CWE-22", "category": "pathtraver", "shape": "same constructor, canonical-path containment check", "pairs_with": "src/ctrl_pathtraver_file.java"}
+  ]
+}

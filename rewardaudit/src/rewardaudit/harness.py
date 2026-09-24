@@ -18,6 +18,9 @@ from .analyzers.base import Analyzer, AnalyzerError
 from .analyzers.opengrep import Opengrep
 from .controls import control_matrix, load_controls
 from .cpg import Cpg
+from .datasets import canary_report, load_canaries, load_pairs
+from .decomposition import by_category, decompose
+from .ledger import Ledger, new_run_id
 from .llm import build_backend
 from .schema import Finding
 from .verifiers.base import VerificationContext
@@ -45,12 +48,16 @@ def build_manifest(analyzer: Analyzer, target: Path, rules: Path | None) -> dict
     }
 
 
-def run_opengrep_over(target: Path) -> tuple[Analyzer, list[Finding]]:
-    analyzer = Opengrep(config.OPENGREP_BIN, config.JAVA_RULES)
+def run_scan(target: Path, rules: Path) -> tuple[Analyzer, list[Finding]]:
+    analyzer = Opengrep(config.OPENGREP_BIN, rules)
     if not analyzer.available():
         raise AnalyzerError(f"opengrep not available at {config.OPENGREP_BIN}")
     result = analyzer.scan(target)
     return analyzer, result.findings
+
+
+def run_opengrep_over(target: Path) -> tuple[Analyzer, list[Finding]]:
+    return run_scan(target, config.JAVA_RULES)
 
 
 def cmd_controls(args: argparse.Namespace) -> int:
@@ -98,6 +105,74 @@ def cmd_judge(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_pairs(args: argparse.Namespace) -> int:
+    """Four-way decomposition over vulnerable/fixed revision pairs."""
+    pairs_dir = Path(args.dir)
+    rules = Path(args.rules)
+    pairs = load_pairs(pairs_dir / "manifest.json")
+    analyzer, findings = run_scan(pairs_dir, rules)
+    report = decompose(pairs, findings)
+    counts = report.counts()
+
+    print(f"analyzer: {analyzer.name} {analyzer.version()}")
+    print(f"rules:    {rules}")
+    print(f"pairs:    {report.total}   findings: {len(findings)}")
+    print()
+    for pair in pairs:
+        cell = report.cells[pair.id]
+        print(f"  {cell.value:10} {pair.id}")
+    print()
+    print(f"counts:        {counts}")
+    print(f"naive coverage: {report.naive_coverage:.2%}  (flagged on the vulnerable revision)")
+    print(f"flip rate:      {report.flip_rate:.2%}  (verdict moved with the fix)")
+    print(f"over-report:    {report.over_report_factor:.2f}x")
+    print(f"by category:    {by_category(report)}")
+
+    if args.ledger:
+        ledger = Ledger(args.ledger)
+        run_id = new_run_id()
+        ledger.record(
+            run_id, "manifest", analyzer=analyzer.name, version=analyzer.version(),
+            rules=str(rules), target=str(pairs_dir),
+        )
+        for finding in findings:
+            ledger.record(
+                run_id, "finding", id=finding.id, rule=finding.rule,
+                path=finding.location.path, line=finding.location.start_line,
+            )
+        ledger.record(run_id, "decomposition", counts=counts, flip_rate=report.flip_rate)
+        print(f"\nledger appended: {args.ledger} (run_id={run_id})")
+
+    if args.json:
+        payload = {
+            "cells": {k: v.value for k, v in report.cells.items()},
+            "counts": counts,
+            "naive_coverage": report.naive_coverage,
+            "flip_rate": report.flip_rate,
+        }
+        Path(args.json).write_text(json.dumps(payload, indent=2))
+        print(f"wrote {args.json}")
+    return 0
+
+
+def cmd_canaries(args: argparse.Namespace) -> int:
+    """Scan the canary set: correct behaviour is zero findings (no false positives)."""
+    canary_dir = Path(args.dir)
+    rules = Path(args.rules)
+    analyzer, findings = run_scan(canary_dir, rules)
+    report = canary_report(load_canaries(canary_dir / "manifest.json"), findings)
+
+    print(f"analyzer: {analyzer.name} {analyzer.version()}")
+    print(f"canaries: {report['total']}   flagged: {report['flagged']}")
+    print()
+    for row in report["rows"]:
+        mark = "FP " if row["flagged"] else "ok "
+        print(f"  {mark} {row['file']}  ({row['reason']})")
+    if args.json:
+        Path(args.json).write_text(json.dumps(report, indent=2))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="rewardaudit.harness")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -112,6 +187,19 @@ def main(argv: list[str] | None = None) -> int:
     p_judge.add_argument("--backend", default="mock", choices=["mock", "local", "cloud"])
     p_judge.add_argument("--limit", type=int, default=5)
     p_judge.set_defaults(func=cmd_judge)
+
+    p_pairs = sub.add_parser("pairs", help="four-way decomposition over revision pairs")
+    p_pairs.add_argument("--dir", default=str(config.PYTHON_PAIRS))
+    p_pairs.add_argument("--rules", default=str(config.PYTHON_RULES))
+    p_pairs.add_argument("--json", default="")
+    p_pairs.add_argument("--ledger", default="")
+    p_pairs.set_defaults(func=cmd_pairs)
+
+    p_can = sub.add_parser("canaries", help="scan the canary set (false-positive check)")
+    p_can.add_argument("--dir", default=str(config.PYTHON_CANARIES))
+    p_can.add_argument("--rules", default=str(config.PYTHON_RULES))
+    p_can.add_argument("--json", default="")
+    p_can.set_defaults(func=cmd_canaries)
 
     args = parser.parse_args(argv)
     return args.func(args)
