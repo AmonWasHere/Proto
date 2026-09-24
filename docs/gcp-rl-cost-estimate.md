@@ -1,175 +1,182 @@
 # Google Cloud RL Cost Estimate (contingency)
 
-Answers: *if we ever run the RL experiment (E2/C4), what does it cost on GCP?*
+Answers: *if we run the RL experiment (E2/C4), what does it cost on GCP?*
 Companion to `docs/compute-and-model-strategy.md` §6.
 
-> **Status:** contingency only. The project is currently **inference-only, $0–$1k**
-> (ADR-0002). This document prices the deferred RL path.
+> **Status:** contingency. The project is currently **inference-only, $0–$1k**
+> (ADR-0002). This prices the deferred RL path.
 >
-> **Pricing caveat:** TPU figures below are as-fetched from
-> `cloud.google.com/tpu/pricing` (2026-09-24). GPU figures are **approximate**
-> us-central1 on-demand list prices for planning — verify in the
-> [GCP pricing calculator](https://cloud.google.com/products/calculator) before
-> committing. Regions, quotas, and DWS availability change the numbers.
+> **Sources (fetched 2026-09-24):**
+> - GPU/VM prices: [gcloud-compute.com](https://gcloud-compute.com/) (data last
+>   updated **2026-09-21**, derived from GCP list prices), us-central1.
+> - TPU prices: [cloud.google.com/tpu/pricing](https://cloud.google.com/tpu/pricing) (official).
+> - Environment CPU prices are **estimates** (see §2), not fetched.
+>
+> GPU monthly ÷ 730 = per-hour used for CUD rows.
 
 ---
 
-## 1. GCP accelerators relevant here
+## 1. Actual GCP accelerator prices (us-central1, USD/hour)
 
-| Machine series | Example type | Accelerator | Approx. on-demand (USD/hr) |
-|---|---|---|---|
-| A2 (Ampere) | `a2-ultragpu-1g` | 1× A100 80 GB | ~$5.07 |
-| A2 (Ampere) | `a2-ultragpu-8g` | 8× A100 80 GB | ~$40.6 |
-| A2 (Ampere) | `a2-highgpu-1g` | 1× A100 40 GB | ~$3.67 |
-| A3 (Hopper) | `a3-highgpu-8g` | 8× H100 80 GB | ~$88.3 |
-| A3 Ultra | `a3-ultragpu-8g` | 8× H200 | ~$110+ |
-| G2 (Ada) | `g2-standard-4` | 1× L4 24 GB | ~$0.71 |
-| G2 (Ada) | `g2-standard-24` | 2× L4 24 GB | ~$1.7 |
-| N1 + T4 | `n1-standard-4` + T4 | 1× T4 16 GB | ~$0.55–0.70 |
+| Machine type | Accelerator | Standard | Spot | 1-yr CUD | 3-yr CUD |
+|---|---|---|---|---|---|
+| `a2-highgpu-1g` | 1× A100 40 GB | **3.6734** | **2.2040** | 2.3134 | 1.2857 |
+| `a2-ultragpu-1g` | 1× A100 80 GB | **5.0688** | **3.0412** | n/a* | n/a* |
+| `a2-highgpu-8g` | 8× A100 40 GB | **29.3871** | **17.6321** | 18.5137 | 10.2857 |
+| `a3-highgpu-8g` | 8× H100 80 GB | **88.4900** | **52.9623** | 61.3837 | 38.8644 |
+| `g2-standard-4` | 1× L4 24 GB | **0.7068** | **0.4241** | 0.4453 | 0.3181 |
+| `g2-standard-24` | 2× L4 24 GB | **2.0008** | **1.2003** | 1.2605 | 0.9004 |
 
-**Discounts**
-- **Spot:** up to ~91% off; GPU spot typically **60–70% off**. Preemptible →
-  checkpoint aggressively. Prices change up to monthly.
-- **CUD:** 1-year **37% off**, 3-year **55% off** (resource-based). Cannot combine
-  with Spot.
-- **DWS Flex-start:** fixed-duration accelerator reservations at a large discount
-  (see TPU table — Flex is ~50% of on-demand). Useful for a bounded RL run.
-- **SUD:** automatic up to 30% for non-committed, >25%-of-month usage.
+\* `a2-ultragpu-1g` shows no CUD discount in the source data — verify before
+relying on a commitment for A100 80 GB.
 
-**Confirmed TPU prices (chromebooks fixed, per chip-hour, on-demand → Flex → 1yr CUD)**
+Other regions cost 15–38% more; `us-central1` (Iowa) is at or near cheapest.
+A3/H100 spot is volatile (us-central1 ~$52.96, but Finland ~$9.14 when capacity
+is idle).
 
-| TPU | On-demand | Flex-start | 1yr CUD |
+**Official TPU prices** (per chip-hour, on-demand / DWS Flex / 1-yr CUD):
+
+| TPU | On-demand | Flex-start | 1-yr CUD |
 |---|---|---|---|
 | v5e | $1.20 | $0.60 | $0.84 |
 | v5p | $4.20 | $2.10 | $2.94 |
 | Trillium (v6e) | $2.70 | $1.35 | $1.89 |
 | Ironwood (v7) | $12.00 | $6.00 | $8.40 |
-| v4 | $3.22 | N/A | $2.03 |
+| v4 | $3.22 | — | $2.03 |
 
-> **TPU fit caveat:** the RL loop here is rollout-dominated and CUDA-centric
-> (vLLM for the policy, HF/TRL or verl for GRPO). TPU training is cheapest per
-> FLOP but the tool/sandbox environment is CPU-bound anyway, so **GPU is the
-> pragmatic default**. TPU is worth revisiting only if we adopt a JAX stack.
-
----
-
-## 2. RL workload sizing (recap from the compute doc)
-
-| Quantity | Value |
-|---|---|
-| Policy | 3–8B, LoRA adapter (frozen base, ADR-0001) |
-| Episodes / epoch | ~80,000 (Tier B) |
-| Raw tokens / epoch | 19.2B in / 1.28B out |
-| GPU per epoch (gen + prefill, cached) | 200–600 GPU-hr |
-| Policy updates | +20–40% |
-| **Environment/tool CPU** | **16k–160k vCPU-hr / epoch** |
-| Full serious run | 1,000–4,000 GPU-hr |
-
-The **environment CPU** line is the sleeper cost: every episode runs real
-analyzers/sandboxes. On GCP it is priced separately and is 25–40% of the bill.
+> **TPU fit caveat:** the RL loop is rollout-dominated and CUDA-centric (vLLM +
+> HF/TRL or verl). The environment is CPU-bound anyway. **GPU is the default**;
+> TPU only if we move to a JAX stack.
 
 ---
 
-## 3. Cost estimates by tier (GCP, us-central1)
+## 2. Assumptions
 
-Assumes 8× A100 80 GB (`a2-ultragpu-8g`, ~$40.6/hr/node) unless noted; env CPU at
-~$0.025/vCPU-hr on-demand; storage/egress minor.
+| Quantity | Value | Source |
+|---|---|---|
+| Policy | 3–8B LoRA (frozen base) | ADR-0001 |
+| Episodes/epoch | ~80,000 | compute doc |
+| GPU/epoch | 200–600 GPU-hr | compute doc |
+| Full serious run | 1,200 GPU-hr | compute doc |
+| Environment CPU | 0.5 vCPU-hr/episode → 120k vCPU-hr for 240k episodes | estimate |
+| Env CPU price | **$0.035 / vCPU-hr** on-demand, **$0.012** spot | *estimate* (n2/e2 class) |
+| Storage/egress | ~$50–300 | estimate |
 
-### Tier A — Minimal RL sanity run (prove the loop)
-3B policy, 1 verifier, ~20k episodes.
+Note: the 8×A100 node includes **96 vCPU / 680 GB RAM**, so part of the
+environment compute runs "free" on the GPU node. Net external CPU is reduced by
+~96 × node-hours in each tier (already subtracted below).
 
-| Line item | Qty | On-demand | Spot (~65% off) |
+> **Verify both caveats before budgeting:** (1) env-CPU price, (2) A100 80GB CUD.
+
+---
+
+## 3. RL cost estimates (us-central1)
+
+### Tier A — Minimal sanity run (3B, 1 verifier, ~20k episodes)
+
+| Line item | Qty | Standard | Spot |
 |---|---|---|---|
-| GPU (1×A100 80GB) | 120–160 GPU-hr | $610–$810 | $210–$290 |
-| Environment CPU | 10k vCPU-hr | $250 | $90 |
+| GPU `a2-highgpu-1g` (1×A100 40GB) | 120–160 GPU-hr | $441–$588 | $264–$353 |
+| Environment CPU | 10k vCPU-hr | $350 | $120 |
 | Storage/egress | — | ~$50 | ~$50 |
-| **Total** | | **~$0.9k–$1.1k** | **~$0.35k–$0.45k** |
+| **Total** | | **~$840–$990** | **~$430–$520** |
 
-### Tier B — Serious single-policy RL (paper-grade)
-3–8B, 3 verifiers, 3 epochs, ~1,200 GPU-hr.
+Cheaper pilot variant: `g2-standard-24` (2×L4) at $2.00/hr ($1.20 spot) — lower
+throughput, but roughly half the GPU cost for a 3B model.
 
-| Line item | Qty | On-demand | Spot (~65% off) | 1yr CUD (37% off) |
+### Tier B — Serious single-policy RL (3–8B, 3 verifiers, 3 epochs, ~1,200 GPU-hr)
+
+On `a2-highgpu-8g` (8×A100 40GB), 150 node-hours:
+
+| Line item | Qty | Standard | Spot | 1-yr CUD GPU + spot CPU |
 |---|---|---|---|---|
-| GPU (8×A100, ~150 node-hr) | 1,200 GPU-hr | $6,085 | $2,130 | $3,830 |
-| Environment CPU | 120k vCPU-hr | $3,000 | $1,050 | $3,000 |
+| GPU node | 150 node-hr | $4,408 | $2,645 | $2,777 |
+| Environment CPU (net) | ~77k vCPU-hr | $2,700 | $900 | $900 |
 | Storage/egress | — | ~$150 | ~$150 | ~$150 |
-| **Total** | | **~$9.2k** | **~$3.3k** | **~$5.0k** |
+| **Total** | | **~$7.3k** | **~$3.7k** | **~$3.8k** |
+| 3-yr CUD GPU + spot CPU | | | | ~$2.6k |
 
-*H100 node (`a3-highgpu-8g`) alternative: ~$13.2k on-demand — overkill for a
-3–8B policy; only justifies itself if rollouts are batch-1 latency-bound.*
+H100 alternative (`a3-highgpu-8g`): **$13.3k standard / $7.9k spot** — ~3× the
+A100 cost for no benefit at 3–8B. Only use if latency-bound.
 
-### Tier C — Frontier RL (full verifier ablations, 8B)
-~3,500 GPU-hr.
+### Tier C — Frontier RL (full verifier ablations, 8B, ~3,500 GPU-hr)
 
-| Line item | Qty | On-demand | Spot |
-|---|---|---|---|
-| GPU (8×A100, ~440 node-hr) | 3,500 GPU-hr | $17,850 | $6,250 |
-| Environment CPU | 300k vCPU-hr | $7,500 | $2,600 |
-| Storage/egress | — | ~$300 | ~$300 |
-| **Total** | | **~$25.6k** | **~$9.2k** |
+On `a2-highgpu-8g`, ~438 node-hours:
+
+| Line item | Qty | Standard | Spot | 1-yr CUD GPU + spot CPU |
+|---|---|---|---|---|
+| GPU node | ~438 node-hr | $12,857 | $7,714 | $8,100 |
+| Environment CPU (net) | ~258k vCPU-hr | $9,030 | $3,000 | $3,000 |
+| Storage/egress | — | ~$300 | ~$300 | ~$300 |
+| **Total** | | **~$22.2k** | **~$11.0k** | **~$11.4k** |
 
 ---
 
-## 4. Why GCP spot beats GCP on-demand by ~2.5–3×
+## 4. Summary
 
-| Tier | On-demand | Spot | CUD 1yr | Cheapest viable |
+| Tier | Scope | Standard | **Spot** | 1-yr CUD |
 |---|---|---|---|---|
-| A (sanity) | ~$1.0k | **~$0.4k** | ~$0.7k | Spot |
-| B (serious) | ~$9.2k | **~$3.3k** | ~$5.0k | Spot |
-| C (frontier) | ~$25.6k | **~$9.2k** | ~$14k | Spot |
+| A | 3B, 1 verifier, 20k episodes | ~$0.9k | **~$0.45k** | ~$0.6k |
+| B | 3–8B, 3 verifiers, 3 epochs | ~$7.3k | **~$3.7k** | ~$3.8k |
+| C | ablations, 8B, ~3,500 GPU-hr | ~$22.2k | **~$11.0k** | ~$11.4k |
 
-**But spot has a cost:** A100/H100 spot frequently preempts. You must checkpoint
-LoRA adapters + rollout buffers every few minutes, and use a resume-capable
-trainer. Add ~10–15% wallclock overhead. DWS Flex-start (fixed-duration, no
-preemption) is the middle ground if a discount is offered for the accelerator.
+**Spot vs standard: ~2× cheaper** (less than the 60–70% off on GPU alone,
+because environment CPU doesn't discount as much). **3-yr CUD** on tier B would
+reach ~$2.6k, but a multi-year commitment is unrealistic for a research pilot.
+
+**Environment CPU is 25–40% of the SPOT bill and up to 40% of standard** — the
+most commonly forgotten line item.
 
 ---
 
 ## 5. Cost-optimization checklist
 
-1. **Use A100 80GB, not H100,** for 3–8B policies — ~2× cheaper, same result.
-2. **Spot + checkpointing** for rollouts; keep the small trainer on-demand if
-   preemption hurts. Mixed procurement.
-3. **Environment CPU on Spot/`e2`/`n2`**, not the GPU node.
-4. **Cap context** (KV cache) — the dominant rollout cost.
-5. **Batch and cache** tool outputs; dedupe episodes; replay buffers.
-6. **DWS Flex-start** for a fixed 1–2 week RL window instead of continuous CUD.
-7. **Region arbitrage:** us-central1 cheapest; avoid premium regions.
-8. **Vertex AI tuning** (managed SFT/DPO) is an alternative for the *offline*
-   stages (no rollout control), charged per token — cheaper for SFT, unsuitable
-   for GRPO.
+1. **Use A100 40GB (`a2-highgpu-8g`), not H100** — ~3× cheaper, sufficient for
+   3–8B LoRA.
+2. **Spot + aggressive checkpointing** (LoRA + rollout buffer every few minutes).
+   Budget +10–15% wallclock for preemption/restart.
+3. **Run env CPU on Spot/`e2`/`n2`**, co-locating part on the GPU node's 96 vCPU.
+4. **Cap context** (KV cache dominates rollout cost).
+5. **DWS Flex-start** for a fixed 1–2 week window instead of continuous CUD.
+6. **Region:** us-central1 (cheapest, `us-east5`/`us-west1` same).
+7. **L4 (`g2-*`)** for 3B pilots — cheapest per hour, lower throughput.
+8. **Offline stages (SFT/DPO)** can use Vertex AI tuning instead of self-host.
 
 ---
 
-## 6. Credits that could fund RL
+## 6. Credits that could fund it
 
-- **$300 free credits** for new GCP accounts.
-- **Google for Startups Cloud Program** — up to hundreds of thousands in credits.
-- **Google Research Credits / academic grants** — relevant if affiliated.
-- **GCP research grants** for papers with public artifacts.
+- **$300** GCP new-account credits.
+- **Google for Startups Cloud Program** — large credits.
+- **Google Research Credits / academic grants** — for public-artifact papers.
 
-If any apply, Tier B on GCP moves from "out of budget" to "free."
-
----
-
-## 7. Verdict vs current budget
-
-Current decision: **inference-only, $0–$1k** (ADR-0002).
-
-- **Tier A on spot (~$0.4k)** is the only RL that fits the current budget — a
-  single-verifier sanity run, not a study. It would not support C4's
-  verifier-comparison claims.
-- **Tier B (~$3.3k spot)** is the minimum for a publishable RL result and
-  requires either a budget increase or GCP credits.
-- **Recommendation:** stay inference-only; keep Tier A as a documented
-  "if credits appear" path. Revisit only after E1 shows verifier-dependent
-  evasion (the trigger defined in the proposal).
+If any apply, Tier B moves from "out of budget" to free.
 
 ---
 
-## 8. Non-GCP note
+## 7. Verdict
 
-Specialist GPU clouds (RunPod/Vast/Lambda/Modal) are typically **40–60% cheaper
-than GCP spot** for equivalent A100/H100, but lack GCP's credits, managed
-networking, and compliance. If the RL is pure research with no data-residency
-constraint, price both before committing.
+- **Tier A spot (~$0.45k) fits the current $1k budget** — but it is a
+  single-verifier sanity run, not enough for C4's verifier-comparison claims.
+- **Tier B spot (~$3.7k) is the real minimum** for a publishable RL result and
+  requires a budget increase or credits.
+- **Stay inference-only.** Keep Tier A documented as the "if credits appear"
+  path; trigger RL only after **E1 shows verifier-dependent evasion**.
+
+---
+
+## 8. Non-GCP comparison
+
+Specialist clouds (RunPod/Vast/Lambda/Modal) are typically **40–60% cheaper than
+GCP spot** for equivalent A100 (roughly $0.6–$1.2/hr/GPU vs GCP's ~$2.2/hr on
+`a2-highgpu-1g`). GCP's advantages are credits, compliance, and managed
+networking — not raw price. Price both before committing.
+
+---
+
+### Revision note
+
+Supersedes the earlier placeholder estimate in this file (which used unverified
+list prices). Corrections: Tier A confirmed ~$0.4k; Tier B ~$3.3k → **~$3.7k**;
+Tier C ~$9.2k → **~$11k** (environment CPU priced explicitly). H100 penalty
+quantified at ~3×.

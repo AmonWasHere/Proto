@@ -383,3 +383,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-24 | ADR-0002 (proposed) + research proposal: RewardAudit measurement study. |
 | 2026-09-24 | ADR-0002 **accepted**: goal = research + portfolio, budget $0–$1k inference-only, no RL. B7/C1/E1/E2/E3 resolved; D3 deferred. |
 | 2026-09-24 | GCP RL contingency cost estimate added (Tier A ~$0.4k spot, Tier B ~$3.3k spot). |
+| 2026-09-24 | GCP estimate revised with fetched prices: Tier A ~$0.45k, Tier B ~$3.7k, Tier C ~$11k (spot). |
