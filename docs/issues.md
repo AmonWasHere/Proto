@@ -51,6 +51,9 @@ IDs are permanent; do not renumber. State changes should be made in place.
 | D4 | Medium | open | method | No threat model for the analyzer itself |
 | D5 | Medium | open | method | Reproducibility promised but not implemented |
 | D6 | Low | open | method | No external/adversarial review recorded |
+| E1 | Blocker | open | novelty | Plan is not novel; core overlaps VulAgentRL / Antares |
+| E2 | Blocker | open | novelty | No single declared research contribution |
+| E3 | Medium | open | repo | Working name "VulnGym" collides with published work |
 
 **Blocking order:** `B1` → `C1`/`C3`/`C7` → `B2`/`B3` → `B4` → `A1`/`A3`.
 
@@ -347,6 +350,40 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 
 ---
 
+## E. Novelty & positioning
+
+### E1 — Plan is not novel; core overlaps published work
+- **Severity:** Blocker · **State:** open · **Owner:** TBD
+- **Problem:** Agentic RL from verifiable rewards on a CPG is already implemented
+  by **VulAgentRL** (arXiv:2607.26656); small-model SFT+RLVR is **Antares**
+  (2608.02407); verification-first pipelines are **OpenAnt** (2606.19149) and
+  **FuzzingBrain V2** (2605.21779); evidence + two-stage SFT/RL is **EAVA**
+  (2608.25905).
+- **Impact:** Any novelty claim for the current plan is unsupportable.
+- **Resolution:** Adopt a differentiated contribution (see E2); drop pipeline
+  novelty claims. See `docs/novelty-and-related-work.md`.
+- **Depends on:** B1.
+
+### E2 — No single declared research contribution
+- **Severity:** Blocker · **State:** open · **Owner:** TBD
+- **Problem:** The plan targets seven layers at once with no headline claim.
+- **Impact:** Reviewers/users cannot identify what is new; effort spreads thin.
+- **Resolution:** Choose one axis — recommended **N1 (adversarial robustness of
+  the reward/verifier)** with **N2 (calibrated abstention + FNR + cost-per-TP)**
+  as fallback — and reframe the plan around it. Record as an ADR.
+- **Depends on:** E1.
+
+### E3 — Working name "VulnGym" collides
+- **Severity:** Medium · **State:** open · **Owner:** TBD
+- **Problem:** "VulnGym" is a published RL vulnerability-management simulator
+  (arXiv:2607.24552).
+- **Impact:** Ambiguous attribution; rename required before publication.
+- **Resolution:** Choose a unique name; plan header now uses provisional
+  "TriAgent".
+- **Progress (2026-09-24):** plan header renamed to provisional "TriAgent".
+
+---
+
 ## Change log
 
 | Date | Change |
@@ -354,3 +391,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-24 | Initial backlog created from project review; IDs A1–D6 assigned. |
 | 2026-09-24 | B7, C1, D3 moved to in-progress; compute/model strategy added. |
 | 2026-09-24 | ADR-0001: pre-existing LLM + LoRA/QLoRA adaptation; no pretraining from scratch. |
+| 2026-09-24 | Added novelty assessment; issues E1–E3 (novelty/positioning) opened. |

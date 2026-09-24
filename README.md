@@ -18,6 +18,9 @@ code problems across arbitrary codebases.
 - [`docs/adr/`](docs/adr/) — architecture decision records.
   - [ADR-0001](docs/adr/0001-model-strategy-preexisting-llm.md) — use a
     pre-existing LLM; adapt with LoRA/QLoRA; never pretrain from scratch.
+- [`docs/novelty-and-related-work.md`](docs/novelty-and-related-work.md) —
+  2026 prior-art map, direct duplications, candidate novelty axes, and
+  recommended repositioning.
 
 ## Status
 
