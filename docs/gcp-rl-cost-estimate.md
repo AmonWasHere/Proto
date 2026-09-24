@@ -174,7 +174,7 @@ networking — not raw price. Price both before committing.
 
 ---
 
-## 5. G4 alternative — 4× RTX PRO 6000 (the likely best fit)
+## 9. G4 alternative — 4× RTX PRO 6000 (the likely best fit)
 
 Fetched prices (us-central1):
 
@@ -250,6 +250,35 @@ versus ~$3.7k on A100 spot. Its only real risks are Blackwell wheel support and
 PCIe-only scaling, neither of which our data-parallel, rollout-heavy loop cares
 much about. For the current inference-only phase it is overkill; for the Tier A
 sanity run, spot A100 or 2×L4 remains cheaper.
+
+## 10. Wall-clock training time
+
+GPU-hours ÷ accelerators = wall-clock. Assumes 7B-class QLoRA/LoRA, ~3–6k
+tok/s effective per GPU.
+
+| Stage | GPU-hours | G4 `g4-standard-192` (4 GPU) | A100×8 (`a2-highgpu-8g`) | H100×8 (`a3-highgpu-8g`) |
+|---|---|---|---|---|
+| SFT warm start | 10–40 | 3–10 h (sharded) / 10–40 h (1 GPU) | 1.5–5 h | 1–4 h |
+| DPO | 40–150 | 10–38 h | 5–19 h | 3–12 h |
+| GRPO — Tier A (sanity) | 120–160 | **30–40 h** | 15–20 h | 10–13 h |
+| GRPO — Tier B (serious) | ~1,200 | **~300 h ≈ 12.5 days** | ~150 h ≈ 6.3 days | ~90 h ≈ 3.8 days |
+| GRPO — Tier C (ablations) | ~3,500 | **~875 h ≈ 36.5 days** | ~438 h ≈ 18.3 days | ~260 h ≈ 11 days |
+
+**Tier B pipeline (one policy, 3 verifiers):** SFT ~0.5 day + DPO ~1 day +
+GRPO ~12.5 days ≈ **~14 days GPU-bound** on G4; **~8 days** on 8×A100.
+Add **+10–15%** for spot preemption/restart.
+
+**Environment CPU can extend wall-clock.** Tier B needs ~120k vCPU-hr; the G4
+node's 192 vCPU only supply ~58k over a 300-h GPU run, so env work outlasts the
+GPU (~625 h if unparallelized). Attach a separate 192-vCPU pool to keep the
+critical path on the GPU.
+
+**Realistic calendar time for the full study (Tier C, ~4 verifiers with
+ablations):** **4–10 weeks** including debugging, failed runs, and re-runs —
+not a single clean run. Tier B is **2–4 weeks**.
+
+> Reminder: this is the **deferred RL** path. The headline experiment E1
+> (verifier evasion) needs **0 training hours** — it is inference-only.
 
 ---
 
