@@ -1,8 +1,12 @@
 # ADR-0002 — Reposition as a measurement-first study of reward/verifier trustworthiness
 
-- **Status:** Proposed (recommended; pending owner confirmation of goal and budget)
+- **Status:** Accepted (2026-09-24)
+- **Goal:** serve both a **research** contribution and a **portfolio** artifact.
+- **Budget:** **$0–$1,000**, inference-only. **No RL training.** The `$<1k`
+  fallback applies: drop C4/E2 and run RewardAudit as an inference-only
+  measurement study.
 - **Date:** 2026-09-24
-- **Deciders:** TBD
+- **Deciders:** project owner
 - **Related:** `docs/novelty-and-related-work.md`, issues E1–E3, B1, B7, D3
 
 ## Context
@@ -23,6 +27,12 @@ Competing on detection performance is a compute race the project cannot win on
 **Reposition the project from "build a vulnerability-finding agent" to "study
 whether security-agent rewards can be trusted," and deliver it as a
 measurement-first empirical research project with a benchmark.**
+
+**Inference-only constraint (accepted):** the deliverable is the **RewardAudit
+harness + benchmark + measurement**, not a trained policy. This serves the
+portfolio goal (a rigorous, open, reproducible artifact) and the research goal
+(a measurement contribution) without requiring RL compute. C4/E2 (RL reward
+hacking) is **out of scope** and recorded as future work.
 
 - **Headline claim:** verifier design determines whether agentic security
   analysis can be trusted under adaptive adversarial code.

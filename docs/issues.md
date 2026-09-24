@@ -29,7 +29,7 @@ IDs are permanent; do not renumber. State changes should be made in place.
 | B4 | High | open | plan | PoC/harness synthesis assumed, not solved |
 | B5 | High | open | plan | Acceptance gates use undefined `X%`; no baselines |
 | B6 | High | open | method | Model-based verifiers are circular / gameable |
-| B7 | High | open | plan | No compute budget estimate |
+| B7 | High | resolved | plan | No compute budget estimate |
 | B8 | High | open | plan | Privacy/redaction architecture not concrete |
 | B9 | Medium | open | plan | Synthetic injection gym underspecified |
 | B10 | Medium | open | plan | Benchmarks named but not validated |
@@ -37,7 +37,7 @@ IDs are permanent; do not renumber. State changes should be made in place.
 | B12 | Medium | open | plan | No per-track success criteria |
 | B13 | Medium | open | product | No consumer/persona, integration, SLA, or cost model |
 | B14 | Low | open | plan | Non-stationarity / continual-learning strategy vague |
-| C1 | Blocker | open | env | 8 GB VRAM / 15 GB RAM cannot support the stated plan |
+| C1 | Blocker | resolved | env | 8 GB VRAM / 15 GB RAM cannot support the stated plan |
 | C2 | High | open | env | Python 3.14; no trl/vllm; dependency risk |
 | C3 | High | open | env | No Docker (podman only); no sandbox/microVM |
 | C4 | High | open | env | Semgrep / CodeQL / Opengrep not on PATH |
@@ -47,15 +47,17 @@ IDs are permanent; do not renumber. State changes should be made in place.
 | C8 | Low | open | env | Dataset/model/bundle egress availability unknown |
 | D1 | High | open | method | Precision and recall only partially measurable |
 | D2 | High | open | method | Pretraining contamination cannot be fully eliminated |
-| D3 | Medium | open | method | RL premise unvalidated and currently unaffordable |
+| D3 | Medium | deferred | method | RL premise unvalidated and currently unaffordable |
 | D4 | Medium | open | method | No threat model for the analyzer itself |
 | D5 | Medium | open | method | Reproducibility promised but not implemented |
 | D6 | Low | open | method | No external/adversarial review recorded |
-| E1 | Blocker | open | novelty | Plan is not novel; core overlaps VulAgentRL / Antares |
-| E2 | Blocker | open | novelty | No single declared research contribution |
-| E3 | Medium | open | repo | Working name "VulnGym" collides with published work |
+| E1 | Blocker | resolved | novelty | Plan is not novel; core overlaps VulAgentRL / Antares |
+| E2 | Blocker | resolved | novelty | No single declared research contribution |
+| E3 | Medium | resolved | repo | Working name "VulnGym" collides with published work |
 
-**Blocking order:** `B1` → `C1`/`C3`/`C7` → `B2`/`B3` → `B4` → `A1`/`A3`.
+**Blocking order (post-ADR-0002):** `B1` → `A1`/`A3`/`A4` → **M0 harness**
+→ **M1 verifiers/dataset** → **M2 E1 result**. RL items (B2/B3/D3/E2-RL) are
+deferred; the project is inference-only.
 
 ---
 
@@ -177,14 +179,11 @@ IDs are permanent; do not renumber. State changes should be made in place.
   model-judged reward contribution until calibrated.
 
 ### B7 — No compute budget estimate
-- **Severity:** High · **State:** in-progress · **Owner:** TBD
+- **Severity:** High · **State:** resolved · **Owner:** TBD
 - **Problem:** No GPU-hours, token spend, or sandbox-minute estimate.
 - **Impact:** The ablation gate (RL vs SFT) is undecidable; costs can explode.
-- **Resolution:** Cost model per phase with hard caps; align with C1.
-- **Progress (2026-09-24):** Phase/scenario estimates recorded in
-  `docs/compute-and-model-strategy.md` (Pilot $1k–$4k; Serious $3k–$15k;
-  Frontier $15k–$75k). Remaining: hard caps per phase and sign-off on B1.
-- **Depends on:** B1.
+- **Resolution:** Budget fixed at **$0–$1k, inference-only** (ADR-0002). Phase and
+  scenario estimates in `docs/compute-and-model-strategy.md`.
 
 ### B8 — Privacy/redaction architecture not concrete
 - **Severity:** High · **State:** open · **Owner:** TBD
@@ -244,16 +243,12 @@ OpenJDK 27-ea, torch/transformers/datasets/tree_sitter present, `trl`/`vllm`
 absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 
 ### C1 — 8 GB VRAM / 15 GB RAM cannot support the stated plan
-- **Severity:** Blocker · **State:** in-progress · **Owner:** TBD
+- **Severity:** Blocker · **State:** resolved · **Owner:** TBD
 - **Problem:** No headroom to fine-tune or serve a competitive tool-using LLM
   locally; RL rollout workers infeasible at scale here.
-- **Impact:** The plan implies training the decision layer; this host cannot.
-- **Resolution:** Decide architecture (API-based policy + local lightweight
-  router, or remote training) and record as ADR. Update plan's compute section.
-- **Progress (2026-09-24):** `docs/compute-and-model-strategy.md` documents a
-  laptop-as-orchestrator architecture: local 7B Q4 inference + CPU tooling,
-  training/eval rented. Verdict table added. Remaining: ADR for B1.
-- **Depends on:** B1.
+- **Resolution:** Architecture is **inference-only**: local 7B Q4 + CPU tooling,
+  optional modest API. No training. See ADR-0002 and
+  `docs/compute-and-model-strategy.md` §4 (verdict table).
 
 ### C2 — Python 3.14; no trl/vllm; dependency risk
 - **Severity:** High · **State:** open · **Owner:** TBD
@@ -320,14 +315,10 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
   contaminated-benchmark gains as suspect.
 
 ### D3 — RL premise unvalidated and currently unaffordable
-- **Severity:** Medium · **State:** in-progress · **Owner:** TBD
+- **Severity:** Medium · **State:** deferred · **Owner:** TBD
 - **Problem:** The ablation gate is correct but undecidable on this hardware.
-- **Resolution:** Stage offline RL / DPO from logs first; revisit online RL only
-  with adequate compute (C1).
-- **Progress (2026-09-24):** Training ladder (prompt → SFT → DPO → GRPO → distill)
-  and kill criteria in `docs/compute-and-model-strategy.md`; offline-first path
-  adopted.
-- **Depends on:** C1, B7.
+- **Resolution:** **Out of scope** under the inference-only budget (ADR-0002).
+  E1b approximates RL reward hacking without training; real RL is future work.
 
 ### D4 — No threat model for the analyzer itself
 - **Severity:** Medium · **State:** open · **Owner:** TBD
@@ -353,34 +344,31 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 ## E. Novelty & positioning
 
 ### E1 — Plan is not novel; core overlaps published work
-- **Severity:** Blocker · **State:** open · **Owner:** TBD
+- **Severity:** Blocker · **State:** resolved · **Owner:** TBD
 - **Problem:** Agentic RL from verifiable rewards on a CPG is already implemented
   by **VulAgentRL** (arXiv:2607.26656); small-model SFT+RLVR is **Antares**
   (2608.02407); verification-first pipelines are **OpenAnt** (2606.19149) and
   **FuzzingBrain V2** (2605.21779); evidence + two-stage SFT/RL is **EAVA**
   (2608.25905).
-- **Impact:** Any novelty claim for the current plan is unsupportable.
-- **Resolution:** Adopt a differentiated contribution (see E2); drop pipeline
-  novelty claims. See `docs/novelty-and-related-work.md`.
+- **Resolution:** Repositioned to a measurement study on reward/verifier
+  trustworthiness (ADR-0002); pipeline novelty claims dropped. See
+  `docs/novelty-and-related-work.md`.
 - **Depends on:** B1.
 
 ### E2 — No single declared research contribution
-- **Severity:** Blocker · **State:** open · **Owner:** TBD
+- **Severity:** Blocker · **State:** resolved · **Owner:** TBD
 - **Problem:** The plan targets seven layers at once with no headline claim.
-- **Impact:** Reviewers/users cannot identify what is new; effort spreads thin.
-- **Resolution:** Choose one axis — recommended **N1 (adversarial robustness of
-  the reward/verifier)** with **N2 (calibrated abstention + FNR + cost-per-TP)**
-  as fallback — and reframe the plan around it. Record as an ADR.
-- **Depends on:** E1.
+- **Resolution:** Headline chosen in ADR-0002 — verifier design determines
+  trustworthiness under adversarial code (N4), instrumented by calibration/FNR
+  (N2). Deliverable: RewardAudit harness + benchmark. See
+  `docs/research-proposal.md`.
 
 ### E3 — Working name "VulnGym" collides
-- **Severity:** Medium · **State:** open · **Owner:** TBD
+- **Severity:** Medium · **State:** resolved · **Owner:** TBD
 - **Problem:** "VulnGym" is a published RL vulnerability-management simulator
   (arXiv:2607.24552).
-- **Impact:** Ambiguous attribution; rename required before publication.
-- **Resolution:** Choose a unique name; plan header now uses provisional
-  "TriAgent".
-- **Progress (2026-09-24):** plan header renamed to provisional "TriAgent".
+- **Resolution:** Renamed. Study/artifact name is **RewardAudit**; plan header
+  uses provisional **TriAgent**. Rename complete.
 
 ---
 
@@ -393,3 +381,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-24 | ADR-0001: pre-existing LLM + LoRA/QLoRA adaptation; no pretraining from scratch. |
 | 2026-09-24 | Added novelty assessment; issues E1–E3 (novelty/positioning) opened. |
 | 2026-09-24 | ADR-0002 (proposed) + research proposal: RewardAudit measurement study. |
+| 2026-09-24 | ADR-0002 **accepted**: goal = research + portfolio, budget $0–$1k inference-only, no RL. B7/C1/E1/E2/E3 resolved; D3 deferred. |

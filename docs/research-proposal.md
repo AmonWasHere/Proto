@@ -1,7 +1,11 @@
 # Research Proposal — RewardAudit: Can Security-Agent Rewards Be Trusted?
 
-Draft v0.1 · 2026-09-24 · companion to ADR-0002 and
+Draft v0.2 · 2026-09-24 · companion to ADR-0002 and
 `docs/novelty-and-related-work.md`
+
+**Scope decision (ADR-0002):** inference-only, budget $0–$1k. The deliverable is
+the RewardAudit **harness + benchmark + measurement**, not a trained policy. RL
+experiments (E2, C4) are future work.
 
 ## 1. Problem
 
@@ -43,9 +47,8 @@ game before it finds vulnerabilities.
   under attack; reports evasion success rate and reward-hack rate.
 - **C3 — Calibration & FNR instrumentation (RQ3, RQ4).** Selective-prediction
   curves, calibrated abstention, auditable FNR, cost-per-TP.
-- **C4 — Adversarial co-training (stretch, RQ2).** VulAgentRL/Antares-style
-  policy co-evolved against the attacker; measures robustness gained vs. policy
-  collapse.
+- **C4 — Adversarial co-training (future work, needs RL).** Out of scope under
+  the inference-only budget; recorded as the natural extension.
 
 ## 4. Method
 
@@ -74,14 +77,20 @@ injection-recovery ground truth; cost-per-true-positive; tool calls per finding.
 
 ## 5. Experiments
 
-- **E1 — Verifier evasion (RQ1, cheap).** Attack each verifier with the ALIBI-style
-  generator on a fixed repo set. Inference-only. Primary result.
-- **E2 — Reward hacking under RL (RQ2).** Train one 3–8B policy per verifier with
-  GRPO; measure reward-hack rate and canary-trap false positives.
+- **E1 — Verifier evasion (RQ1, cheap, PRIMARY).** Attack each verifier with the
+  ALIBI-style generator on a fixed repo set. **Inference-only — no RL.** This is
+  the headline experiment and the first thing to build.
+- **E1b — Reward hacking without RL (RQ2, proxy).** Instead of training a policy,
+  score candidate findings with each verifier and let the attacker optimize
+  **directly against the verifier score** (a gradient-free / LLM-driven attack).
+  This approximates what RL would exploit, at inference cost. (E2 with real RL is
+  future work.)
 - **E3 — Calibration & FNR (RQ3).** Selective-prediction curves; compare FNR
   estimates to injection-recovery ground truth.
-- **E4 — Cost Pareto (RQ4).** Precision vs. cost-per-TP, with and without
-  adversarial training.
+- **E4 — Cost Pareto (RQ4).** Precision vs. cost-per-TP across verifiers and
+  attacker strengths.
+- **E2 — Reward hacking under RL (future work, out of scope).** Train one 3–8B
+  policy per verifier with GRPO; requires RL compute.
 
 ## 6. Baselines & infrastructure reuse
 
@@ -92,12 +101,12 @@ injection-recovery ground truth; cost-per-true-positive; tool calls per finding.
 
 ## 7. Feasibility & compute
 
-- **E1/E3/E4:** inference + tooling + human audit. A few hundred GPU-hours or API
-  budget; laptop-feasible with API, better with one rented GPU.
-- **E2/C4:** one modest GRPO run (3–8B, short horizons), ~$1–5k on spot A100s.
-- **Binding constraint:** blinded human audit budget, not GPU.
-- Overall: **~$2–6k**, 3–6 months part-time. See
-  `docs/compute-and-model-strategy.md` §6.
+- **E1/E1b/E3/E4:** inference + tooling + human audit. Fits the **$0–$1k**
+  budget: a local 7B Q4 model and/or a modest API allowance, plus CPU tooling.
+  No GPU rental required; one cheap GPU-week optional for throughput.
+- **E2/C4:** out of scope (needs RL).
+- **Binding constraint:** blinded human-audit budget, not GPU.
+- Overall: **$0–$1k**, 2–4 months part-time.
 
 ## 8. Threats to validity
 
@@ -128,7 +137,22 @@ injection-recovery ground truth; cost-per-true-positive; tool calls per finding.
 
 ## 11. Immediate next steps
 
-1. Confirm go/no-go and the goal (publication vs. portfolio) — see open question.
-2. Freeze verifier taxonomy V1–V5 and the metric set (C2/C3).
-3. Implement E1 (verifier evasion) — inference-only, no RL, fastest signal.
-4. Only if E1 shows verifier-dependent evasion, build E2 (RL) and C4.
+1. **Scaffold the RewardAudit harness** (`rewardaudit/`): repo/ground-truth loader,
+   verifier interface + V1/V2/V5, finding schema, run harness, report writer.
+2. **Build the E1 dataset:** ~20 known-CVE snippets + ~10 canary/trap repos +
+   synthetic injection set with exact labels.
+3. **Implement the ALIBI-style adversarial comment generator** (template +
+   LLM-optional) and the verifier-optimization attack for E1b.
+4. **Run E1** (verifier evasion) and publish the first result plus the harness.
+5. Only then: E3 (calibration/FNR) and E4 (cost Pareto).
+
+## 12. Milestones
+
+| M | Deliverable | Gate |
+|---|---|---|
+| M0 | Harness + finding/verifier schemas + canary repos | `pytest` green; deterministic run manifest |
+| M1 | V1/V2/V5 verifiers + E1 dataset | verifiers reproduce known labels on clean code |
+| M2 | Adversarial generator + E1 results | evasion ASR differs across verifiers (or null result recorded) |
+| M3 | E1b verifier-score optimization | shows RL-free reward-hack proxy |
+| M4 | E3 calibration/FNR + E4 cost Pareto | selective-risk + FNR report |
+| M5 | Paper draft + open artifact release | reproducible from README |
