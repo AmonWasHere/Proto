@@ -401,6 +401,22 @@ scale properly for tensor parallelism if needed.
 With env CPU ($0.75–2.2k Tier B) and storage, Tier B lands at **~$2.9–4.8k** —
 similar to G4 Flex (~$3.6–5.0k), but **faster wall-clock and more capable**.
 
+### What "60 hours for a 7B model" can mean (single H200)
+
+| Workload | H200 GPU-hr (1×) | Wall-clock on 1× H200 | Notes |
+|---|---|---|---|
+| 7B LoRA SFT (30–100M tokens) | **5–20 h** | hours–1 day | adapter only |
+| 7B **full** fine-tune (~300M tokens) | **40–70 h** | ~2–3 days | ≈ the "60 h" figure |
+| 7B DPO (offline, 50k–200k pairs) | **20–70 h** | 1–3 days | |
+| **7B GRPO — Tier A sanity** (20k episodes, 1 verifier) | **60–80 h** | **~2.5–3.5 days** | ≈ the "60 h" figure |
+| 7B GRPO — Tier B serious (240k episodes, 3 verifiers) | **480–670 h** | ~3–4 weeks on 1× / **6–7 days on 4×** | the real study |
+| 7B pretrain **from scratch** | ~70,000–100,000 h | ~8–11 years | not in scope |
+
+**So 60 hours is a real number for two things** — a full fine-tune of 7B, or the
+Tier A RL sanity run — and it costs only **~$258 at $4.30/hr**. It is **not**
+enough for the serious RL study (Tier B), which needs ~500–700 H200-hr (≈$2.1–2.9k)
+or 4 GPUs for ~6–7 days.
+
 ### Caveats
 
 1. **Third-party reliability** — no GCP SLA/compliance; verify uptime, support,
