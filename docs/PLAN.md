@@ -153,11 +153,13 @@ injections, with a hidden holdout and pre-registered thresholds.
 
 ## 8. Milestones and kill criteria
 
-**Status (2026-09-24): M0 and M1 complete** — `rewardaudit/` wraps opengrep and
-reproduces the pinned Java control result (12/18 vulnerable, 1/3 safe flagged);
-adds Python support (pinned minimal ruleset), the **four-way decomposition**
-(5/5 clean flips on the Python pairs), the canary false-positive check (0/3
-flagged), and an append-only evidence ledger. 40 tests green.
+**Status (2026-09-24): M0–M2 mechanics complete** — `rewardaudit/` wraps
+opengrep and reproduces the pinned Java control result (12/18 vulnerable, 1/3 safe
+flagged); supports Java + Python; implements the **four-way decomposition**, an
+evidence ledger, the canary check, an **ALIBI-style adversarial comment
+generator**, and the E1 runs (`e1`, `evade`). 49 tests green. The **real E1
+number is pending a live backend** (`--backend local|cloud`); the offline
+`scripted` backend validates the pipeline (flip rate 100%, evasion 100%).
 
 | M | Deliverable | Gate |
 |---|---|---|

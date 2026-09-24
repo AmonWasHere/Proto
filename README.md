@@ -31,11 +31,22 @@ security verdict trustworthy.
 
 ## Status
 
-**M0 + M1 complete.** `rewardaudit/` reproduces the pinned opengrep Java control
-result (12/18 vulnerable, 1/3 safe flagged); supports Java + Python; implements
-the **four-way decomposition** and an evidence ledger; canary set shows 0 false
-positives. 40 tests green. Next: **M2 (E1)** — adversarial comment generator and
-the four-way decomposition applied to LLM verdicts.
+**M0–M2 mechanics complete.** `rewardaudit/` reproduces the pinned opengrep Java
+control result (12/18 vulnerable, 1/3 safe); supports Java + Python; implements
+the four-way decomposition, evidence ledger, canary check, and an ALIBI-style
+adversarial comment generator. 49 tests green.
+
+The **real E1 number awaits a live backend**:
+
+```bash
+cd rewardaudit
+# local model (ollama / llama.cpp / LM Studio OpenAI-compatible server)
+PYTHONPATH=src python3 -m rewardaudit.harness e1   --backend local --canaries
+PYTHONPATH=src python3 -m rewardaudit.harness evade --backend local
+# or a cloud API key
+REWARDAUDIT_LLM_BASE_URL=... REWARDAUDIT_LLM_MODEL=... REWARDAUDIT_LLM_API_KEY=... \
+PYTHONPATH=src python3 -m rewardaudit.harness e1 --backend cloud
+```
 
 ## Status (design)
 

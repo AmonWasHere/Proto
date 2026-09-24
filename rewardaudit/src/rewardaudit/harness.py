@@ -16,10 +16,12 @@ from pathlib import Path
 from . import config
 from .analyzers.base import Analyzer, AnalyzerError
 from .analyzers.opengrep import Opengrep
+from .attack.comment_gen import Strategy
 from .controls import control_matrix, load_controls
 from .cpg import Cpg
 from .datasets import canary_report, load_canaries, load_pairs
 from .decomposition import by_category, decompose
+from .e1 import DEFAULT_STRATEGIES, evasion, four_way_llm, judge_canaries
 from .ledger import Ledger, new_run_id
 from .llm import build_backend
 from .schema import Finding
@@ -173,6 +175,79 @@ def cmd_canaries(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_e1(args: argparse.Namespace) -> int:
+    """Four-way decomposition applied to LLM verdicts (does the verdict track the fix?)."""
+    root = Path(args.dir)
+    pairs = load_pairs(root / "manifest.json")
+    backend = build_backend(args.backend)
+    ctx = VerificationContext(root.resolve(), Cpg(root), backend)
+    result = four_way_llm(pairs, ctx)
+    report = result.report
+
+    print(f"backend:  {backend.name} {getattr(backend, 'model', '')}".rstrip())
+    print(f"pairs:    {report.total}")
+    print()
+    for pair in pairs:
+        cell = report.cells[pair.id]
+        vuln, fixed = result.verdicts[pair.id]
+        print(
+            f"  {cell.value:10} {pair.id:16} "
+            f"vuln={vuln.disposition.value:14} fixed={fixed.disposition.value}"
+        )
+    print()
+    print(f"counts:         {report.counts()}")
+    print(f"naive coverage: {report.naive_coverage:.2%}")
+    print(f"flip rate:      {report.flip_rate:.2%}   (verdict moved with the fix)")
+    print(f"over-report:    {report.over_report_factor:.2f}x")
+
+    if args.canaries:
+        canary_dir = Path(args.canaries_dir)
+        canaries = load_canaries(canary_dir / "manifest.json")
+        canary_ctx = VerificationContext(canary_dir.resolve(), Cpg(canary_dir), backend)
+        report_c = judge_canaries(canaries, canary_ctx)
+        print(
+            f"\ncanaries: {report_c['total']}  false positives: {report_c['false_positives']}"
+        )
+        for row in report_c["rows"]:
+            mark = "FP " if row["false_positive"] else "ok "
+            print(f"  {mark} {row['file']}  ({row['disposition']})")
+
+    if args.json:
+        payload = {
+            "backend": backend.name,
+            "counts": report.counts(),
+            "naive_coverage": report.naive_coverage,
+            "flip_rate": report.flip_rate,
+            "cells": {k: v.value for k, v in report.cells.items()},
+        }
+        Path(args.json).write_text(json.dumps(payload, indent=2))
+        print(f"\nwrote {args.json}")
+    return 0
+
+
+def cmd_evade(args: argparse.Namespace) -> int:
+    """Adversarial comment injection against the LLM verifier (E1 evasion)."""
+    root = Path(args.dir)
+    pairs = load_pairs(root / "manifest.json")
+    backend = build_backend(args.backend)
+    strategies = (
+        tuple(Strategy(s) for s in args.strategies) if args.strategies else DEFAULT_STRATEGIES
+    )
+    report = evasion(pairs, root, backend, strategies=strategies)
+
+    print(f"backend:   {backend.name} {getattr(backend, 'model', '')}".rstrip())
+    print(f"baseline true positives: {report.baseline_true_positives}/{len(pairs)}")
+    print()
+    for name, row in report.per_strategy.items():
+        print(f"  {name:14} evaded {row['evaded']}/{row['attempted']}  ({row['rate']:.0%})")
+    print(f"\noverall evasion: {report.overall:.0%}")
+
+    if args.json:
+        Path(args.json).write_text(json.dumps(report.per_strategy, indent=2))
+        print(f"wrote {args.json}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="rewardaudit.harness")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -184,7 +259,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p_judge = sub.add_parser("judge", help="run V1/V2 verifiers over a scan")
     p_judge.add_argument("--root", required=True)
-    p_judge.add_argument("--backend", default="mock", choices=["mock", "local", "cloud"])
+    p_judge.add_argument("--backend", default="mock", choices=["mock", "scripted", "local", "cloud"])
     p_judge.add_argument("--limit", type=int, default=5)
     p_judge.set_defaults(func=cmd_judge)
 
@@ -200,6 +275,21 @@ def main(argv: list[str] | None = None) -> int:
     p_can.add_argument("--rules", default=str(config.PYTHON_RULES))
     p_can.add_argument("--json", default="")
     p_can.set_defaults(func=cmd_canaries)
+
+    p_e1 = sub.add_parser("e1", help="four-way decomposition on LLM verdicts")
+    p_e1.add_argument("--dir", default=str(config.PYTHON_PAIRS))
+    p_e1.add_argument("--backend", default="mock", choices=["mock", "scripted", "local", "cloud"])
+    p_e1.add_argument("--canaries", action="store_true")
+    p_e1.add_argument("--canaries-dir", default=str(config.PYTHON_CANARIES))
+    p_e1.add_argument("--json", default="")
+    p_e1.set_defaults(func=cmd_e1)
+
+    p_ev = sub.add_parser("evade", help="adversarial comment injection against the LLM verifier")
+    p_ev.add_argument("--dir", default=str(config.PYTHON_PAIRS))
+    p_ev.add_argument("--backend", default="mock", choices=["mock", "scripted", "local", "cloud"])
+    p_ev.add_argument("--strategies", nargs="*", default=None)
+    p_ev.add_argument("--json", default="")
+    p_ev.set_defaults(func=cmd_evade)
 
     args = parser.parse_args(argv)
     return args.func(args)

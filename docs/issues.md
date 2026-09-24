@@ -434,3 +434,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-24 | Added `docs/tools.md`: Java+Python(+C/C++) coverage and analyzer inventory. |
 | 2026-09-24 | **M0 built and passing**: `rewardaudit/` reproduces opengrep 12/18 vulnerable, 1/3 safe; 26 tests. A1/A2/A4 resolved, A3 in-progress. |
 | 2026-09-24 | **M1 built**: assets pinned under `pinned/`, Python support + rules + pairs + canaries, four-way decomposition, evidence ledger; 40 tests. F1 in-progress. |
+| 2026-09-24 | **M2 mechanics built**: adversarial comment generator, `e1` + `evade` harness, scripted offline verifier; 49 tests. Real E1 pending a live backend. |
