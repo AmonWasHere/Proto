@@ -153,27 +153,41 @@ injections, with a hidden holdout and pre-registered thresholds.
 
 ## 8. Milestones and kill criteria
 
-**Status (2026-09-24): M0–M2 mechanics complete** — `rewardaudit/` wraps
-opengrep and reproduces the pinned Java control result (12/18 vulnerable, 1/3 safe
-flagged); supports Java + Python; implements the **four-way decomposition**, an
-evidence ledger, the canary check, an **ALIBI-style adversarial comment
-generator**, and the E1 runs (`e1`, `evade`). 49 tests green. The **real E1
-number is pending a live backend** (`--backend local|cloud`); the offline
-`scripted` backend validates the pipeline (flip rate 100%, evasion 100%).
+**Status (2026-09-24): M0–M2 complete, with real cross-family results**
+(`docs/e1-results.md`). `rewardaudit/` reproduces the pinned Java control result
+(12/18 vulnerable, 1/3 safe flagged); supports Java + Python; implements the
+four-way decomposition, evidence ledger, canary check, ALIBI-style adversarial
+comment generator, and an **adaptive LLM attacker**. 64 tests green.
 
-| M | Deliverable | Gate |
-|---|---|---|
-| M0 | **Wrap `sastaudit`** (tool runners + `pins.json`) with the verifier interface; reuse OWASP/JavaVFC/15-repo corpus; add canary repos | reproduce a known `sastaudit` control result through the new interface |
-| M1 | Evidence ledger + verifiers V1 (LLM judge) / V2 (deterministic pinned-tool verdict) | reproduce known labels on clean code |
-| M2 | **E1 result** (adversarial generator + evasion ASR per verifier) | **a real number exists** |
-| M3 | E1b + E2 (calibration, FNR, cost-per-TP) | selective-risk curve reported |
-| M4 | Small LoRA adjudicator + abstention | matches API baseline at lower cost |
-| M5 | Paper draft + open artifact | reproducible from README |
+### Done
 
-**Kill criteria**
-- If E1 shows **no** verifier-dependent evasion → headline dies; pivot to the
-  calibration/FNR measurement (still publishable) rather than forcing it.
-- If M0–M2 is not done in ~3 weeks → scope is wrong; cut further.
+| M | Deliverable |
+|---|---|
+| M0 | wrapped `sastaudit` tool runners + pins; reproduced the control result |
+| M1 | four-way decomposition, evidence ledger, Python support + canaries |
+| M2 | adversarial generator, `e1`/`evade`/`adaptive`; real runs across 5 model families (n=5) |
+
+### Remaining phases — bounded finish (P1–P6)
+
+| P | Deliverable | Gate / value | Effort |
+|---|---|---|---|
+| **P1** | **Scale E1 to JavaVFC (784 real fixes)**: wire sastaudit's Java before/after loader; run `e1` across ≥3 verifiers with CIs | **decisive** — a robust surprise, or a documented null | 2–4 d |
+| **P2** | Split evasion into `→false_positive` vs `→abstention` | metric reported both ways (abstention is a distinct path) | 0.5 d |
+| **P3** | Adaptive attacker at scale, cross-model | evasion per tactic at n≥100 | 1 d |
+| **P4** | **Composition test**: LLM alone vs +exact-CPG verifier vs hybrid | *does adding verifiers improve trust or relocate it?* — the sharpest question | 2–3 d |
+| **P5** | Calibration + auditable FNR + cost-per-TP | selective-risk curve at a pre-registered target | 2–3 d |
+| **P6** | Ship: open artifact + write-up + reporting protocol | reproducible from README | 2–4 d |
+| (P7) | Small LoRA adjudicator | only if P1–P4 justify it; otherwise **cut** | conditional |
+
+Scope is capped at P1–P6 (~2 weeks, $0–50, inference-only). **No new subsystems.**
+
+### Kill criteria (pre-committed)
+
+- **P1 shows nothing beyond the qualitative result** → ship the
+  methodology/negative-result artifact and **stop**. Do not start a v5.
+- **P1 cannot be wired in ≤2 days** → cut to a ~100-pair stratified subsample.
+- **FNR needs more human audit than available** → report a bound, not a point
+  estimate.
 - If the thin vehicle is not cheaper per true positive than API-only → stop
   building pipeline.
 
