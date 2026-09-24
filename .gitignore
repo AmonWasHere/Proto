@@ -34,3 +34,7 @@ artifacts/
 # Secrets
 *.pem
 *.key
+.env
+.env.*
+credentials*
+*.secrets
