@@ -174,9 +174,94 @@ networking — not raw price. Price both before committing.
 
 ---
 
+## 5. G4 alternative — 4× RTX PRO 6000 (the likely best fit)
+
+Fetched prices (us-central1):
+
+| Machine type | GPUs | VRAM total | vCPU/RAM | Standard | Spot | 1-yr CUD | 3-yr CUD |
+|---|---|---|---|---|---|---|---|
+| `g4-standard-192` | 4× RTX PRO 6000 | 4×96 GB = 384 GB | 192 vCPU / 720 GB | **17.9997** | **7.0866** | 12.42* | 7.92* |
+| `g4-standard-384` | 8× RTX PRO 6000 | 768 GB | 384 vCPU / 1440 GB | **35.9994** | **14.1731** | 24.84* | 15.84* |
+
+\* CUD per-hour = monthly ÷ 730.
+
+**⚠ The `$9.00/hr` you quoted is not the on-demand list price.** `g4-standard-192`
+standard is **$18.00/hr**; spot is **$7.09/hr**. $9.00 is consistent with a
+**DWS Flex-start** (~50% of list, as with TPUs) or a committed/negotiated rate.
+Confirm which SKU/term $9.00 refers to before budgeting.
+
+**Per-GPU-hour comparison**
+
+| Option | Std/GPU-hr | Spot/GPU-hr | VRAM/GPU | Interconnect |
+|---|---|---|---|---|
+| G4 (RTX PRO 6000) | $4.50 | **$1.77** | **96 GB** | PCIe (no NVLink) |
+| A2 (A100 40GB) | $3.67 | $2.20 | 40 GB | NVLink |
+| A3 (H100 80GB) | $11.06 | $6.62 | 80 GB | NVLink |
+
+G4 is ~20% cheaper than A100 on **spot**, has **2.4× the VRAM**, and comes with
+**192 vCPU / 720 GB RAM** — which directly attacks the environment-CPU line item
+that dominates our RL bill. On CUD and on-demand, A100 is cheaper per GPU-hour.
+
+### Is 4× RTX PRO 6000 enough for the training?
+
+**Yes — comfortably, for the whole in-scope RL workload.**
+
+| Training target | Need | 4× RTX PRO 6000 (384 GB) |
+|---|---|---|
+| 7–8B LoRA / QLoRA SFT | 12–24 GB | ✅ trivially |
+| 7–8B **full** fine-tune (FSDP) | ~130 GB | ✅ |
+| 32B QLoRA / LoRA | 24–90 GB | ✅ (fits one card) |
+| 32B full fine-tune | ~512 GB | ❌ |
+| 70B QLoRA | 40–90 GB | ✅ (1–2 cards) |
+| GRPO 3–8B (SFT+rollouts) | rollout-heavy | ✅ 4 replicas or TP=2×2 |
+| Frontier full FT / pretraining | TB-scale | ❌ (out of scope) |
+
+**Caveats that matter more than capacity**
+
+1. **No NVLink (PCIe only).** Avoid tensor parallelism >2. Run **4 independent
+   vLLM replicas** (data-parallel) for rollouts and DDP/FSDP (or single-GPU LoRA)
+   for training. This suits our workload, which is rollout-bound, not
+   tensor-bound.
+2. **Blackwell software support.** RTX PRO 6000 is a Blackwell part; verify
+   CUDA/`torch`/`vLLM`/`flash-attn` wheels support it before starting. This is
+   the most likely blocker.
+3. **Environment CPU may become the critical path.** 192 vCPU over a 300-node-hr
+   GPU run = 57.6k vCPU-hr, but the run needs ~120k vCPU-hr of tool/sandbox
+   compute. So the **env outlasts the GPU** (~625 wall-clock hr vs 300) — rent an
+   additional CPU pool, or cut per-episode tool cost, or the GPU idles waiting.
+4. **Quota and availability.** G4 requires quota; use DWS to reserve capacity.
+5. **Spot preemption** → checkpoint LoRA + rollout buffer frequently.
+
+### G4 tier costs (incl. env CPU)
+
+| Tier | GPU-hours → node-hours | Standard ($18) | Spot ($7.09) | Flex ($9) |
+|---|---|---|---|---|
+| A (sanity) | 120–160 → 30–40 | ~$0.7–0.9k | **~$0.35–0.48k** | ~$0.41–0.50k |
+| B (serious) | 1,200 → 300 | ~$7.7k | **~$3.0k** | ~$5.0k |
+| C (ablations) | 3,500 → 875 | ~$20.7k | **~$8.1k** | ~$12.8k |
+
+(Spot tier B: GPU $2,126 + env CPU $750–$2,184 + storage $150. The low end
+assumes env CPU also runs on spot; the high end assumes on-demand env CPU.)
+
+**Verdict on G4:** if the $9.00/hr is a real Flex/commit rate, `g4-standard-192`
+is an **excellent fit for the RL contingency** — enough VRAM for everything in
+scope, plenty of vCPU for the tool environment, and Tier B lands at **~$3.0–5.0k**
+versus ~$3.7k on A100 spot. Its only real risks are Blackwell wheel support and
+PCIe-only scaling, neither of which our data-parallel, rollout-heavy loop cares
+much about. For the current inference-only phase it is overkill; for the Tier A
+sanity run, spot A100 or 2×L4 remains cheaper.
+
+---
+
 ### Revision note
 
 Supersedes the earlier placeholder estimate in this file (which used unverified
 list prices). Corrections: Tier A confirmed ~$0.4k; Tier B ~$3.3k → **~$3.7k**;
 Tier C ~$9.2k → **~$11k** (environment CPU priced explicitly). H100 penalty
 quantified at ~3×.
+
+**Addendum (G4):** `g4-standard-192` fetched at **$18.00 standard / $7.09 spot**;
+a `$9.00/hr` quote is a Flex/commit rate, not the list price. G4 is VRAM-rich
+(4×96 GB) and vCPU-rich (192/720 GB), making it a strong RL fit; Tier B estimates
+~$3.0–5.0k. Main risks: Blackwell wheel support, PCIe-only scaling, and
+environment CPU becoming the critical path.
