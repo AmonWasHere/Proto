@@ -159,7 +159,8 @@ If any apply, Tier B moves from "out of budget" to free.
 - **Tier A spot (~$0.45k) fits the current $1k budget** — but it is a
   single-verifier sanity run, not enough for C4's verifier-comparison claims.
 - **Tier B spot (~$3.7k) is the real minimum** for a publishable RL result and
-  requires a budget increase or credits.
+  requires a budget increase or credits. **G4 DWS Flex-start (~$3.6–5.0k,
+  non-preemptible) is the recommended procurement.**
 - **Stay inference-only.** Keep Tier A documented as the "if credits appear"
   path; trigger RL only after **E1 shows verifier-dependent evasion**.
 
@@ -176,31 +177,45 @@ networking — not raw price. Price both before committing.
 
 ## 9. G4 alternative — 4× RTX PRO 6000 (the likely best fit)
 
-Fetched prices (us-central1):
+**Confirmed: your `$9.00/hr` is the DWS Flex-start price.** GCP's G4 Flex-start
+table (user-supplied, matches Google's DWS pricing):
 
-| Machine type | GPUs | VRAM total | vCPU/RAM | Standard | Spot | 1-yr CUD | 3-yr CUD |
-|---|---|---|---|---|---|---|---|
-| `g4-standard-192` | 4× RTX PRO 6000 | 4×96 GB = 384 GB | 192 vCPU / 720 GB | **17.9997** | **7.0866** | 12.42* | 7.92* |
-| `g4-standard-384` | 8× RTX PRO 6000 | 768 GB | 384 vCPU / 1440 GB | **35.9994** | **14.1731** | 24.84* | 15.84* |
+| Machine type | GPUs | vCPU / RAM | DWS Flex-start | ~per GPU-hr |
+|---|---|---|---|---|
+| `g4-standard-6` | 1/8 | 6 / 22 GiB | $0.32344 | $2.5875 |
+| `g4-standard-12` | 1/4 | 12 / 45 GiB | $0.64688 | $2.5875 |
+| `g4-standard-24` | 1/2 | 24 / 90 GiB | $1.29376 | $2.5875 |
+| `g4-standard-48` | 1 | 48 / 180 GiB | $2.2500 | $2.2500 |
+| `g4-standard-96` | 2 | 96 / 360 GiB | $4.5000 | $2.2500 |
+| `g4-standard-192` | 4 | 192 / 720 GiB | **$9.0000** | $2.2500 |
+| `g4-standard-384` | 8 | 384 / 1440 GiB | $18.0000 | $2.2500 |
 
-\* CUD per-hour = monthly ÷ 730.
+**Price ladder for `g4-standard-192`** (us-central1):
 
-**⚠ The `$9.00/hr` you quoted is not the on-demand list price.** `g4-standard-192`
-standard is **$18.00/hr**; spot is **$7.09/hr**. $9.00 is consistent with a
-**DWS Flex-start** (~50% of list, as with TPUs) or a committed/negotiated rate.
-Confirm which SKU/term $9.00 refers to before budgeting.
+| Procurement | $/hr | ~$/GPU-hr | Preemptible? |
+|---|---|---|---|
+| Spot | 7.0866 | 1.77 | Yes |
+| **DWS Flex-start** | **9.0000** | **2.25** | **No — fixed duration** |
+| 1-yr CUD | ~12.42 | ~3.10 | No |
+| Standard on-demand | 17.9997 | 4.50 | No |
+| 3-yr CUD | ~7.92 | ~1.98 | No |
+
+Flex is ~50% off standard and only ~27% above spot — **without preemption**.
+Fractional shapes cost more per GPU ($2.59); whole-GPU shapes are $2.25. Flex-start
+requires a requested duration and capacity is not guaranteed at a given time.
 
 **Per-GPU-hour comparison**
 
-| Option | Std/GPU-hr | Spot/GPU-hr | VRAM/GPU | Interconnect |
-|---|---|---|---|---|
-| G4 (RTX PRO 6000) | $4.50 | **$1.77** | **96 GB** | PCIe (no NVLink) |
-| A2 (A100 40GB) | $3.67 | $2.20 | 40 GB | NVLink |
-| A3 (H100 80GB) | $11.06 | $6.62 | 80 GB | NVLink |
+| Option | Std/GPU-hr | Spot/GPU-hr | Flex/GPU-hr | VRAM/GPU | Interconnect |
+|---|---|---|---|---|---|
+| G4 (RTX PRO 6000) | $4.50 | $1.77 | **$2.25** | **96 GB** | PCIe (no NVLink) |
+| A2 (A100 40GB) | $3.67 | $2.20 | — | 40 GB | NVLink |
+| A3 (H100 80GB) | $11.06 | $6.62 | — | 80 GB | NVLink |
 
-G4 is ~20% cheaper than A100 on **spot**, has **2.4× the VRAM**, and comes with
-**192 vCPU / 720 GB RAM** — which directly attacks the environment-CPU line item
-that dominates our RL bill. On CUD and on-demand, A100 is cheaper per GPU-hour.
+**G4 Flex-start is the best-value option for this workload:** $2.25/GPU-hr with
+**no preemption** is essentially A100-spot pricing ($2.20/GPU-hr, but
+preemptible) with **2.4× the VRAM** and 192 vCPU attached. It beats A100 spot on
+memory and reliability at the same price.
 
 ### Is 4× RTX PRO 6000 enough for the training?
 
@@ -234,22 +249,25 @@ that dominates our RL bill. On CUD and on-demand, A100 is cheaper per GPU-hour.
 
 ### G4 tier costs (incl. env CPU)
 
-| Tier | GPU-hours → node-hours | Standard ($18) | Spot ($7.09) | Flex ($9) |
-|---|---|---|---|---|
-| A (sanity) | 120–160 → 30–40 | ~$0.7–0.9k | **~$0.35–0.48k** | ~$0.41–0.50k |
-| B (serious) | 1,200 → 300 | ~$7.7k | **~$3.0k** | ~$5.0k |
-| C (ablations) | 3,500 → 875 | ~$20.7k | **~$8.1k** | ~$12.8k |
+| Tier | Shape | GPU-hours → node-hours | Flex ($9) | Spot ($7.09) | Standard ($18) |
+|---|---|---|---|---|---|
+| A (sanity) | `g4-standard-96` (2 GPU) | 120–160 → 60–80 | **~$0.40–0.56k** | ~$0.32–0.44k | ~$1.2–1.5k |
+| B (serious) | `g4-standard-192` (4 GPU) | 1,200 → 300 | **~$3.6–5.0k** | ~$3.0–4.5k | ~$7.7k |
+| C (ablations) | `g4-standard-192` (4 GPU) | 3,500 → 875 | **~$9.8–12.8k** | ~$8.1–11.0k | ~$20.7k |
 
-(Spot tier B: GPU $2,126 + env CPU $750–$2,184 + storage $150. The low end
-assumes env CPU also runs on spot; the high end assumes on-demand env CPU.)
+Line items (Tier B): GPU $2,700 (Flex) + env CPU $750 (spot) to $2,184
+(on-demand) + storage $150. Tier A uses the 2-GPU shape for better vCPU
+coverage; Tier C: GPU $7,875 + env $1,580–$4,620 + $300.
 
-**Verdict on G4:** if the $9.00/hr is a real Flex/commit rate, `g4-standard-192`
-is an **excellent fit for the RL contingency** — enough VRAM for everything in
-scope, plenty of vCPU for the tool environment, and Tier B lands at **~$3.0–5.0k**
-versus ~$3.7k on A100 spot. Its only real risks are Blackwell wheel support and
-PCIe-only scaling, neither of which our data-parallel, rollout-heavy loop cares
-much about. For the current inference-only phase it is overkill; for the Tier A
-sanity run, spot A100 or 2×L4 remains cheaper.
+**Verdict on G4:** with the confirmed **$9.00/hr DWS Flex-start** rate,
+`g4-standard-192` is the **best-value option for the RL contingency** — enough
+VRAM for everything in scope (96 GB/GPU, 384 GB total), plenty of vCPU for the
+tool environment, **no preemption**, and Tier B at **~$3.6–5.0k** — equal to or
+better than A100 spot (~$3.7k) while being more reliable and more capable. Its
+only real risks are Blackwell wheel support and PCIe-only scaling, neither of
+which our data-parallel, rollout-heavy loop cares much about. For the current
+inference-only phase it is overkill; for the Tier A sanity run, the 2-GPU
+`g4-standard-96` shape is the right size.
 
 ## 10. Wall-clock training time
 
@@ -266,7 +284,8 @@ tok/s effective per GPU.
 
 **Tier B pipeline (one policy, 3 verifiers):** SFT ~0.5 day + DPO ~1 day +
 GRPO ~12.5 days ≈ **~14 days GPU-bound** on G4; **~8 days** on 8×A100.
-Add **+10–15%** for spot preemption/restart.
+With **DWS Flex-start there is no preemption overhead**; on spot add **+10–15%**
+for restart/checkpoint recovery.
 
 **Environment CPU can extend wall-clock.** Tier B needs ~120k vCPU-hr; the G4
 node's 192 vCPU only supply ~58k over a 300-h GPU run, so env work outlasts the
@@ -338,7 +357,9 @@ Tier C ~$9.2k → **~$11k** (environment CPU priced explicitly). H100 penalty
 quantified at ~3×.
 
 **Addendum (G4):** `g4-standard-192` fetched at **$18.00 standard / $7.09 spot**;
-a `$9.00/hr` quote is a Flex/commit rate, not the list price. G4 is VRAM-rich
-(4×96 GB) and vCPU-rich (192/720 GB), making it a strong RL fit; Tier B estimates
-~$3.0–5.0k. Main risks: Blackwell wheel support, PCIe-only scaling, and
-environment CPU becoming the critical path.
+the user-supplied table confirms **$9.00/hr is DWS Flex-start** (= 50% of list,
+$2.25/GPU-hr, non-preemptible). G4 is VRAM-rich (4×96 GB) and vCPU-rich
+(192/720 GB), making it the **best-value RL option**; Tier B ~$3.6–5.0k, Tier C
+~$9.8–12.8k. Main risks: Blackwell wheel support, PCIe-only scaling, and
+environment CPU becoming the critical path. **T4 is not viable for training**
+(§11) — smoke tests only.
