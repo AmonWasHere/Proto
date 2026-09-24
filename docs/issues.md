@@ -435,3 +435,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-24 | **`docs/PLAN.md` created as canonical north star**; README repointed; other docs demoted to background. |
 | 2026-09-24 | Discovered prior project `~/Projects/Patch`: `sastaudit` harness + corpora + 179K CVE pairs. Plan revised to **extend `sastaudit`**, not build greenfield. Pretrained C/C++ model judged not useful. |
 | 2026-09-24 | Post-Patch deltas: E1 sharpened to four-way decomposition on LLM verifiers; B10 resolved; D1/D5 in-progress; new reuse risks F1–F4. |
+| 2026-09-24 | Added `docs/tools.md`: Java+Python(+C/C++) coverage and analyzer inventory. |

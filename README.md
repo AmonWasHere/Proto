@@ -7,6 +7,7 @@ security verdict trustworthy.
 ## Start here
 
 - **[`docs/PLAN.md`](docs/PLAN.md)** — the canonical north star. Read this first.
+  - [`docs/tools.md`](docs/tools.md) — language coverage and analyzer inventory.
 
 ## Everything else (background)
 
