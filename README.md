@@ -21,6 +21,10 @@ code problems across arbitrary codebases.
 - [`docs/novelty-and-related-work.md`](docs/novelty-and-related-work.md) —
   2026 prior-art map, direct duplications, candidate novelty axes, and
   recommended repositioning.
+- [`docs/research-proposal.md`](docs/research-proposal.md) — draft proposal for
+  **RewardAudit**: whether security-agent rewards can be trusted.
+- [`docs/adr/0002-reposition-measurement-first.md`](docs/adr/0002-reposition-measurement-first.md)
+  — recommended repositioning to a measurement-first study.
 
 ## Status
 

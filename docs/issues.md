@@ -392,3 +392,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-24 | B7, C1, D3 moved to in-progress; compute/model strategy added. |
 | 2026-09-24 | ADR-0001: pre-existing LLM + LoRA/QLoRA adaptation; no pretraining from scratch. |
 | 2026-09-24 | Added novelty assessment; issues E1–E3 (novelty/positioning) opened. |
+| 2026-09-24 | ADR-0002 (proposed) + research proposal: RewardAudit measurement study. |
