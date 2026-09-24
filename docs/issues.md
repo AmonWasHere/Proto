@@ -388,3 +388,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-24 | LastLine architecture proposed (tool-first, active DB, small LLM last). |
 | 2026-09-24 | Added brutal self-critique of LastLine; marked not endorsed. |
 | 2026-09-24 | **`docs/PLAN.md` created as canonical north star**; README repointed; other docs demoted to background. |
+| 2026-09-24 | Discovered prior project `~/Projects/Patch`: `sastaudit` harness + corpora + 179K CVE pairs. Plan revised to **extend `sastaudit`**, not build greenfield. Pretrained C/C++ model judged not useful. |

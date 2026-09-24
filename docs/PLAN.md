@@ -141,8 +141,8 @@ injections, with a hidden holdout and pre-registered thresholds.
 
 | M | Deliverable | Gate |
 |---|---|---|
-| M0 | Finding/Evidence schema, T0+T1, OSV dep match, canary repos | `pytest` green; reproducible manifest |
-| M1 | Evidence ledger + verifiers V1/V2 | reproduce known labels on clean code |
+| M0 | **Wrap `sastaudit`** (tool runners + `pins.json`) with the verifier interface; reuse OWASP/JavaVFC/15-repo corpus; add canary repos | reproduce a known `sastaudit` control result through the new interface |
+| M1 | Evidence ledger + verifiers V1 (LLM judge) / V2 (deterministic pinned-tool verdict) | reproduce known labels on clean code |
 | M2 | **E1 result** (adversarial generator + evasion ASR per verifier) | **a real number exists** |
 | M3 | E1b + E2 (calibration, FNR, cost-per-TP) | selective-risk curve reported |
 | M4 | Small LoRA adjudicator + abstention | matches API baseline at lower cost |
@@ -162,7 +162,37 @@ injections, with a hidden holdout and pre-registered thresholds.
 - GPU rentals (G4 Flex $2.25/GPU-hr, H200 ~$4.30/GPU-hr) are contingency only,
   **after** E1 justifies them.
 
-## 10. Background documents
+## 10. Reuse — the substrate already exists (do not rebuild)
+
+Prior project `/home/amon/Projects/Patch` (VulnDetect → revguard, closed
+2026-09-14) already built most of the measurement substrate. It is a 5 GB data +
+1.7 GB harness asset, not a sketch.
+
+| Asset | What it is |
+|---|---|
+| `sastaudit/` | **Pinned, tested SAST evaluation harness**: tool runners (Semgrep 1.177.0, opengrep 1.30.0, CodeQL 2.27.0, PMD), OWASP Benchmark v1.2 + JavaVFC corpora, original + corrected scoring, `pins.json`, 99 tests, `results/*.json`, controls with positive/negative checks |
+| `sastaudit/artifact/FINDINGS.md` | A rigorous **negative result**: benchmark score ≠ real detection (78% OWASP TPR vs 0.83–7.1% real flip rate); the **four-way decomposition** (flagged-both / vuln-only / fixed-only / neither); 20.7% of real fixes delete no line |
+| `data/` | **179,481 commit pairs**, 15 cloned C/C++/Python repos (tcpdump, openssl, curl, ImageMagick, redis, …), BigVul splits |
+| `measure_revert_rate.py` | Base-rate measurement methodology |
+| `guardrail/` | Signal interface + benchmark seam |
+| `vulndetect/` | The closed detector — **do not extend** |
+
+**The pivotal fact:** Patch's own postmortem independently recommends pivot #1 =
+*"an evaluator of detectors."* **That is RewardAudit.** So M0 is not greenfield —
+it is **extending `sastaudit`**.
+
+**The pretrained C/C++ model is not useful here.** The postmortem records that the
+InfoNCE pre-training did not transfer and the best detector reached Val F1 0.16 /
+AUC 0.78. Our design needs no vulnerability classifier (scanners detect;
+LLM/verifiers adjudicate), and bolting a weak, unvalidated detector onto a
+trust-measurement system would confound the very thing we measure. Keep
+`vulndetect/` frozen; at most use it as a *baseline to beat*.
+
+**What to actually reuse:** the tool runners + `pins.json` discipline, the
+corpora, the four-way decomposition, the controls, the test suite. That is weeks
+of work already done and validated.
+
+## 11. Background documents
 
 - `docs/rl-vulnerability-analysis-plan.md` — original broad plan (background).
 - `docs/compute-and-model-strategy.md`, `docs/gcp-rl-cost-estimate.md`,
@@ -171,9 +201,10 @@ injections, with a hidden holdout and pre-registered thresholds.
 - `docs/architecture-lastline.md` — rejected alternative + its critique.
 - `docs/issues.md`, `docs/adr/` — decisions and tracked work.
 
-## 11. The only next action
+## 12. The only next action
 
-**Build M0, then M2.** The smallest thing that produces a real number is:
-finding schema + one scanner + two verifiers + ten CVEs + a canary repo, then
-run E1. Everything else — architecture, cost models, tiers — is procrastination
-until that number exists.
+**Build M0, then M2 — on top of `sastaudit`, not from scratch.** The smallest
+thing that produces a real number is: wrap the existing pinned tool runners with
+the verifier interface, reuse the OWASP/JavaVFC/repo corpora, add the adversarial
+comment generator and canary repos, then run **E1**. Everything else —
+architecture, cost models, tiers — is procrastination until that number exists.
