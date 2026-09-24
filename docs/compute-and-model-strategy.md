@@ -240,7 +240,143 @@ online RL. Shipping the tool-orchestrated assistant is a valid outcome.
 
 ---
 
-## 6. Open items this doc does not resolve
+## 6. Training & fine-tuning compute (detailed)
+
+Memory is driven by method. LoRA/QLoRA scale well; full fine-tuning does not.
+
+**Memory footprint by method** (mixed precision, gradient checkpointing on):
+
+| Model | Full FT (ZeRO-3) | LoRA (bf16 base) | QLoRA (4-bit) |
+|---|---|---|---|
+| 1B | 1×24 GB | 1×16 GB | 1×8 GB |
+| 7–8B | 4–8×A100 80 GB | 1×24 GB | 1×12–16 GB |
+| 14B | 8×A100 80 GB | 1×48 GB | 1×24 GB |
+| 32B | 16×A100 80 GB | 2×48 GB | 1×48 GB |
+| 70B | 32–64×A100 80 GB | 8×48 GB | 2×80 GB |
+
+Full FT ≈ 16 bytes/param + activations (weights + grads + Adam + master weights).
+LoRA stores optimizer state only for adapters, so it is ~10× cheaper.
+
+**Effective throughput** (tokens/s, seq 4k, packing on — planning anchors):
+
+| Method | RTX 4090 24 GB | A100 80 GB | 8×A100 |
+|---|---|---|---|
+| 7B QLoRA | 1,000–2,000 | 3,000–6,000 | 20k+ |
+| 7B LoRA bf16 | 700–1,500 | 2,500–5,000 | 18k+ |
+| 7B full FT | — | — | 10k–20k |
+| 32B QLoRA | offload only | 800–1,500 | 6k–12k |
+| 70B QLoRA | — | 300–600 | 2k–5k |
+
+**Run estimates**
+
+| Run | Data | GPU-hours | Wallclock | Cost (@$1.5/A100-hr) |
+|---|---|---|---|---|
+| 7B QLoRA SFT | 30–100M effective tokens | 10–40 | <1 day (1 GPU) | **$15–$60** |
+| 7B QLoRA DPO | 50k–200k pairs | 40–150 | 1–2 days | **$60–$225** |
+| 7B LoRA SFT+DPO (4090) | 30–100M | 100–300 | 3–7 days | **$40–$150** |
+| 32B QLoRA SFT | 100–300M | 60–200 | 2–4 days | **$90–$300** |
+| 32B QLoRA SFT+DPO | 100–300M | 250–800 | ~1 week | **$375–$1,200** |
+| 70B QLoRA SFT+DPO | 100–300M | 800–2,600 | 1–2 weeks | **$1,200–$3,900** |
+| 7B full FT | 100–300M | 50–250 | 1–3 days (4–8 GPU) | **$300–$1,500** |
+| Reward model (1–7B) | 1–5M labels | 20–80 | 1 day | **$30–$120** |
+| **Online RL (GRPO)** | 3 epochs | **1,000–4,000** | **2–6 weeks (8 GPU)** | **$1,500–$6,000** |
+| Big-lab RL (70B) | large | 10,000–40,000 | 1–3 months | **$15k–$60k** |
+
+**Scenario totals for training only**
+
+| Scope | GPU-hours | Cost | Wallclock |
+|---|---|---|---|
+| **Minimum viable** (7B QLoRA SFT + DPO) | 50–200 | **$100–$300** | 2–4 days |
+| **Serious** (7–32B SFT + DPO + reward model) | 300–1,000 | **$500–$2,000** | 1–2 weeks |
+| **Frontier** (+ online RL) | 1,300–5,000 | **$2,000–$8,000** | 3–6 weeks |
+| **Big-lab** (70B full RL) | 10k–40k | **$15k–$60k** | 1–3 months |
+
+Takeaways:
+- **QLoRA/LoRA make fine-tuning nearly free.** A pilot SFT+DPO on a 7–8B model is a
+  few hundred dollars on one rented GPU.
+- **Online RL is 10–50× the training cost** and is where budgets explode.
+- **Data collection and evaluation usually cost more than training.** Budget
+  them together.
+- The free tier (Colab T4 16 GB / Kaggle 2×T4) can run a 7B QLoRA smoke test but
+  not a production run.
+
+---
+
+## 7. Live deployment compute
+
+Live serving cost is driven by **context length × concurrency**, not model size
+alone. Agent workloads carry large contexts (accumulated code + tool output), so
+KV cache dominates.
+
+**KV cache per sequence** (fp16, GQA):
+
+| Model | MB/token | 8k ctx | 32k ctx | 128k ctx |
+|---|---|---|---|---|
+| 7–8B (8 KV heads) | ~0.125 | 1 GB | 4 GB | 16 GB |
+| 32B (8 KV heads) | ~0.25 | 2 GB | 8 GB | 32 GB |
+| 70B (8 KV heads) | ~0.31 | 2.5 GB | 10 GB | 40 GB |
+
+Weights: 8B = 16 GB fp16 / 5 GB 4-bit · 32B = 64 GB / 18 GB · 70B = 140 GB / 40 GB.
+
+**Serving tiers**
+
+| Tier | Model / precision | Context | Concurrency | GPU | VRAM | Aggregate output | Cost |
+|---|---|---|---|---|---|---|---|
+| Dev / single user | 7B 4-bit | 8k | 1 | local 3070 Ti 8 GB | ~6 GB | 20–40 tok/s | $0 (owned) |
+| Team / small prod | 8B fp16 | 16k | 10–20 | 1×L40S 48 GB | ~40 GB | 1.5–2.5k tok/s | **~$700/mo** |
+| Small prod+ | 8B fp16 | 32k | 15 | 1×A100 80 GB | ~76 GB | 2–3k tok/s | **~$1,100/mo** |
+| Medium | 8B fp16 (TP=2) | 32k | 40–60 | 2×A100 / 1×H100 | ~150 GB | 5–8k tok/s | **$2,200–$3,300/mo** |
+| Medium+ | 32B 4-bit | 32k | 20–30 | 1×A100 80 GB | ~70 GB | 1.5–3k tok/s | **~$1,100/mo** |
+| Large | 32B fp16 (TP=4) | 32k | 40 | 4×A100 80 GB | ~320 GB | 3–5k tok/s | **~$4,300/mo** |
+| Enterprise | 70B 4-bit (TP=2) | 32k | 20–40 | 2×A100 80 GB | ~110 GB | 2–4k tok/s | **~$2,200/mo** |
+| Enterprise+ | 70B fp16 (TP=8) | 32k | 40+ | 8×H100 | ~640 GB | 10–20k tok/s | **~$17,000/mo** |
+
+Spot instances cut GPU cost 40–70% for **batch scanning**; interactive latency
+requires on-demand or always-on.
+
+**Full system deployment (not just the LLM)** — small production:
+
+| Component | Spec | Cost |
+|---|---|---|
+| LLM inference | 1×L40S or A100 node | $700–$1,100/mo |
+| Orchestrator + index + static tools | 16–32 vCPU, 64–128 GB RAM | $200–$500/mo |
+| Sandbox worker pool | 4–16 ephemeral 4-vCPU pods | $100–$600/mo |
+| Vector DB + storage (0.5–5 TB) | managed or self-hosted | $50–$300/mo |
+| **Total** | | **~$1,100–$2,500/mo** |
+
+Medium production: **~$5k–$8k/mo**. Enterprise: **~$20k–$40k/mo**.
+
+**On-prem / privacy deployment (no data egress):**
+
+| Scope | Hardware | Capex | Power/mo |
+|---|---|---|---|
+| 7–8B | 1×RTX 6000 Ada 48 GB / 2×4090 | $8k–$15k | ~$30–$60 |
+| 32B | 1×A100 80 GB | $15k–$25k | ~$100 |
+| 70B (4-bit) | 2×A100 80 GB | $30k–$50k | ~$200 |
+
+**Deployment cost levers**
+
+- **Cap and summarize context** — the single biggest serving cost driver
+  (KV cache scales linearly with context).
+- **Multi-LoRA serving** (vLLM/SGLang): one base model + many small adapters =
+  cheap per-tenant customization instead of separate models.
+- **Cascade routing:** small local model for routine steps, frontier API or
+  large model only for hard cases. Typical 3–10× cost reduction.
+- **Quantization** (AWQ/GPTQ 4-bit): ~4× less weight VRAM, minor quality loss.
+- **Prefix caching:** reuse shared system/repo prefixes across agent steps.
+- **Batch vs interactive separation:** batch scans → spot + throughput mode;
+  interactive → latency mode with smaller context.
+- **Autoscale to zero** for bursty workloads (serverless GPU).
+- **Distill to a 3B-class policy** for deployment; keep the big model for
+  training/data generation only.
+
+**Key operational insight:** in this workload **tool latency usually dominates
+end-to-end time**, so GPU over-provisioning is the wrong lever. Provision one
+modest GPU node, cap context, and scale the *tool/sandbox* pool instead.
+
+---
+
+## 8. Open items this doc does not resolve
 
 - B1: local-only vs external API still determines the model tier and legal posture.
 - B6: model-based verifiers remain gameable; compute estimates assume cheap
