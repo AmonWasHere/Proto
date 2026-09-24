@@ -19,6 +19,8 @@ code problems across arbitrary codebases.
   GCP pricing if the deferred RL experiment is ever run.
 - [`docs/compute-reduction.md`](docs/compute-reduction.md) — how to lower
   training/inference compute while preserving model quality.
+- [`docs/architecture-lastline.md`](docs/architecture-lastline.md) — **LastLine**:
+  tool-first, active-threat-DB, small-LLM-as-last-line cascade architecture.
 - [`docs/adr/`](docs/adr/) — architecture decision records.
   - [ADR-0001](docs/adr/0001-model-strategy-preexisting-llm.md) — use a
     pre-existing LLM; adapt with LoRA/QLoRA; never pretrain from scratch.
