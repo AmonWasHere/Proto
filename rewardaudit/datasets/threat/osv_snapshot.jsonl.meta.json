@@ -1,0 +1,5 @@
+{
+  "date": "2026-09-24",
+  "source": "SYNTHETIC FIXTURE — not real advisory data; for offline harness tests only",
+  "note": "Replace with a real OSV snapshot via scripts/refresh_osv.sh."
+}

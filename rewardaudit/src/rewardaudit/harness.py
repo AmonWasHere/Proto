@@ -248,6 +248,29 @@ def cmd_evade(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_threat(args: argparse.Namespace) -> int:
+    """Show the pinned advisory snapshot and match a requirements file against it."""
+    from .store import KnowledgeStore, Snapshot, parse_requirements
+
+    snapshot = Snapshot.load(args.snapshot)
+    store = KnowledgeStore(snapshot)
+    provenance = store.snapshot_provenance
+    print(f"snapshot:   {provenance['path']}")
+    print(f"sha256:     {provenance['sha256'][:16]}")
+    print(f"date:       {provenance['date'] or 'unknown'}")
+    print(f"advisories: {provenance['advisories']}")
+    if args.requirements:
+        text = Path(args.requirements).read_text()
+        deps = parse_requirements(text)
+        matches = store.match_dependencies(deps)
+        print(f"\ndependencies: {len(deps)}   with advisories: {len(matches)}")
+        for match in matches:
+            dep = match["dependency"]
+            ids = ", ".join(a.id for a in match["advisories"])
+            print(f"  {dep.package}=={dep.version}: {ids}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="rewardaudit.harness")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -290,6 +313,11 @@ def main(argv: list[str] | None = None) -> int:
     p_ev.add_argument("--strategies", nargs="*", default=None)
     p_ev.add_argument("--json", default="")
     p_ev.set_defaults(func=cmd_evade)
+
+    p_threat = sub.add_parser("threat", help="show the pinned advisory snapshot / match deps")
+    p_threat.add_argument("--snapshot", default=str(config.THREAT_SNAPSHOT))
+    p_threat.add_argument("--requirements", default="")
+    p_threat.set_defaults(func=cmd_threat)
 
     args = parser.parse_args(argv)
     return args.func(args)

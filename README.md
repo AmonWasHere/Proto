@@ -28,6 +28,8 @@ security verdict trustworthy.
     pre-existing LLM; never pretrain from scratch.
   - [ADR-0002](docs/adr/0002-reposition-measurement-first.md) — measurement-first,
     inference-only.
+  - [ADR-0003](docs/adr/0003-hybrid-knowledge-store.md) — hybrid knowledge store:
+    pinned public feed + active own findings.
 
 ## Status
 

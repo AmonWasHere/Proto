@@ -76,3 +76,9 @@ PYTHON_REPOS = _first(
 DATASETS = Path(os.environ.get("REWARDAUDIT_DATASETS", str(_PROJECT_ROOT / "datasets")))
 PYTHON_PAIRS = DATASETS / "python/pairs"
 PYTHON_CANARIES = DATASETS / "python/canaries"
+
+#: Pinned public-advisory snapshot (OSV JSON Lines). Never edited in place (ADR-0003).
+THREAT_SNAPSHOT = _first(
+    DATASETS / "threat/osv_snapshot.jsonl",
+    env="REWARDAUDIT_THREAT_SNAPSHOT",
+)
