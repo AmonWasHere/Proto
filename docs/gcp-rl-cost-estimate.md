@@ -349,6 +349,79 @@ or a small rented L4/A100.
 
 ---
 
+## 12. Third-party NVIDIA H200 SXM (~₹378/hr)
+
+User-supplied listing: **H200 SXM, 141 GB HBM3e, 300 GB RAM, 28 vCPU,
+₹378.27/hr on-demand** (selectable 1×/2×/4×/8×).
+
+**Price conversion** (at ~₹88–90/USD; INR fluctuates):
+₹378.27/hr ≈ **USD 4.20–4.30/hr per GPU**.
+
+**Per-GPU-hour comparison**
+
+| Option | $/GPU-hr | VRAM/GPU | Interconnect | Arch |
+|---|---|---|---|---|
+| **H200 SXM (3rd-party)** | **~4.30** | **141 GB** | **NVLink** | Hopper |
+| GCP `g4` RTX PRO 6000 (Flex) | 2.25 | 96 GB | PCIe | Blackwell |
+| GCP A100 40 GB (spot) | 2.20 | 40 GB | NVLink | Ampere |
+| GCP H100 80 GB (spot) | 6.62 | 80 GB | NVLink | Hopper |
+| GCP H100 80 GB (standard) | 11.06 | 80 GB | NVLink | Hopper |
+| GCP H200 (a3-ultragpu, std) | ~13.75 | 141 GB | NVLink | Hopper |
+
+**The third-party H200 is ~3.2× cheaper than GCP's own H200** and ~1.5× cheaper
+than GCP H100 **spot**, while having 141 GB and NVLink. It is ~1.9× pricier per
+GPU-hour than G4 Flex, but does substantially more work per hour.
+
+### Is a single H200 enough?
+
+**Yes — and it is arguably the cleanest RL box for our scope.** 141 GB on one
+card fits the *entire* loop co-located:
+
+| Target | Need | 1× H200 (141 GB) |
+|---|---|---|
+| 7–8B LoRA/QLoRA | 12–24 GB | ✅ |
+| 7–8B **full** fine-tune | ~130 GB | ✅ (tight, with checkpointing) |
+| 32B LoRA/QLoRA | 24–90 GB | ✅ |
+| **70B QLoRA** | 40–90 GB | ✅ |
+| GRPO 3–8B (policy + vLLM rollouts on same GPU) | 40–90 GB | ✅ |
+| 70B full FT / pretraining | TB-scale | ❌ |
+
+A single 141 GB card means **no PCIe/NVLink multi-GPU complexity** — the main
+caveat that applies to G4. NVLink is present on the multi-GPU configs, so 2×/4×
+scale properly for tensor parallelism if needed.
+
+### Estimated tier costs (1,200/3,500 A100-GPU-hr ÷ ~2× Hopper speedup)
+
+| Tier | H200 GPU-hr | 1× H200 cost | 4× H200 wall-clock | Cost (4×) |
+|---|---|---|---|---|
+| A (sanity) | 60–80 | ~$260–340 + env | ~1 day | same |
+| B (serious) | 480–670 | **~$2.1–2.9k** + env | **~6–7 days** | same |
+| C (ablations) | ~1,750 | ~$7.5k + env | ~18 days | same |
+
+With env CPU ($0.75–2.2k Tier B) and storage, Tier B lands at **~$2.9–4.8k** —
+similar to G4 Flex (~$3.6–5.0k), but **faster wall-clock and more capable**.
+
+### Caveats
+
+1. **Third-party reliability** — no GCP SLA/compliance; verify uptime, support,
+   and whether the price is truly on-demand (no spot/reserved discount shown).
+2. **Environment CPU is separate** — 28 vCPU per H200 covers only ~14% of the
+   Tier B tool-compute need; budget a CPU pool.
+3. **Data residency/egress** — moving repos/trajectories to a third party; check
+   jurisdiction and whether code may leave your environment (ties to B1/B8).
+4. **FX risk** — priced in ₹; USD cost moves with the exchange rate.
+5. **Blackwell alternatives may still win on price** — G4 Flex is $2.25/GPU-hr
+   with 96 GB, sufficient for 3–8B; H200 only pays off for speed or ≥32B models.
+
+**Verdict:** if the ₹378/hr rate is real and reliable, this H200 is an
+**excellent** RL option — cheaper than GCP's H100/H200, NVLinked, 141 GB, and a
+single card can host the whole 3–8B GRPO loop. It is the strongest third-party
+choice for the contingency. But for our actual scope (≤8B), **G4 Flex at
+$2.25/GPU-hr is still the cost-optimal choice**; H200 buys wall-clock speed and
+headroom for larger models, not necessity.
+
+---
+
 ### Revision note
 
 Supersedes the earlier placeholder estimate in this file (which used unverified
@@ -363,3 +436,9 @@ $2.25/GPU-hr, non-preemptible). G4 is VRAM-rich (4×96 GB) and vCPU-rich
 ~$9.8–12.8k. Main risks: Blackwell wheel support, PCIe-only scaling, and
 environment CPU becoming the critical path. **T4 is not viable for training**
 (§11) — smoke tests only.
+
+**Addendum (H200, §12):** a third-party H200 SXM at ₹378/hr ≈ **$4.20–4.30/GPU-hr**
+is ~3.2× cheaper than GCP's H200 and ~1.5× cheaper than GCP H100 spot, with
+141 GB and NVLink. A **single H200 can host the entire 3–8B GRPO loop** (no
+multi-GPU complexity). Tier B ≈ **$2.9–4.8k**, ~6–7 days on 4×. Still, for ≤8B
+the **G4 Flex ($2.25/GPU-hr) remains cost-optimal**; H200 buys speed and headroom.
