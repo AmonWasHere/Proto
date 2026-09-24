@@ -386,3 +386,5 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-24 | GCP estimate revised with fetched prices: Tier A ~$0.45k, Tier B ~$3.7k, Tier C ~$11k (spot). |
 | 2026-09-24 | Compute-reduction guide added (free 2–4×, structural 10–100×). |
 | 2026-09-24 | LastLine architecture proposed (tool-first, active DB, small LLM last). |
+| 2026-09-24 | Added brutal self-critique of LastLine; marked not endorsed. |
+| 2026-09-24 | **`docs/PLAN.md` created as canonical north star**; README repointed; other docs demoted to background. |

@@ -1,37 +1,32 @@
 # Research
 
-Research and design work for an RL-based vulnerability analysis agent — a
-tool-using policy that categorizes and analyzes security vulnerabilities and
-code problems across arbitrary codebases.
+Research and design work for an **evidence-first security adjudicator** and the
+**RewardAudit** benchmark: measuring when deterministic verifiers make an LLM's
+security verdict trustworthy.
 
-## Documents
+## Start here
+
+- **[`docs/PLAN.md`](docs/PLAN.md)** — the canonical north star. Read this first.
+
+## Everything else (background)
 
 - [`docs/rl-vulnerability-analysis-plan.md`](docs/rl-vulnerability-analysis-plan.md) —
-  draft v2 plan: architecture, tool suite, reward design, evaluation, a
-  cross-validation of shortcomings/limitations, the developed v2 roadmap, and a
-  risk register.
-- [`docs/issues.md`](docs/issues.md) — tracked backlog (IDs A1–D6) with severity,
-  owner, state, and resolution criteria.
-- [`docs/compute-and-model-strategy.md`](docs/compute-and-model-strategy.md) —
-  compute estimates by phase/scenario and the model-selection plus
-  training-ladder strategy under the hardware constraint.
-- [`docs/gcp-rl-cost-estimate.md`](docs/gcp-rl-cost-estimate.md) — contingency
-  GCP pricing if the deferred RL experiment is ever run.
-- [`docs/compute-reduction.md`](docs/compute-reduction.md) — how to lower
-  training/inference compute while preserving model quality.
-- [`docs/architecture-lastline.md`](docs/architecture-lastline.md) — **LastLine**:
-  tool-first, active-threat-DB, small-LLM-as-last-line cascade architecture.
-- [`docs/adr/`](docs/adr/) — architecture decision records.
-  - [ADR-0001](docs/adr/0001-model-strategy-preexisting-llm.md) — use a
-    pre-existing LLM; adapt with LoRA/QLoRA; never pretrain from scratch.
-- [`docs/novelty-and-related-work.md`](docs/novelty-and-related-work.md) —
-  2026 prior-art map, direct duplications, candidate novelty axes, and
-  recommended repositioning.
-- [`docs/research-proposal.md`](docs/research-proposal.md) — draft proposal for
-  **RewardAudit**: whether security-agent rewards can be trusted.
-- [`docs/adr/0002-reposition-measurement-first.md`](docs/adr/0002-reposition-measurement-first.md)
-  — recommended repositioning to a measurement-first study.
+  original broad plan (superseded as a spine; kept for context).
+- [`docs/research-proposal.md`](docs/research-proposal.md) — RewardAudit proposal.
+- [`docs/novelty-and-related-work.md`](docs/novelty-and-related-work.md) — prior art.
+- [`docs/compute-and-model-strategy.md`](docs/compute-and-model-strategy.md),
+  [`docs/gcp-rl-cost-estimate.md`](docs/gcp-rl-cost-estimate.md),
+  [`docs/compute-reduction.md`](docs/compute-reduction.md) — cost/efficiency.
+- [`docs/architecture-lastline.md`](docs/architecture-lastline.md) — rejected
+  alternative, with critique.
+- [`docs/issues.md`](docs/issues.md) — tracked backlog.
+- [`docs/adr/`](docs/adr/) — decisions.
+  - [ADR-0001](docs/adr/0001-model-strategy-preexisting-llm.md) — adapt a
+    pre-existing LLM; never pretrain from scratch.
+  - [ADR-0002](docs/adr/0002-reposition-measurement-first.md) — measurement-first,
+    inference-only.
 
 ## Status
 
-Planning / design. No implementation yet.
+Design + planning. Next action: **M0** (finding schema, one scanner, two
+verifiers, ten CVEs, a canary repo) → **M2 (E1)**.
