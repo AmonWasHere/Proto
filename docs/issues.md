@@ -15,10 +15,10 @@ IDs are permanent; do not renumber. State changes should be made in place.
 
 | ID | Sev | State | Area | Title |
 |---|---|---|---|---|
-| A1 | High | open | repo | No LICENSE |
-| A2 | High | open | repo | No SECURITY.md |
-| A3 | High | open | repo | No CI, tests, or lint/format config |
-| A4 | Medium | open | repo | Monolithic design doc; no decision log |
+| A1 | High | resolved | repo | No LICENSE |
+| A2 | High | resolved | repo | No SECURITY.md |
+| A3 | High | in-progress | repo | No CI, tests, or lint/format config |
+| A4 | Medium | resolved | repo | Monolithic design doc; no decision log |
 | A5 | Medium | open | repo | Risk register not tracked as issues |
 | A6 | Medium | open | repo | Unattributed claims / unverified benchmark availability |
 | A7 | Low | open | repo | Thin README; no CONTRIBUTING / templates / CHANGELOG |
@@ -68,38 +68,30 @@ deferred; the project is inference-only.
 ## A. Repository / project hygiene
 
 ### A1 — No LICENSE
-- **Severity:** High · **State:** open · **Owner:** TBD
+- **Severity:** High · **State:** resolved · **Owner:** TBD
 - **Problem:** Repository has no license, so rights to use, modify, and
   redistribute are undefined.
-- **Impact:** Blocks safe consumption of third-party code/datasets/benchmarks;
-  inconsistent with the project's own license-contamination risk.
-- **Resolution:** Add a `LICENSE` (candidate: Apache-2.0 or MIT for code, plus a
-  separate data-use note for corpora).
-- **Depends on:** B1 (commercial vs open intent).
+- **Resolution (2026-09-24):** MIT `LICENSE` added at repo root.
 
 ### A2 — No SECURITY.md
-- **Severity:** High · **State:** open · **Owner:** TBD
+- **Severity:** High · **State:** resolved · **Owner:** TBD
 - **Problem:** No vulnerability-disclosure or handling policy for the analyzer
   itself.
-- **Impact:** A security tool with no security policy; no reporting channel.
-- **Resolution:** Add `SECURITY.md` with scope, reporting channel, and handling
-  SLAs.
+- **Resolution (2026-09-24):** `SECURITY.md` added (scope, reporting, handling,
+  design posture: code is untrusted data).
 
 ### A3 — No CI, tests, or lint/format config
-- **Severity:** High · **State:** open · **Owner:** TBD
+- **Severity:** High · **State:** in-progress · **Owner:** TBD
 - **Problem:** Nothing enforces the reproducibility and pinning the plan demands.
-- **Impact:** Regressions are undetectable; the plan's own gates can't be
-  automated.
-- **Resolution:** Add `.github/workflows/ci.yml` (lint, format check, tests,
-  docs link check), formatter/linter config, and a `tests/` skeleton.
+- **Progress (2026-09-24):** `rewardaudit/` has 26 passing tests and a pytest
+  config; `.github/workflows/ci.yml` added. Remaining: confirm CI runs, add
+  lint/format (ruff) config.
 
 ### A4 — Monolithic design doc; no decision log
-- **Severity:** Medium · **State:** open · **Owner:** TBD
-- **Problem:** One 31 KB document mixes architecture, rewards, roadmap, and
-  risk; no ADRs.
-- **Impact:** Hard to review, assign, or update independently.
-- **Resolution:** Split into `docs/architecture.md`, `docs/reward-design.md`,
-  `docs/roadmap.md`, `docs/evaluation.md`; add `docs/adr/` with numbered ADRs.
+- **Severity:** Medium · **State:** resolved · **Owner:** TBD
+- **Problem:** One large document mixed architecture, rewards, roadmap, and risk.
+- **Resolution (2026-09-24):** `docs/PLAN.md` is the single canonical plan;
+  detailed material lives in focused docs; `docs/adr/` holds decisions.
 
 ### A5 — Risk register not tracked as issues
 - **Severity:** Medium · **State:** open · **Owner:** TBD
@@ -436,3 +428,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-24 | Discovered prior project `~/Projects/Patch`: `sastaudit` harness + corpora + 179K CVE pairs. Plan revised to **extend `sastaudit`**, not build greenfield. Pretrained C/C++ model judged not useful. |
 | 2026-09-24 | Post-Patch deltas: E1 sharpened to four-way decomposition on LLM verifiers; B10 resolved; D1/D5 in-progress; new reuse risks F1–F4. |
 | 2026-09-24 | Added `docs/tools.md`: Java+Python(+C/C++) coverage and analyzer inventory. |
+| 2026-09-24 | **M0 built and passing**: `rewardaudit/` reproduces opengrep 12/18 vulnerable, 1/3 safe; 26 tests. A1/A2/A4 resolved, A3 in-progress. |

@@ -8,6 +8,8 @@ security verdict trustworthy.
 
 - **[`docs/PLAN.md`](docs/PLAN.md)** — the canonical north star. Read this first.
   - [`docs/tools.md`](docs/tools.md) — language coverage and analyzer inventory.
+- **[`rewardaudit/`](rewardaudit/)** — M0 working code (harness, adapters, CPG
+  evidence layer, local/cloud LLM backends, V1/V2 verifiers).
 
 ## Everything else (background)
 
@@ -28,6 +30,12 @@ security verdict trustworthy.
     inference-only.
 
 ## Status
+
+**M0 complete.** `rewardaudit/` reproduces the pinned opengrep control result
+(12/18 vulnerable, 1/3 safe flagged) through the new interface; 26 tests green.
+Next: **M1** (evidence ledger + V1/V2 across Java + Python), then **M2 (E1)**.
+
+## Status (design)
 
 Design + planning. Next action: **M0** (finding schema, one scanner, two
 verifiers, ten CVEs, a canary repo) → **M2 (E1)**.

@@ -153,6 +153,10 @@ injections, with a hidden holdout and pre-registered thresholds.
 
 ## 8. Milestones and kill criteria
 
+**Status (2026-09-24): M0 complete** — `rewardaudit/` wraps opengrep and
+reproduces the pinned control result (12/18 vulnerable, 1/3 safe flagged); 26
+tests green; run manifest emitted.
+
 | M | Deliverable | Gate |
 |---|---|---|
 | M0 | **Wrap `sastaudit`** (tool runners + `pins.json`) with the verifier interface; reuse OWASP/JavaVFC/15-repo corpus; add canary repos | reproduce a known `sastaudit` control result through the new interface |
