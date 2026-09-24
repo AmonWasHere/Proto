@@ -33,22 +33,25 @@ security verdict trustworthy.
 
 ## Status
 
-**M0–M2 mechanics complete.** `rewardaudit/` reproduces the pinned opengrep Java
-control result (12/18 vulnerable, 1/3 safe); supports Java + Python; implements
-the four-way decomposition, evidence ledger, canary check, and an ALIBI-style
-adversarial comment generator. 49 tests green.
+**M0–M2 complete, including the first real E1 run** (see
+[`docs/e1-results.md`](docs/e1-results.md)): across three verifiers on identical
+input, flip rate 80–100% and canary false positives 0/3–1/3 — verifier-dependence
+confirmed on a small sample. 59 tests green.
 
-The **real E1 number awaits a live backend**:
+Reproduce the offline pipeline:
 
 ```bash
 cd rewardaudit
-# local model (ollama / llama.cpp / LM Studio OpenAI-compatible server)
-PYTHONPATH=src python3 -m rewardaudit.harness e1   --backend local --canaries
-PYTHONPATH=src python3 -m rewardaudit.harness evade --backend local
-# or a cloud API key
-REWARDAUDIT_LLM_BASE_URL=... REWARDAUDIT_LLM_MODEL=... REWARDAUDIT_LLM_API_KEY=... \
-PYTHONPATH=src python3 -m rewardaudit.harness e1 --backend cloud
+PYTHONPATH=src python3 -m pytest
+PYTHONPATH=src python3 -m rewardaudit.harness controls
+PYTHONPATH=src python3 -m rewardaudit.harness pairs
+PYTHONPATH=src python3 -m rewardaudit.harness e1    --backend scripted
+PYTHONPATH=src python3 -m rewardaudit.harness evade --backend scripted
 ```
+
+Real runs use `--backend local` (ollama/LM Studio) or `--backend cloud`
+(`REWARDAUDIT_LLM_BASE_URL/MODEL/API_KEY`). Next: scale E1 to the JavaVFC
+real-fix corpus (784 pinned commits).
 
 ## Status (design)
 

@@ -436,3 +436,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-24 | **M1 built**: assets pinned under `pinned/`, Python support + rules + pairs + canaries, four-way decomposition, evidence ledger; 40 tests. F1 in-progress. |
 | 2026-09-24 | **M2 mechanics built**: adversarial comment generator, `e1` + `evade` harness, scripted offline verifier; 49 tests. Real E1 pending a live backend. |
 | 2026-09-24 | **Hybrid knowledge store** (ADR-0003): pinned OSV snapshot + active findings ledger joined by dependency; `store/` module, `threat` CLI; 55 tests. |
+| 2026-09-24 | **First real E1 run** (Groq, 3 models) — results in `docs/e1-results.md`; verifier-dependence confirmed on n=5. Backend hardened (User-Agent + retry/backoff). 59 tests. |
