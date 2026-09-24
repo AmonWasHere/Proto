@@ -280,6 +280,54 @@ not a single clean run. Tier B is **2–4 weeks**.
 > Reminder: this is the **deferred RL** path. The headline experiment E1
 > (verifier evasion) needs **0 training hours** — it is inference-only.
 
+## 11. T4 (Turing) — works for smoke tests, not for the RL training
+
+NVIDIA T4: Turing, **16 GB GDDR6**, ~320 GB/s, ~65 TFLOPS FP16 / 260 TOPS INT8.
+Introduced 2018; available on GCP as an N1-attached GPU (~$0.35/GPU-hr + CPU),
+and free on Colab/Kaggle.
+
+**Capability assessment**
+
+| Use case | T4 verdict |
+|---|---|
+| Static analysis / tooling | N/A — CPU work |
+| E1 inference (≤3B Q4) | ✅ workable, slow |
+| E1 inference (7B Q4) | ⚠️ fits, ~15–30 tok/s |
+| SFT — 1–3B LoRA/QLoRA | ✅ fine |
+| SFT — 7B QLoRA | ⚠️ possible, very slow |
+| DPO — 7B | ⚠️ slow |
+| **GRPO — 3–8B (our RL)** | ❌ **impractical** |
+| 32B / 70B anything | ❌ (16 GB) |
+| Long-context agent (16–32k) | ❌ no FlashAttention-2, bandwidth-bound |
+
+**Why it fails for our RL, specifically**
+
+1. **No BF16** (Turing predates it) → FP16 + loss scaling or 4-bit only.
+2. **No FlashAttention-2** (needs Ampere+). Our agent runs long contexts
+   (accumulated code + tool output); without FA2, attention memory and time
+   explode.
+3. **320 GB/s bandwidth** → ~5× slower rollout throughput than A100, so the
+   rollout-dominated GRPO loop takes weeks-to-months instead of days.
+4. **PCIe only**, no NVLink — same scaling limit as G4, but without the compute
+   or memory to compensate.
+5. **Poor cost-per-token.** Even at ~$0.35/hr, T4 delivers a small fraction of an
+   A100 spot's throughput, so it is usually *more* expensive per useful token.
+
+**Where T4 is genuinely useful here**
+
+- **Pipeline smoke tests** on 1–3B models to validate SFT/QoRA/GRPO code paths
+  before renting real hardware (Colab/Kaggle are free).
+- **Cheap local inference** for small models if no GPU is otherwise available.
+- **CPU-bound tooling** — but that needs no GPU at all.
+
+> **Note:** the local **RTX 3070 Ti is architecturally better than a T4** for this
+> work (Ampere sm86 → BF16 + FlashAttention-2 + 608 GB/s), despite 8 GB vs 16 GB.
+> T4's only advantage is VRAM. It is not an upgrade path.
+
+**Verdict:** do not provision T4 for training. Use it only for free smoke tests;
+run the actual RL on A100/G4, and run the current inference-only phase on an API
+or a small rented L4/A100.
+
 ---
 
 ### Revision note
