@@ -17,6 +17,8 @@ code problems across arbitrary codebases.
   training-ladder strategy under the hardware constraint.
 - [`docs/gcp-rl-cost-estimate.md`](docs/gcp-rl-cost-estimate.md) — contingency
   GCP pricing if the deferred RL experiment is ever run.
+- [`docs/compute-reduction.md`](docs/compute-reduction.md) — how to lower
+  training/inference compute while preserving model quality.
 - [`docs/adr/`](docs/adr/) — architecture decision records.
   - [ADR-0001](docs/adr/0001-model-strategy-preexisting-llm.md) — use a
     pre-existing LLM; adapt with LoRA/QLoRA; never pretrain from scratch.
