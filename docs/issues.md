@@ -353,3 +353,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 |---|---|
 | 2026-09-24 | Initial backlog created from project review; IDs A1–D6 assigned. |
 | 2026-09-24 | B7, C1, D3 moved to in-progress; compute/model strategy added. |
+| 2026-09-24 | ADR-0001: pre-existing LLM + LoRA/QLoRA adaptation; no pretraining from scratch. |

@@ -15,6 +15,9 @@ code problems across arbitrary codebases.
 - [`docs/compute-and-model-strategy.md`](docs/compute-and-model-strategy.md) —
   compute estimates by phase/scenario and the model-selection plus
   training-ladder strategy under the hardware constraint.
+- [`docs/adr/`](docs/adr/) — architecture decision records.
+  - [ADR-0001](docs/adr/0001-model-strategy-preexisting-llm.md) — use a
+    pre-existing LLM; adapt with LoRA/QLoRA; never pretrain from scratch.
 
 ## Status
 
