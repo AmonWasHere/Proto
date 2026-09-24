@@ -438,3 +438,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-24 | **Hybrid knowledge store** (ADR-0003): pinned OSV snapshot + active findings ledger joined by dependency; `store/` module, `threat` CLI; 55 tests. |
 | 2026-09-24 | **First real E1 run** (Groq, 3 models) — results in `docs/e1-results.md`; verifier-dependence confirmed on n=5. Backend hardened (User-Agent + retry/backoff). 59 tests. |
 | 2026-09-24 | **Adaptive attacker** (`attack/adaptive.py`, ALIBI-style) + DeepSeek run: adaptive evasion 40% vs 12% templates; abstention is a distinct evasion path. 64 tests. |
+| 2026-09-24 | **P1–P3**: JavaVFC scale-up (207 pairs; security subset n=21) — E1 flip 19–24% vs Semgrep 0.83%; evasion split (P2); adaptive 50% (P3). Fixed reasoning-model token-budget bug. 67 tests. |

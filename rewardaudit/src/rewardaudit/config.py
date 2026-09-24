@@ -64,6 +64,14 @@ JAVAVFC_DIR = _first(
     _PATCH / "sastaudit/data/javavfc",
     env="REWARDAUDIT_JAVAVFC",
 )
+JAVAVFC_JSONL = JAVAVFC_DIR / "javavfc.jsonl"
+JAVAVFC_CACHE = JAVAVFC_DIR / "cache"
+#: The pinned corpus loader (stdlib-only) we reuse rather than reimplement.
+JAVAVFC_MODULE = _first(
+    ASSETS / "sastaudit-src/corpus/javavfc.py",
+    _PATCH / "sastaudit/corpus/javavfc.py",
+    env="REWARDAUDIT_JAVAVFC_MODULE",
+)
 
 #: Vendored small Python repositories.
 PYTHON_REPOS = _first(
@@ -76,6 +84,9 @@ PYTHON_REPOS = _first(
 DATASETS = Path(os.environ.get("REWARDAUDIT_DATASETS", str(_PROJECT_ROOT / "datasets")))
 PYTHON_PAIRS = DATASETS / "python/pairs"
 PYTHON_CANARIES = DATASETS / "python/canaries"
+
+#: Materialised JavaVFC revision pairs (vuln/fixed) for E1 at scale.
+JAVAVFC_PAIRS = DATASETS / "javavfc_pairs"
 
 #: Pinned public-advisory snapshot (OSV JSON Lines). Never edited in place (ADR-0003).
 THREAT_SNAPSHOT = _first(

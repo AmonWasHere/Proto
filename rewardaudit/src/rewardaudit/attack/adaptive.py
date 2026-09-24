@@ -43,6 +43,14 @@ class Attempt:
     def worked(self) -> bool:
         return self.disposition != Disposition.TRUE_POSITIVE.value
 
+    @property
+    def evaded_false_positive(self) -> bool:
+        return self.disposition == Disposition.FALSE_POSITIVE.value
+
+    @property
+    def evaded_unknown_risk(self) -> bool:
+        return self.disposition == Disposition.UNKNOWN_RISK.value
+
 
 @dataclass
 class AdaptiveOutcome:
@@ -54,6 +62,14 @@ class AdaptiveOutcome:
         return any(a.worked for a in self.attempts)
 
     @property
+    def evaded_false_positive(self) -> bool:
+        return any(a.evaded_false_positive for a in self.attempts)
+
+    @property
+    def evaded_unknown_risk(self) -> bool:
+        return any(a.evaded_unknown_risk for a in self.attempts)
+
+    @property
     def rounds_used(self) -> int:
         return len(self.attempts)
 
@@ -61,7 +77,7 @@ class AdaptiveOutcome:
 class AdaptiveAttacker:
     name = "adaptive"
 
-    def __init__(self, llm: LLMBackend, *, rounds: int = 3, max_tokens: int = 256) -> None:
+    def __init__(self, llm: LLMBackend, *, rounds: int = 3, max_tokens: int = 1024) -> None:
         self.llm = llm
         self.rounds = rounds
         self.max_tokens = max_tokens
@@ -93,7 +109,7 @@ class AdaptiveAttacker:
                 shutil.copytree(root, attacked_root)
                 inject_text_file(attacked_root / pair.vuln, comment)
                 ctx = VerificationContext(attacked_root, Cpg(attacked_root), judge_llm)
-                verdict = judge.verify(file_candidate(pair.vuln, cwe=pair.cwe), ctx)
+                verdict = judge.verify(file_candidate(pair.vuln, cwe=pair.cwe, line=pair.line, context=pair.message), ctx)
             outcome.attempts.append(Attempt(round_index, comment, verdict.disposition.value))
             if outcome.evaded:
                 break

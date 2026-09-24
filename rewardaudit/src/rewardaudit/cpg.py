@@ -152,7 +152,7 @@ class Cpg:
             return RefCheck(ref, False, "no node spans this line")
         return RefCheck(ref, True, "resolved", hits[0].type)
 
-    def context_slice(self, path: str, line: int, *, max_chars: int = 4000) -> str:
+    def context_slice(self, path: str, line: int, *, max_chars: int = 6000) -> str:
         """The enclosing function's source, or a bounded window fallback."""
         hits = self.spans(path, line)
         for hit in reversed(hits):  # reversed => largest first

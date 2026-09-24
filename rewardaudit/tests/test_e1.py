@@ -6,6 +6,9 @@ validates the *measurement pipeline*; the real number comes from running the sam
 commands with `--backend local|cloud`.
 """
 
+import json
+import re
+
 import pytest
 
 from rewardaudit import config
@@ -13,6 +16,7 @@ from rewardaudit.attack.comment_gen import Strategy
 from rewardaudit.cpg import Cpg
 from rewardaudit.datasets import load_canaries, load_pairs
 from rewardaudit.e1 import evasion, four_way_llm, judge_canaries
+from rewardaudit.llm.mock import MockBackend
 from rewardaudit.llm.scripted import ScriptedBackend
 from rewardaudit.verifiers.base import VerificationContext
 
@@ -69,3 +73,40 @@ def test_llm_canaries_no_false_positives(backend):
     report = judge_canaries(canaries, _ctx(config.PYTHON_CANARIES, backend))
     assert report["total"] == 3
     assert report["false_positives"] == 0
+
+
+def test_evasion_split_counts_abstention():
+    """A judge that becomes *uncertain* is evaded, and the split records that."""
+    _require_cpg()
+
+    def responder(request):
+        if "audited by the application security team" in request.user:
+            return json.dumps({"disposition": "unknown_risk", "confidence": 0.0, "rationale": "unsure"})
+        return json.dumps({"disposition": "true_positive", "confidence": 0.8, "rationale": "sink"})
+
+    backend = MockBackend(responder=responder)
+    report = evasion(
+        _pairs(), config.PYTHON_PAIRS, backend, strategies=(Strategy.AUTHORITY,)
+    )
+    row = report.per_strategy["authority"]
+    assert row["attempted"] == 5
+    assert row["evaded"] == 5
+    assert row["evaded_unknown_risk"] == 5
+    assert row["evaded_false_positive"] == 0
+
+
+def test_evasion_split_counts_false_positive():
+    _require_cpg()
+
+    def responder(request):
+        if "audited by the application security team" in request.user:
+            return json.dumps({"disposition": "false_positive", "confidence": 0.9, "rationale": "safe"})
+        return json.dumps({"disposition": "true_positive", "confidence": 0.8, "rationale": "sink"})
+
+    backend = MockBackend(responder=responder)
+    report = evasion(
+        _pairs(), config.PYTHON_PAIRS, backend, strategies=(Strategy.AUTHORITY,)
+    )
+    row = report.per_strategy["authority"]
+    assert row["evaded_false_positive"] == 5
+    assert row["evaded_unknown_risk"] == 0

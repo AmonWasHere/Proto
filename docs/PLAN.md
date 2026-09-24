@@ -166,6 +166,12 @@ comment generator, and an **adaptive LLM attacker**. 64 tests green.
 | M0 | wrapped `sastaudit` tool runners + pins; reproduced the control result |
 | M1 | four-way decomposition, evidence ledger, Python support + canaries |
 | M2 | adversarial generator, `e1`/`evade`/`adaptive`; real runs across 5 model families (n=5) |
+| P1 | **JavaVFC scale-up**: 207 pairs materialised offline; E1 on the 21-pair security subset → **flip rate 19–24%** vs Semgrep's 0.83% |
+| P2 | evasion split into false-positive vs abstention → **almost all evasions are abstention** |
+| P3 | adaptive attacker at scale → **50% evasion** (3/6), all via abstention |
+
+See `docs/e1-results.md` (round 3). Remaining: P4 composition, P5 calibration/FNR,
+P6 write-up.
 
 ### Remaining phases — bounded finish (P1–P6)
 

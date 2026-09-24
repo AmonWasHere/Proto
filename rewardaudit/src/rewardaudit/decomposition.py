@@ -35,6 +35,8 @@ class RevisionPair:
     fixed: str
     category: str = ""
     cwe: str = ""
+    line: int = 1
+    message: str = ""
 
 
 def classify(flagged_vuln: bool, flagged_fixed: bool) -> Cell:

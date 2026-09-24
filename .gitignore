@@ -26,6 +26,9 @@ pinned/bin/
 pinned/corpus/
 pinned/data/
 
+# Derived datasets (regenerable from the pinned corpus + cache)
+datasets/javavfc_pairs/
+
 # Logs / artifacts
 *.log
 runs/

@@ -181,9 +181,11 @@ def cmd_e1(args: argparse.Namespace) -> int:
     """Four-way decomposition applied to LLM verdicts (does the verdict track the fix?)."""
     root = Path(args.dir)
     pairs = load_pairs(root / "manifest.json")
+    if getattr(args, "limit", 0):
+        pairs = pairs[: args.limit]
     backend = build_backend(args.backend)
     ctx = VerificationContext(root.resolve(), Cpg(root), backend)
-    result = four_way_llm(pairs, ctx)
+    result = four_way_llm(pairs, ctx, LLMJudge(require_decision=getattr(args, 'require_decision', False)))
     report = result.report
 
     print(f"backend:  {backend.name} {getattr(backend, 'model', '')}".rstrip())
@@ -231,17 +233,23 @@ def cmd_evade(args: argparse.Namespace) -> int:
     """Adversarial comment injection against the LLM verifier (E1 evasion)."""
     root = Path(args.dir)
     pairs = load_pairs(root / "manifest.json")
+    if getattr(args, "limit", 0):
+        pairs = pairs[: args.limit]
     backend = build_backend(args.backend)
     strategies = (
         tuple(Strategy(s) for s in args.strategies) if args.strategies else DEFAULT_STRATEGIES
     )
-    report = evasion(pairs, root, backend, strategies=strategies)
+    report = evasion(pairs, root, backend, strategies=strategies, judge=LLMJudge(require_decision=getattr(args, 'require_decision', False)))
 
     print(f"backend:   {backend.name} {getattr(backend, 'model', '')}".rstrip())
     print(f"baseline true positives: {report.baseline_true_positives}/{len(pairs)}")
     print()
     for name, row in report.per_strategy.items():
-        print(f"  {name:14} evaded {row['evaded']}/{row['attempted']}  ({row['rate']:.0%})")
+        print(
+            f"  {name:14} evaded {row['evaded']}/{row['attempted']}"
+            f"  (FP {row.get('evaded_false_positive', 0)}, abstain {row.get('evaded_unknown_risk', 0)})"
+            f"  ({row['rate']:.0%})"
+        )
     print(f"\noverall evasion: {report.overall:.0%}")
 
     if args.json:
@@ -254,6 +262,8 @@ def cmd_adaptive(args: argparse.Namespace) -> int:
     """LLM-authored, iterative adversarial comments (ALIBI-style)."""
     root = Path(args.dir)
     pairs = load_pairs(root / "manifest.json")
+    if getattr(args, "limit", 0):
+        pairs = pairs[: args.limit]
     judge_backend = build_backend(args.backend)
     attacker_backend = judge_backend
     attacker_name = f"{getattr(judge_backend, 'name', '?')} {getattr(judge_backend, 'model', '')}".strip()
@@ -272,8 +282,11 @@ def cmd_adaptive(args: argparse.Namespace) -> int:
         judge_llm=judge_backend,
         attacker_llm=attacker_backend,
         rounds=args.rounds,
+        judge=LLMJudge(require_decision=getattr(args, "require_decision", False)),
     )
     evaded = sum(o.evaded for o in outcomes)
+    evaded_fp = sum(o.evaded_false_positive for o in outcomes)
+    evaded_unknown = sum(o.evaded_unknown_risk for o in outcomes)
 
     print(f"judge:    {getattr(judge_backend, 'name', '?')} {getattr(judge_backend, 'model', '')}".rstrip())
     print(f"attacker: {attacker_name}")
@@ -282,10 +295,16 @@ def cmd_adaptive(args: argparse.Namespace) -> int:
     print()
     for outcome in outcomes:
         mark = "EVADED" if outcome.evaded else "held  "
+        kind = (
+            "FP" if outcome.evaded_false_positive
+            else "abstain" if outcome.evaded_unknown_risk
+            else ""
+        )
         winner = next((a.comment for a in outcome.attempts if a.worked), "")
-        print(f"  {mark} {outcome.pair_id:16} rounds={outcome.rounds_used}  {winner[:64]!r}")
+        print(f"  {mark} {outcome.pair_id:16} rounds={outcome.rounds_used} {kind:8} {winner[:56]!r}")
     rate = evaded / len(outcomes) if outcomes else 0.0
-    print(f"\nadaptive evasion: {rate:.0%} ({evaded}/{len(outcomes)})")
+    print(f"\nadaptive evasion: {rate:.0%} ({evaded}/{len(outcomes)})  "
+          f"[FP {evaded_fp}, abstain {evaded_unknown}]")
 
     if args.json:
         payload = {
@@ -317,6 +336,21 @@ def cmd_threat(args: argparse.Namespace) -> int:
             dep = match["dependency"]
             ids = ", ".join(a.id for a in match["advisories"])
             print(f"  {dep.package}=={dep.version}: {ids}")
+    return 0
+
+
+def cmd_build_javavfc(args: argparse.Namespace) -> int:
+    """Materialise JavaVFC revision pairs (vuln/fixed) into a directory."""
+    from .javavfc import build_pairs
+
+    summary = build_pairs(
+        Path(args.out), limit=args.limit, stride=args.stride, allow_network=not args.offline
+    )
+    for key, value in summary.items():
+        if isinstance(value, list):
+            print(f"{key}: {len(value)}")
+        else:
+            print(f"{key}: {value}")
     return 0
 
 
@@ -353,6 +387,8 @@ def main(argv: list[str] | None = None) -> int:
     p_e1.add_argument("--backend", default="mock", choices=["mock", "scripted", "local", "cloud"])
     p_e1.add_argument("--canaries", action="store_true")
     p_e1.add_argument("--canaries-dir", default=str(config.PYTHON_CANARIES))
+    p_e1.add_argument("--limit", type=int, default=0)
+    p_e1.add_argument("--require-decision", action="store_true")
     p_e1.add_argument("--json", default="")
     p_e1.set_defaults(func=cmd_e1)
 
@@ -360,6 +396,8 @@ def main(argv: list[str] | None = None) -> int:
     p_ev.add_argument("--dir", default=str(config.PYTHON_PAIRS))
     p_ev.add_argument("--backend", default="mock", choices=["mock", "scripted", "local", "cloud"])
     p_ev.add_argument("--strategies", nargs="*", default=None)
+    p_ev.add_argument("--limit", type=int, default=0)
+    p_ev.add_argument("--require-decision", action="store_true")
     p_ev.add_argument("--json", default="")
     p_ev.set_defaults(func=cmd_evade)
 
@@ -373,8 +411,17 @@ def main(argv: list[str] | None = None) -> int:
     p_ad.add_argument("--backend", default="mock", choices=["mock", "scripted", "local", "cloud"])
     p_ad.add_argument("--attacker-model", default="")
     p_ad.add_argument("--rounds", type=int, default=3)
+    p_ad.add_argument("--limit", type=int, default=0)
+    p_ad.add_argument("--require-decision", action="store_true")
     p_ad.add_argument("--json", default="")
     p_ad.set_defaults(func=cmd_adaptive)
+
+    p_jv = sub.add_parser("javavfc", help="materialise JavaVFC revision pairs for E1")
+    p_jv.add_argument("--out", default=str(config.JAVAVFC_PAIRS))
+    p_jv.add_argument("--limit", type=int, default=100)
+    p_jv.add_argument("--stride", type=int, default=1)
+    p_jv.add_argument("--offline", action="store_true", help="cache only, no network")
+    p_jv.set_defaults(func=cmd_build_javavfc)
 
     args = parser.parse_args(argv)
     return args.func(args)

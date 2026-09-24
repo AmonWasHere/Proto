@@ -17,6 +17,8 @@ def load_pairs(manifest_path: str | Path) -> list[RevisionPair]:
             fixed=p["fixed"],
             category=p.get("category", ""),
             cwe=p.get("cwe", ""),
+            line=int(p.get("line", 1) or 1),
+            message=p.get("message", ""),
         )
         for p in data["pairs"]
     ]

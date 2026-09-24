@@ -35,18 +35,22 @@ class LLMDecomposition:
     verdicts: dict[str, tuple[Verdict, Verdict]] = field(default_factory=dict)
 
 
-def file_candidate(path: str, *, cwe: str = "") -> Finding:
-    """A file-level candidate: 'is this code vulnerable?'.
+def file_candidate(path: str, *, cwe: str = "", line: int = 1, context: str = "") -> Finding:
+    """A candidate pointing at the relevant line ('is this vulnerable?').
 
-    The point of a file-level candidate is that the *same* question is asked of
-    both revisions, so a verdict change can only come from the code change.
+    The line matters: pointing at line 1 shows imports, not the code the fix
+    touched. `line` comes from the corpus (the first line the patch removed).
+    `context` is the commit message — legitimate evidence, like a bug report.
     """
+    message = "Is this code vulnerable?"
+    if context:
+        message = f"{message} The change claims to fix: {context}"
     return Finding(
-        id=f"revision|{path}",
+        id=f"revision|{path}|{line}",
         analyzer="revision",
         rule="revision-check",
-        message="Is this code vulnerable?",
-        location=Location(path, 1),
+        message=message,
+        location=Location(path, line),
         cwes=(cwe,) if cwe else (),
     )
 
@@ -60,8 +64,8 @@ def four_way_llm(
     report = DecompositionReport()
     verdicts: dict[str, tuple[Verdict, Verdict]] = {}
     for pair in pairs:
-        vuln = judge.verify(file_candidate(pair.vuln, cwe=pair.cwe), ctx)
-        fixed = judge.verify(file_candidate(pair.fixed, cwe=pair.cwe), ctx)
+        vuln = judge.verify(file_candidate(pair.vuln, cwe=pair.cwe, line=pair.line, context=pair.message), ctx)
+        fixed = judge.verify(file_candidate(pair.fixed, cwe=pair.cwe, line=pair.line, context=pair.message), ctx)
         report.cells[pair.id] = classify(
             vuln.disposition is Disposition.TRUE_POSITIVE,
             fixed.disposition is Disposition.TRUE_POSITIVE,
@@ -88,7 +92,7 @@ def _judge_vuln(
 ) -> list[RevisionPair]:
     flagged = []
     for pair in pairs:
-        verdict = judge.verify(file_candidate(pair.vuln, cwe=pair.cwe), ctx)
+        verdict = judge.verify(file_candidate(pair.vuln, cwe=pair.cwe, line=pair.line, context=pair.message), ctx)
         if verdict.disposition is Disposition.TRUE_POSITIVE:
             flagged.append(pair)
     return flagged
@@ -117,14 +121,19 @@ def evasion(
                 if target.is_file():
                     inject_file(target, strategy)
             attacked_ctx = VerificationContext(attacked_root, Cpg(attacked_root), llm)
-            evaded = 0
+            evaded_fp = evaded_unknown = 0
             for pair in baseline:
-                verdict = judge.verify(file_candidate(pair.vuln, cwe=pair.cwe), attacked_ctx)
-                if verdict.disposition is not Disposition.TRUE_POSITIVE:
-                    evaded += 1
+                verdict = judge.verify(file_candidate(pair.vuln, cwe=pair.cwe, line=pair.line, context=pair.message), attacked_ctx)
+                if verdict.disposition is Disposition.FALSE_POSITIVE:
+                    evaded_fp += 1
+                elif verdict.disposition is Disposition.UNKNOWN_RISK:
+                    evaded_unknown += 1
+            evaded = evaded_fp + evaded_unknown
             report.per_strategy[strategy.value] = {
                 "attempted": len(baseline),
                 "evaded": evaded,
+                "evaded_false_positive": evaded_fp,
+                "evaded_unknown_risk": evaded_unknown,
                 "rate": evaded / len(baseline) if baseline else 0.0,
             }
     return report

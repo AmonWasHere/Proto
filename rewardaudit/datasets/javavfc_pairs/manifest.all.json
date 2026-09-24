@@ -1,0 +1,2074 @@
+{
+  "pairs": [
+    {
+      "id": "c8ecacc04649",
+      "category": "",
+      "cwe": "",
+      "vuln": "c8ecacc04649_vuln.java",
+      "fixed": "c8ecacc04649_fixed.java",
+      "line": 1001,
+      "repo": "PixelExperience/frameworks_base",
+      "message": "Fix potential deadlock in transactions  It was possible to hit a deadlock scenario when using the waitAsyncStart utility"
+    },
+    {
+      "id": "998bf510a9e2",
+      "category": "",
+      "cwe": "",
+      "vuln": "998bf510a9e2_vuln.java",
+      "fixed": "998bf510a9e2_fixed.java",
+      "line": 74,
+      "repo": "apache/ofbiz-plugins",
+      "message": "Fixed: Execution of queries without authentication (OFBIZ-12857)  The problem lies with the Solr Plugin for OFBiz. It al"
+    },
+    {
+      "id": "667a21e8ef7d",
+      "category": "",
+      "cwe": "",
+      "vuln": "667a21e8ef7d_vuln.java",
+      "fixed": "667a21e8ef7d_fixed.java",
+      "line": 105,
+      "repo": "CloudNetService/CloudNet-v3",
+      "message": "fix: split basic auth into max. two parts to allow ':' in passwords (#1136)  ### Motivation Splitting the password witho"
+    },
+    {
+      "id": "d0cb44ea533b",
+      "category": "",
+      "cwe": "",
+      "vuln": "d0cb44ea533b_vuln.java",
+      "fixed": "d0cb44ea533b_fixed.java",
+      "line": 1,
+      "repo": "KieronQuinn/NowPlaying",
+      "message": "Fix crash on Android 14 Beta 2"
+    },
+    {
+      "id": "926d1467689a",
+      "category": "",
+      "cwe": "",
+      "vuln": "926d1467689a_vuln.java",
+      "fixed": "926d1467689a_fixed.java",
+      "line": 2578,
+      "repo": "Legend-of-Dragoon-Modding/Severed-Chains",
+      "message": "Fix crash when fighting divine dragon spirit (closes #585)"
+    },
+    {
+      "id": "1267631fee75",
+      "category": "",
+      "cwe": "",
+      "vuln": "1267631fee75_vuln.java",
+      "fixed": "1267631fee75_fixed.java",
+      "line": 336,
+      "repo": "bazelbuild/bazel",
+      "message": "[7.0.0] Fix crash when looking up tree metadata while prefetching the output of an action template expansion. (#20004)  "
+    },
+    {
+      "id": "dfa77a25e002",
+      "category": "",
+      "cwe": "",
+      "vuln": "dfa77a25e002_vuln.java",
+      "fixed": "dfa77a25e002_fixed.java",
+      "line": 61,
+      "repo": "camunda/zeebe",
+      "message": "feat(engine): deal with stackoverflows  As we use recursion there is a chance of running into a StackOverflowError. The "
+    },
+    {
+      "id": "b555fcf237de",
+      "category": "",
+      "cwe": "",
+      "vuln": "b555fcf237de_vuln.java",
+      "fixed": "b555fcf237de_fixed.java",
+      "line": 1,
+      "repo": "LawnchairLauncher/lawnchair",
+      "message": "Don't handle shortcuts dropping after home screen locked (#4026)  Fix crashing: ``` Process: ch.deletescape.lawnchair.pl"
+    },
+    {
+      "id": "4621a0c928a2",
+      "category": "",
+      "cwe": "",
+      "vuln": "4621a0c928a2_vuln.java",
+      "fixed": "4621a0c928a2_fixed.java",
+      "line": 45,
+      "repo": "PixelExperience/frameworks_base",
+      "message": "Fix system crash due to GREF overflow  The TCMS uses LruCache to save sessions, it will handle unlink DeathRecipient whe"
+    },
+    {
+      "id": "a7918be268ad",
+      "category": "",
+      "cwe": "",
+      "vuln": "a7918be268ad_vuln.java",
+      "fixed": "a7918be268ad_fixed.java",
+      "line": 85,
+      "repo": "apache/druid",
+      "message": "Temporarily bump up the delay in auth IT from 5s to 10s. (#15765)  A more ideal/permanent fix would be to have status ch"
+    },
+    {
+      "id": "71f9fb24fe8c",
+      "category": "",
+      "cwe": "",
+      "vuln": "71f9fb24fe8c_vuln.java",
+      "fixed": "71f9fb24fe8c_fixed.java",
+      "line": 1,
+      "repo": "elastic/elasticsearch",
+      "message": "Validate composite afterKey formatting in standard InternalComposite constructor only (#95037)  We can't validate inputs"
+    },
+    {
+      "id": "55684d5daa7c",
+      "category": "",
+      "cwe": "",
+      "vuln": "55684d5daa7c_vuln.java",
+      "fixed": "55684d5daa7c_fixed.java",
+      "line": 1,
+      "repo": "cacheflowe/haxademic",
+      "message": "KinectV2SkeletonsAR potential fix for very rare crash from API's skeletons arrays being different sizes"
+    },
+    {
+      "id": "0c0e5f978e54",
+      "category": "",
+      "cwe": "",
+      "vuln": "0c0e5f978e54_vuln.java",
+      "fixed": "0c0e5f978e54_fixed.java",
+      "line": 80,
+      "repo": "apache/seatunnel",
+      "message": "[Improve][Connector-V2][Doris]Remove serialization code that is no longer used (#4313)"
+    },
+    {
+      "id": "c600830f6a89",
+      "category": "",
+      "cwe": "",
+      "vuln": "c600830f6a89_vuln.java",
+      "fixed": "c600830f6a89_fixed.java",
+      "line": 171,
+      "repo": "Alluxio/alluxio",
+      "message": "Set min replicate to 0 and unpin file if we fail to replicate a file  ### What changes are proposed in this pull request"
+    },
+    {
+      "id": "12789d9d3c4d",
+      "category": "",
+      "cwe": "",
+      "vuln": "12789d9d3c4d_vuln.java",
+      "fixed": "12789d9d3c4d_fixed.java",
+      "line": 1,
+      "repo": "FTBTeam/FTB-Quests",
+      "message": "fix: fixed a crash when switching dimensions.  While playing All the Mods 9 it likes to randomly crash when switching di"
+    },
+    {
+      "id": "8b30dc0e96e3",
+      "category": "",
+      "cwe": "",
+      "vuln": "8b30dc0e96e3_vuln.java",
+      "fixed": "8b30dc0e96e3_fixed.java",
+      "line": 302,
+      "repo": "apache/causeway",
+      "message": "CAUSEWAY-3553: JaxbUtils: harden against XXE attacks"
+    },
+    {
+      "id": "fc9fcf1e4b6d",
+      "category": "",
+      "cwe": "",
+      "vuln": "fc9fcf1e4b6d_vuln.java",
+      "fixed": "fc9fcf1e4b6d_fixed.java",
+      "line": 3649,
+      "repo": "Xilinx/RapidWright",
+      "message": "Fix infinite loop when bidir PIPs"
+    },
+    {
+      "id": "835fd474823c",
+      "category": "",
+      "cwe": "",
+      "vuln": "835fd474823c_vuln.java",
+      "fixed": "835fd474823c_fixed.java",
+      "line": 482,
+      "repo": "signalapp/Signal-Android",
+      "message": "Fix crashes related to activity starts."
+    },
+    {
+      "id": "5ca719d1d0df",
+      "category": "",
+      "cwe": "",
+      "vuln": "5ca719d1d0df_vuln.java",
+      "fixed": "5ca719d1d0df_fixed.java",
+      "line": 1,
+      "repo": "debezium/debezium",
+      "message": "DBZ-7355 Skip Avro serialization validation  Test fails due to bug in Apicurio https://github.com/Apicurio/apicurio-regi"
+    },
+    {
+      "id": "afab36ec0840",
+      "category": "",
+      "cwe": "",
+      "vuln": "afab36ec0840_vuln.java",
+      "fixed": "afab36ec0840_fixed.java",
+      "line": 600,
+      "repo": "questdb/questdb",
+      "message": "fix(core): call correct method to authenticate enabling dedup (#3760)"
+    },
+    {
+      "id": "269e5e861563",
+      "category": "",
+      "cwe": "",
+      "vuln": "269e5e861563_vuln.java",
+      "fixed": "269e5e861563_fixed.java",
+      "line": 68,
+      "repo": "infinispan/infinispan",
+      "message": "ISPN-14195 Fix security action getting query configuration"
+    },
+    {
+      "id": "3420adc7c9e3",
+      "category": "",
+      "cwe": "",
+      "vuln": "3420adc7c9e3_vuln.java",
+      "fixed": "3420adc7c9e3_fixed.java",
+      "line": 33,
+      "repo": "Stirling-Tools/Stirling-PDF",
+      "message": "security and apple icons"
+    },
+    {
+      "id": "86dc3f7afbc0",
+      "category": "",
+      "cwe": "",
+      "vuln": "86dc3f7afbc0_vuln.java",
+      "fixed": "86dc3f7afbc0_fixed.java",
+      "line": 42,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Add systemProperty checking for updatable certs and modify tests.  Allows us to test bothe certificateStores within test"
+    },
+    {
+      "id": "9fac9e9dcb23",
+      "category": "",
+      "cwe": "",
+      "vuln": "9fac9e9dcb23_vuln.java",
+      "fixed": "9fac9e9dcb23_fixed.java",
+      "line": 677,
+      "repo": "PixelExperience/frameworks_base",
+      "message": "Fix BP did not dismiss after swiping up the notification bar  AuthBiometricView doesn't use dismissWithoutCallback/dismi"
+    },
+    {
+      "id": "a54df39ccec1",
+      "category": "",
+      "cwe": "",
+      "vuln": "a54df39ccec1_vuln.java",
+      "fixed": "a54df39ccec1_fixed.java",
+      "line": 1236,
+      "repo": "PixelExperience/frameworks_base",
+      "message": "prevent crash with pin protected user and taskview  add forgotten null check  Bug: 265981088 Test: unit tests, CTS tests"
+    },
+    {
+      "id": "57a52b1ec435",
+      "category": "",
+      "cwe": "",
+      "vuln": "57a52b1ec435_vuln.java",
+      "fixed": "57a52b1ec435_fixed.java",
+      "line": 11284,
+      "repo": "wso2/carbon-kernel",
+      "message": "Fix authentication issue for users in the non uid userstores"
+    },
+    {
+      "id": "2fc07deafd25",
+      "category": "",
+      "cwe": "",
+      "vuln": "2fc07deafd25_vuln.java",
+      "fixed": "2fc07deafd25_fixed.java",
+      "line": 156,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Fix vulnerability in AttributionSource due to incorrect Binder call  AttributionSource uses Binder.getCallingUid to veri"
+    },
+    {
+      "id": "d420f847b2f4",
+      "category": "",
+      "cwe": "",
+      "vuln": "d420f847b2f4_vuln.java",
+      "fixed": "d420f847b2f4_fixed.java",
+      "line": 121,
+      "repo": "neo4j/neo4j",
+      "message": "Add IT for Strict-Transport-Security ()"
+    },
+    {
+      "id": "1ed60a202c96",
+      "category": "",
+      "cwe": "",
+      "vuln": "1ed60a202c96_vuln.java",
+      "fixed": "1ed60a202c96_fixed.java",
+      "line": 1,
+      "repo": "elastic/elasticsearch",
+      "message": "Mute RemoteClusterSecurityBwcRestIT (#105491) (#105495)  Relates #104858"
+    },
+    {
+      "id": "6a7479038a11",
+      "category": "",
+      "cwe": "",
+      "vuln": "6a7479038a11_vuln.java",
+      "fixed": "6a7479038a11_fixed.java",
+      "line": 1,
+      "repo": "Minenash/CustomHUD",
+      "message": "Fixed invalid variables in conditionals comparisons crashing"
+    },
+    {
+      "id": "3de2b51b6b83",
+      "category": "",
+      "cwe": "",
+      "vuln": "3de2b51b6b83_vuln.java",
+      "fixed": "3de2b51b6b83_fixed.java",
+      "line": 1,
+      "repo": "LineageOS/android_packages_apps_Trebuchet",
+      "message": "[RESTRICT AUTOMERGE] Fix permission issue in legacy shortcut  When building legacy shortcut, Launcher calls PackageManag"
+    },
+    {
+      "id": "a1d00e4785f6",
+      "category": "",
+      "cwe": "",
+      "vuln": "a1d00e4785f6_vuln.java",
+      "fixed": "a1d00e4785f6_fixed.java",
+      "line": 39,
+      "repo": "OpenAPITools/openapi-generator",
+      "message": "[Java][okhttp-gson] fix AWS auth issue (#16721)  * fix samples  * fix awsauth in okhttp gson java client  * update githu"
+    },
+    {
+      "id": "c7ab9108dd64",
+      "category": "",
+      "cwe": "",
+      "vuln": "c7ab9108dd64_vuln.java",
+      "fixed": "c7ab9108dd64_fixed.java",
+      "line": 83,
+      "repo": "LawnchairLauncher/lawnchair",
+      "message": "Fix crash due to security exception"
+    },
+    {
+      "id": "f968da97a5a5",
+      "category": "",
+      "cwe": "",
+      "vuln": "f968da97a5a5_vuln.java",
+      "fixed": "f968da97a5a5_fixed.java",
+      "line": 603,
+      "repo": "openjdk/panama-foreign",
+      "message": "8305352: updateIconImages may lead to deadlock after JDK-8276849  Reviewed-by: aivanov, serb"
+    },
+    {
+      "id": "3229a9a066a3",
+      "category": "",
+      "cwe": "",
+      "vuln": "3229a9a066a3_vuln.java",
+      "fixed": "3229a9a066a3_fixed.java",
+      "line": 74,
+      "repo": "Wynntils/Artemis",
+      "message": "fix: fix crash if search query stars with : (#2074)"
+    },
+    {
+      "id": "9ea58015294c",
+      "category": "",
+      "cwe": "",
+      "vuln": "9ea58015294c_vuln.java",
+      "fixed": "9ea58015294c_fixed.java",
+      "line": 169,
+      "repo": "spring-cloud/spring-cloud-commons",
+      "message": "Fixed order of the `BootstrapConfigFileApplicationListener` so that it always runs after the `ConfigDataEnvironmentPostP"
+    },
+    {
+      "id": "3c682df39171",
+      "category": "",
+      "cwe": "",
+      "vuln": "3c682df39171_vuln.java",
+      "fixed": "3c682df39171_fixed.java",
+      "line": 57,
+      "repo": "infinispan/infinispan",
+      "message": "ISPN-15130 JGroups configuration is not properly parsed when cross-site is enabled"
+    },
+    {
+      "id": "87f92000e0bb",
+      "category": "",
+      "cwe": "",
+      "vuln": "87f92000e0bb_vuln.java",
+      "fixed": "87f92000e0bb_fixed.java",
+      "line": 161,
+      "repo": "TGX-Android/Telegram-X",
+      "message": "Fixed crash when trying to touch an image in the hold-to-preview mode"
+    },
+    {
+      "id": "e40b016e4568",
+      "category": "",
+      "cwe": "",
+      "vuln": "e40b016e4568_vuln.java",
+      "fixed": "e40b016e4568_fixed.java",
+      "line": 306,
+      "repo": "trinodb/trino",
+      "message": "Fix numeric overflow computing temp rehash size"
+    },
+    {
+      "id": "10d5f8067c9d",
+      "category": "",
+      "cwe": "",
+      "vuln": "10d5f8067c9d_vuln.java",
+      "fixed": "10d5f8067c9d_fixed.java",
+      "line": 103,
+      "repo": "igniterealtime/Openfire",
+      "message": "Prevent deadlock in Netty Outbound S2S"
+    },
+    {
+      "id": "80ade9d85dc2",
+      "category": "",
+      "cwe": "",
+      "vuln": "80ade9d85dc2_vuln.java",
+      "fixed": "80ade9d85dc2_fixed.java",
+      "line": 1,
+      "repo": "tink-crypto/tink",
+      "message": "Register the Ed25519 Proto Serialization.  PiperOrigin-RevId: 523331728"
+    },
+    {
+      "id": "a582652c78f5",
+      "category": "",
+      "cwe": "",
+      "vuln": "a582652c78f5_vuln.java",
+      "fixed": "a582652c78f5_fixed.java",
+      "line": 58,
+      "repo": "Tencent/tinker",
+      "message": "[tinker] Add random string to tinker base directory name to avoid relative path passthrough attack."
+    },
+    {
+      "id": "fda83c4c1d92",
+      "category": "",
+      "cwe": "",
+      "vuln": "fda83c4c1d92_vuln.java",
+      "fixed": "fda83c4c1d92_fixed.java",
+      "line": 54,
+      "repo": "Stirling-Tools/Stirling-PDF",
+      "message": "password fix init"
+    },
+    {
+      "id": "e57845ea6e93",
+      "category": "",
+      "cwe": "",
+      "vuln": "e57845ea6e93_vuln.java",
+      "fixed": "e57845ea6e93_fixed.java",
+      "line": 2,
+      "repo": "igniterealtime/Openfire",
+      "message": "OF-2781: Prevent ClassCastException when creating SerializingCache  The newly created cache gets wrapped (so that its im"
+    },
+    {
+      "id": "cd1a8ac75cad",
+      "category": "",
+      "cwe": "",
+      "vuln": "cd1a8ac75cad_vuln.java",
+      "fixed": "cd1a8ac75cad_fixed.java",
+      "line": 33,
+      "repo": "TeamOpenIndustry/ImmersiveRailroading",
+      "message": "Fix server side sound crash"
+    },
+    {
+      "id": "609502849ab6",
+      "category": "",
+      "cwe": "",
+      "vuln": "609502849ab6_vuln.java",
+      "fixed": "609502849ab6_fixed.java",
+      "line": 259,
+      "repo": "oracle/graal",
+      "message": "Keep stack overflow handler info also for catch-all"
+    },
+    {
+      "id": "c57431f607fd",
+      "category": "",
+      "cwe": "",
+      "vuln": "c57431f607fd_vuln.java",
+      "fixed": "c57431f607fd_fixed.java",
+      "line": 1,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Remove Activity if it enters PiP without window  This is to prevent malicious app entering PiP without being visible fir"
+    },
+    {
+      "id": "f90073477b23",
+      "category": "",
+      "cwe": "",
+      "vuln": "f90073477b23_vuln.java",
+      "fixed": "f90073477b23_fixed.java",
+      "line": 80,
+      "repo": "M66B/FairEmail",
+      "message": "Prevent crash"
+    },
+    {
+      "id": "65ea56f54c05",
+      "category": "",
+      "cwe": "",
+      "vuln": "65ea56f54c05_vuln.java",
+      "fixed": "65ea56f54c05_fixed.java",
+      "line": 394,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Dismiss keyguard when simpin auth'd and...  security method is none. This is mostly to fix the case where we auth sim pi"
+    },
+    {
+      "id": "b98f9b6ec98a",
+      "category": "",
+      "cwe": "",
+      "vuln": "b98f9b6ec98a_vuln.java",
+      "fixed": "b98f9b6ec98a_fixed.java",
+      "line": 1,
+      "repo": "isXander/YetAnotherConfigLib",
+      "message": "\ud83d\udc1b fix crash IOOB on StringControllerElement after resetting"
+    },
+    {
+      "id": "00fd78a9b629",
+      "category": "",
+      "cwe": "",
+      "vuln": "00fd78a9b629_vuln.java",
+      "fixed": "00fd78a9b629_fixed.java",
+      "line": 226,
+      "repo": "apache/ranger",
+      "message": "RANGER-4439: fixed duplicate resource IDs in security zone service resources  Signed-off-by: Madhan Neethiraj <madhan@ap"
+    },
+    {
+      "id": "dc109927a863",
+      "category": "",
+      "cwe": "",
+      "vuln": "dc109927a863_vuln.java",
+      "fixed": "dc109927a863_fixed.java",
+      "line": 1,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "DO NOT MERGE: Context#startInstrumentation could be started from SHELL only now.  Or, if an instrumentation starts anoth"
+    },
+    {
+      "id": "b5c80397848b",
+      "category": "",
+      "cwe": "",
+      "vuln": "b5c80397848b_vuln.java",
+      "fixed": "b5c80397848b_fixed.java",
+      "line": 358,
+      "repo": "PixelExperience/frameworks_base",
+      "message": "Fix location provider mismatch.  Requesting location updates without specifying a provider tended to use the FUSED provi"
+    },
+    {
+      "id": "36794d90081c",
+      "category": "",
+      "cwe": "",
+      "vuln": "36794d90081c_vuln.java",
+      "fixed": "36794d90081c_fixed.java",
+      "line": 114,
+      "repo": "apache/pulsar",
+      "message": "[cherry-pick][branch-2.10] Fix deadlock causes session notification not to work (#19754) (#19768)  Co-authored-by: Qiang"
+    },
+    {
+      "id": "d6568db50352",
+      "category": "",
+      "cwe": "",
+      "vuln": "d6568db50352_vuln.java",
+      "fixed": "d6568db50352_fixed.java",
+      "line": 148,
+      "repo": "LawnchairLauncher/lawnchair",
+      "message": "attempting to catch security exception to prevent full crash  Test: built locally  Bug: 283074997 Change-Id: I9b60740c6d"
+    },
+    {
+      "id": "0fdf35174119",
+      "category": "",
+      "cwe": "",
+      "vuln": "0fdf35174119_vuln.java",
+      "fixed": "0fdf35174119_fixed.java",
+      "line": 188,
+      "repo": "SORMAS-Foundation/SORMAS-Project",
+      "message": "#11262 - Avoid crash on sync without epi week"
+    },
+    {
+      "id": "e767ee49c112",
+      "category": "",
+      "cwe": "",
+      "vuln": "e767ee49c112_vuln.java",
+      "fixed": "e767ee49c112_fixed.java",
+      "line": 69,
+      "repo": "infinispan/infinispan",
+      "message": "ISPN-14195 Fix security action getting query configuration"
+    },
+    {
+      "id": "f327dbabe657",
+      "category": "",
+      "cwe": "",
+      "vuln": "f327dbabe657_vuln.java",
+      "fixed": "f327dbabe657_fixed.java",
+      "line": 1,
+      "repo": "M66B/FairEmail",
+      "message": "Prevent crash"
+    },
+    {
+      "id": "1973f64aa398",
+      "category": "",
+      "cwe": "",
+      "vuln": "1973f64aa398_vuln.java",
+      "fixed": "1973f64aa398_fixed.java",
+      "line": 24,
+      "repo": "ververica/flink-cdc-connectors",
+      "message": "[cdc-common] MetadataApplier should extends Serializable  This closes #2743"
+    },
+    {
+      "id": "dee0b87f73ab",
+      "category": "",
+      "cwe": "",
+      "vuln": "dee0b87f73ab_vuln.java",
+      "fixed": "dee0b87f73ab_fixed.java",
+      "line": 1,
+      "repo": "PixelExperience/frameworks_base",
+      "message": "Preemptively hide UDPFS icon on biometric authenticated  To avoid overlap with the unlock icon after face auth is succes"
+    },
+    {
+      "id": "b56a64a37ed1",
+      "category": "",
+      "cwe": "",
+      "vuln": "b56a64a37ed1_vuln.java",
+      "fixed": "b56a64a37ed1_fixed.java",
+      "line": 5711,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Improve event time crash logging  We got a report that system server is crashing due to receiving some events with a tim"
+    },
+    {
+      "id": "30d01e99ed99",
+      "category": "",
+      "cwe": "",
+      "vuln": "30d01e99ed99_vuln.java",
+      "fixed": "30d01e99ed99_fixed.java",
+      "line": 30,
+      "repo": "rest-assured/rest-assured",
+      "message": "Make header blacklisting case-insensitive (#1722)  * Make header filtering case-insensitive  Many load balancers overrid"
+    },
+    {
+      "id": "430b00015051",
+      "category": "",
+      "cwe": "",
+      "vuln": "430b00015051_vuln.java",
+      "fixed": "430b00015051_fixed.java",
+      "line": 48,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Avoid crash when no work profile files app is set  Test: atest WorkProfileMessageControllerTest Bug: 274350621 Change-Id"
+    },
+    {
+      "id": "4621a0c928a2",
+      "category": "",
+      "cwe": "",
+      "vuln": "4621a0c928a2_vuln.java",
+      "fixed": "4621a0c928a2_fixed.java",
+      "line": 45,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Fix system crash due to GREF overflow  The TCMS uses LruCache to save sessions, it will handle unlink DeathRecipient whe"
+    },
+    {
+      "id": "730c1066b80e",
+      "category": "",
+      "cwe": "",
+      "vuln": "730c1066b80e_vuln.java",
+      "fixed": "730c1066b80e_fixed.java",
+      "line": 1,
+      "repo": "xuxueli/xxl-job",
+      "message": "\"CVE-2022-36157\"\u6388\u6743\u6f0f\u6d1e\u4fee\u590d\u3002"
+    },
+    {
+      "id": "ae70b96f0a0e",
+      "category": "",
+      "cwe": "",
+      "vuln": "ae70b96f0a0e_vuln.java",
+      "fixed": "ae70b96f0a0e_fixed.java",
+      "line": 11783,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Fix SecurityException when need permissions for AccessibilityServicesTest  Root cause: The userId variable was accidenta"
+    },
+    {
+      "id": "09f004722284",
+      "category": "",
+      "cwe": "",
+      "vuln": "09f004722284_vuln.java",
+      "fixed": "09f004722284_fixed.java",
+      "line": 729,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "DO NOT MERGE Dismiss keyguard when simpin auth'd and...  security method is none. This is mostly to fix the case where w"
+    },
+    {
+      "id": "2d13d7c8cdf6",
+      "category": "",
+      "cwe": "",
+      "vuln": "2d13d7c8cdf6_vuln.java",
+      "fixed": "2d13d7c8cdf6_fixed.java",
+      "line": 1,
+      "repo": "bazelbuild/bazel",
+      "message": "Add @AutoCodec.Interner annotation to AspectDescriptor.  Ensures that AspectDescriptor is interned on deserialization.  "
+    },
+    {
+      "id": "fef21a476284",
+      "category": "",
+      "cwe": "",
+      "vuln": "fef21a476284_vuln.java",
+      "fixed": "fef21a476284_fixed.java",
+      "line": 226,
+      "repo": "runtimeverification/k",
+      "message": "Fix EOF parsing error message crash (#3458)  * Fix EOF parsing error message crash  * Add test  ---------  Co-authored-b"
+    },
+    {
+      "id": "4e9fced55685",
+      "category": "",
+      "cwe": "",
+      "vuln": "4e9fced55685_vuln.java",
+      "fixed": "4e9fced55685_fixed.java",
+      "line": 972,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Clear calling identity before calling to DeviceIdleController  There are two possible ways to stop a VPN for a VpnManage"
+    },
+    {
+      "id": "1e32c09ceff4",
+      "category": "",
+      "cwe": "",
+      "vuln": "1e32c09ceff4_vuln.java",
+      "fixed": "1e32c09ceff4_fixed.java",
+      "line": 284,
+      "repo": "elastic/elasticsearch",
+      "message": "ESQL: minor heap-attack tests updates (#104521)  This updates two tests:  * it chunks the bulk loading of \"many longs\", "
+    },
+    {
+      "id": "7612e6601a1c",
+      "category": "",
+      "cwe": "",
+      "vuln": "7612e6601a1c_vuln.java",
+      "fixed": "7612e6601a1c_fixed.java",
+      "line": 1,
+      "repo": "facebook/react-native",
+      "message": "feat(tm-android): Reject Promise if Turbo Module method throws an Error (#37484)  Summary: ### [iOS change here](https:/"
+    },
+    {
+      "id": "ba3c00647b31",
+      "category": "",
+      "cwe": "",
+      "vuln": "ba3c00647b31_vuln.java",
+      "fixed": "ba3c00647b31_fixed.java",
+      "line": 28,
+      "repo": "Azure/azure-sdk-for-java",
+      "message": "Support Prefixes in AzureKeyCredentialPolicy (#35010)  Support Prefixes in AzureKeyCredentialPolicy"
+    },
+    {
+      "id": "8cc256b07984",
+      "category": "",
+      "cwe": "",
+      "vuln": "8cc256b07984_vuln.java",
+      "fixed": "8cc256b07984_fixed.java",
+      "line": 286,
+      "repo": "apache/druid",
+      "message": "update guava to 32.0.1-jre to address CVEs (#15482)  Update guava to 32.0.1-jre to address two CVEs: CVE-2020-8908, CVE-"
+    },
+    {
+      "id": "e4acdf15d095",
+      "category": "",
+      "cwe": "",
+      "vuln": "e4acdf15d095_vuln.java",
+      "fixed": "e4acdf15d095_fixed.java",
+      "line": 171,
+      "repo": "Alluxio/alluxio",
+      "message": "Set min replicate to 0 and unpin file if we fail to replicate a file  ### What changes are proposed in this pull request"
+    },
+    {
+      "id": "922e52bc3d2a",
+      "category": "",
+      "cwe": "",
+      "vuln": "922e52bc3d2a_vuln.java",
+      "fixed": "922e52bc3d2a_fixed.java",
+      "line": 1,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Fix vulnerability in AttributionSource due to incorrect Binder call  AttributionSource uses Binder.getCallingUid to veri"
+    },
+    {
+      "id": "efaa120ecc0d",
+      "category": "",
+      "cwe": "",
+      "vuln": "efaa120ecc0d_vuln.java",
+      "fixed": "efaa120ecc0d_fixed.java",
+      "line": 3094,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Fix checkKeyIntentParceledCorrectly's bypass  The checkKeyIntentParceledCorrectly method was added in checkKeyIntent, wh"
+    },
+    {
+      "id": "e02042e3add0",
+      "category": "",
+      "cwe": "",
+      "vuln": "e02042e3add0_vuln.java",
+      "fixed": "e02042e3add0_fixed.java",
+      "line": 257,
+      "repo": "PixelExperience/frameworks_base",
+      "message": "Specifies RECEIVER_NOT_EXPORTED for FlashNotificationsController broadcast receiver  After changing Flash Notifications "
+    },
+    {
+      "id": "e7703c6f48b7",
+      "category": "",
+      "cwe": "",
+      "vuln": "e7703c6f48b7_vuln.java",
+      "fixed": "e7703c6f48b7_fixed.java",
+      "line": 1,
+      "repo": "YunaiV/yudao-cloud",
+      "message": "1. \u79fb\u9664 netty-all\uff0c\u51cf\u5c11\u4f9d\u8d56 2. \u4fee\u590d xss \u65e0\u6cd5\u7981\u7528\u7684\u95ee\u9898"
+    },
+    {
+      "id": "6d4608361bfb",
+      "category": "",
+      "cwe": "",
+      "vuln": "6d4608361bfb_vuln.java",
+      "fixed": "6d4608361bfb_fixed.java",
+      "line": 107,
+      "repo": "vespa-engine/vespa",
+      "message": "ensure consistent function type if addFunctionTypeSerialization() is called multiple times"
+    },
+    {
+      "id": "d98e95c7c889",
+      "category": "",
+      "cwe": "",
+      "vuln": "d98e95c7c889_vuln.java",
+      "fixed": "d98e95c7c889_fixed.java",
+      "line": 2021,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Accept a Window as shown if it's in any transition  Previously, a malicious or confused app can DoS all other apps with "
+    },
+    {
+      "id": "ddf68d387495",
+      "category": "",
+      "cwe": "",
+      "vuln": "ddf68d387495_vuln.java",
+      "fixed": "ddf68d387495_fixed.java",
+      "line": 36,
+      "repo": "jenkinsci/jenkins",
+      "message": "Fixing `NotSerializableException: org.acegisecurity.context.SecurityContext$1` (#8918)"
+    },
+    {
+      "id": "c9da69b15fab",
+      "category": "",
+      "cwe": "",
+      "vuln": "c9da69b15fab_vuln.java",
+      "fixed": "c9da69b15fab_fixed.java",
+      "line": 143,
+      "repo": "apache/ranger",
+      "message": "RANGER-4628: updated validations for security-zone partial update API  Signed-off-by: Madhan Neethiraj <madhan@apache.or"
+    },
+    {
+      "id": "32e686255e0c",
+      "category": "",
+      "cwe": "",
+      "vuln": "32e686255e0c_vuln.java",
+      "fixed": "32e686255e0c_fixed.java",
+      "line": 13379,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Throw SecurityException when an admin uses the setUserRestrictionGlobally method.  Test: btest CtsDevicePolicyTestCases "
+    },
+    {
+      "id": "f4182defe28a",
+      "category": "",
+      "cwe": "",
+      "vuln": "f4182defe28a_vuln.java",
+      "fixed": "f4182defe28a_fixed.java",
+      "line": 1,
+      "repo": "Legend-of-Dragoon-Modding/Severed-Chains",
+      "message": "Fix crash if saves dir doesn't exist (closes #510)"
+    },
+    {
+      "id": "68bfe3e09ead",
+      "category": "",
+      "cwe": "",
+      "vuln": "68bfe3e09ead_vuln.java",
+      "fixed": "68bfe3e09ead_fixed.java",
+      "line": 11341,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Fix delegates access to API with permission checks.  Fixes: 267304739  Test: btest a.d.c.PermissionGrantTest -c yes Test"
+    },
+    {
+      "id": "9ce48f751207",
+      "category": "",
+      "cwe": "",
+      "vuln": "9ce48f751207_vuln.java",
+      "fixed": "9ce48f751207_fixed.java",
+      "line": 202,
+      "repo": "UniversalMediaServer/UniversalMediaServer",
+      "message": "fix BadRequest, Unauthorized, Forbidden for logout"
+    },
+    {
+      "id": "049ebe93f4b8",
+      "category": "",
+      "cwe": "",
+      "vuln": "049ebe93f4b8_vuln.java",
+      "fixed": "049ebe93f4b8_fixed.java",
+      "line": 1,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "[AMS][Bugfix] Fix hang when dumping local cache info.  TransferPipe exploits pipe for IPC. However, it can't be used for"
+    },
+    {
+      "id": "c53818a16b43",
+      "category": "",
+      "cwe": "",
+      "vuln": "c53818a16b43_vuln.java",
+      "fixed": "c53818a16b43_fixed.java",
+      "line": 1,
+      "repo": "LawnchairLauncher/lawnchair",
+      "message": "Fix permission issue in legacy shortcut  When building legacy shortcut, Launcher calls PackageManager#resolveActivity to"
+    },
+    {
+      "id": "b062d8ceb404",
+      "category": "",
+      "cwe": "",
+      "vuln": "b062d8ceb404_vuln.java",
+      "fixed": "b062d8ceb404_fixed.java",
+      "line": 99,
+      "repo": "apache/pulsar",
+      "message": "Revert \"[branch-2.10][improve][build] Upgrade jackson version to 2.15.0 for CVE-2022-1471 (#20181)\"  This reverts commit"
+    },
+    {
+      "id": "7218aee364f4",
+      "category": "",
+      "cwe": "",
+      "vuln": "7218aee364f4_vuln.java",
+      "fixed": "7218aee364f4_fixed.java",
+      "line": 149,
+      "repo": "vespa-engine/vespa",
+      "message": "Assume insecure proxy uses HTTP/1.1 for tunnel"
+    },
+    {
+      "id": "45a637f33b73",
+      "category": "",
+      "cwe": "",
+      "vuln": "45a637f33b73_vuln.java",
+      "fixed": "45a637f33b73_fixed.java",
+      "line": 36,
+      "repo": "skylot/jadx",
+      "message": "feat: allow to disable zip security checks (#1579, #980)"
+    },
+    {
+      "id": "41dea1ef70ef",
+      "category": "",
+      "cwe": "",
+      "vuln": "41dea1ef70ef_vuln.java",
+      "fixed": "41dea1ef70ef_fixed.java",
+      "line": 339,
+      "repo": "lucee/Lucee",
+      "message": "LDEV-3451 disable XXE by default  https://luceeserver.atlassian.net/browse/LDEV-3451"
+    },
+    {
+      "id": "89803be76b90",
+      "category": "",
+      "cwe": "",
+      "vuln": "89803be76b90_vuln.java",
+      "fixed": "89803be76b90_fixed.java",
+      "line": 56,
+      "repo": "tink-crypto/tink",
+      "message": "Avoid  KeyTemplate.getTypeUrl and KeyTemplate.getValue() in the KmsEnvelopeAeadKeyManager.  Instead, we call \"toParamete"
+    },
+    {
+      "id": "8e0c02a1512c",
+      "category": "",
+      "cwe": "",
+      "vuln": "8e0c02a1512c_vuln.java",
+      "fixed": "8e0c02a1512c_fixed.java",
+      "line": 60,
+      "repo": "Stirling-Tools/Stirling-PDF",
+      "message": "Sandboxed URL creation to prevent SSRF attacks"
+    },
+    {
+      "id": "abd049719d89",
+      "category": "",
+      "cwe": "",
+      "vuln": "abd049719d89_vuln.java",
+      "fixed": "abd049719d89_fixed.java",
+      "line": 1,
+      "repo": "halo-dev/halo",
+      "message": "feat: support reset passwords based on email address (#4941)  #### What type of PR is this? /kind feature /area core /ar"
+    },
+    {
+      "id": "6718946d32a6",
+      "category": "",
+      "cwe": "",
+      "vuln": "6718946d32a6_vuln.java",
+      "fixed": "6718946d32a6_fixed.java",
+      "line": 1,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Fix bypass BAL via LocationManager.requestFlush  Bug: 235823542 Test: atest LocationProviderManagerTest and manual tests"
+    },
+    {
+      "id": "e8305b73e2eb",
+      "category": "",
+      "cwe": "",
+      "vuln": "e8305b73e2eb_vuln.java",
+      "fixed": "e8305b73e2eb_fixed.java",
+      "line": 22,
+      "repo": "SonarSource/sonarqube",
+      "message": "SONAR-19597 Security fix (SSF-420)"
+    },
+    {
+      "id": "6c516aa0080e",
+      "category": "",
+      "cwe": "",
+      "vuln": "6c516aa0080e_vuln.java",
+      "fixed": "6c516aa0080e_fixed.java",
+      "line": 1,
+      "repo": "simplyi/SpringCloudVideoCourse",
+      "message": "Register AuthenticationFilter with HttpSecurity"
+    },
+    {
+      "id": "2a08fce4ebcc",
+      "category": "",
+      "cwe": "",
+      "vuln": "2a08fce4ebcc_vuln.java",
+      "fixed": "2a08fce4ebcc_fixed.java",
+      "line": 1400,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Prevent sharesheet from previewing unowned URIs  This is a high priority security fix.  Bug: 261036568 Test: manually vi"
+    },
+    {
+      "id": "ee036ed9effe",
+      "category": "",
+      "cwe": "",
+      "vuln": "ee036ed9effe_vuln.java",
+      "fixed": "ee036ed9effe_fixed.java",
+      "line": 1,
+      "repo": "apache/kafka",
+      "message": "KAFKA-15319: Upgrade rocksdb to fix CVE-2022-37434 (#14216)  Rocksdbjni<7.9.2 is vulnerable to CVE-2022-37434 due to zli"
+    },
+    {
+      "id": "adc0f07ad1b5",
+      "category": "",
+      "cwe": "",
+      "vuln": "adc0f07ad1b5_vuln.java",
+      "fixed": "adc0f07ad1b5_fixed.java",
+      "line": 22,
+      "repo": "apache/maven-javadoc-plugin",
+      "message": "tests: Bump spring-security-core to 5.5.8 to fix vulnerabilities  Closes: #146"
+    },
+    {
+      "id": "5b1132bca785",
+      "category": "",
+      "cwe": "",
+      "vuln": "5b1132bca785_vuln.java",
+      "fixed": "5b1132bca785_fixed.java",
+      "line": 1,
+      "repo": "facebook/litho",
+      "message": "Add errata for fix to marginStart/End for row-reverse flex direction (#961)  Summary: X-link: https://github.com/faceboo"
+    },
+    {
+      "id": "27958ff39f9e",
+      "category": "",
+      "cwe": "",
+      "vuln": "27958ff39f9e_vuln.java",
+      "fixed": "27958ff39f9e_fixed.java",
+      "line": 158,
+      "repo": "LineageOS/android_packages_apps_Trebuchet",
+      "message": "Fix permission bypass in legacy shortcut  Intent created for Chooser should not be allowed in legacy shortcuts since it "
+    },
+    {
+      "id": "7cb165f1c02e",
+      "category": "",
+      "cwe": "",
+      "vuln": "7cb165f1c02e_vuln.java",
+      "fixed": "7cb165f1c02e_fixed.java",
+      "line": 157,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Fix vulnerability in AttributionSource due to incorrect Binder call  AttributionSource uses Binder.getCallingUid to veri"
+    },
+    {
+      "id": "3766125b0b62",
+      "category": "",
+      "cwe": "",
+      "vuln": "3766125b0b62_vuln.java",
+      "fixed": "3766125b0b62_fixed.java",
+      "line": 1,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Fix dump() without ACCESS_KEYGUARD_SECURE_STORAGE  The only permission that LockSettingsService#dump() is meant to requi"
+    },
+    {
+      "id": "80c57bf21f8b",
+      "category": "",
+      "cwe": "",
+      "vuln": "80c57bf21f8b_vuln.java",
+      "fixed": "80c57bf21f8b_fixed.java",
+      "line": 111,
+      "repo": "FrozenBlock/WilderWild",
+      "message": "Fix Sculk Shrieker crash on 1.20.5+"
+    },
+    {
+      "id": "4b85d7d7e5e1",
+      "category": "",
+      "cwe": "",
+      "vuln": "4b85d7d7e5e1_vuln.java",
+      "fixed": "4b85d7d7e5e1_fixed.java",
+      "line": 334,
+      "repo": "LawnchairLauncher/lawnchair",
+      "message": "Move direct null check in util  Lawnchair (Debug) bug report Dec 19, 2023 7:07:10 AM version: 14 Dev (#171) (14) commit:"
+    },
+    {
+      "id": "b69f4e41ab15",
+      "category": "",
+      "cwe": "",
+      "vuln": "b69f4e41ab15_vuln.java",
+      "fixed": "b69f4e41ab15_fixed.java",
+      "line": 45,
+      "repo": "alibaba/druid",
+      "message": "feat:  \u589e\u52a0\u8bbf\u95ee\u5b89\u5168\u68c0\u67e5SPI, \u4ee5\u4fbf\u5e94\u7528\u6269\u5c55\u6765\u96c6\u6210\u76d1\u63a7\u9875\u9762\u7684SSO  \u901a\u8fc7\u5b9e\u73b0DruidWebSecurityProvider SPI\u6765\u96c6\u6210SSO \u9700\u8981\u5c06\u5b9e\u73b0\u7c7b\u914d\u7f6e\u5728META-INF/services/com.alibaba.dru"
+    },
+    {
+      "id": "c2344ee46bb7",
+      "category": "",
+      "cwe": "",
+      "vuln": "c2344ee46bb7_vuln.java",
+      "fixed": "c2344ee46bb7_fixed.java",
+      "line": 7685,
+      "repo": "M66B/FairEmail",
+      "message": "Fixed crash"
+    },
+    {
+      "id": "3de2b51b6b83",
+      "category": "",
+      "cwe": "",
+      "vuln": "3de2b51b6b83_vuln.java",
+      "fixed": "3de2b51b6b83_fixed.java",
+      "line": 1,
+      "repo": "LawnchairLauncher/lawnchair",
+      "message": "[RESTRICT AUTOMERGE] Fix permission issue in legacy shortcut  When building legacy shortcut, Launcher calls PackageManag"
+    },
+    {
+      "id": "5f3a3f2a4bff",
+      "category": "",
+      "cwe": "",
+      "vuln": "5f3a3f2a4bff_vuln.java",
+      "fixed": "5f3a3f2a4bff_fixed.java",
+      "line": 34,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Revert \"Fix vulnerability in AttributionSource due to incorrect ...\"  Revert submission 21778925-tm-dev-2-attribution-so"
+    },
+    {
+      "id": "6053cb7d6ed9",
+      "category": "",
+      "cwe": "",
+      "vuln": "6053cb7d6ed9_vuln.java",
+      "fixed": "6053cb7d6ed9_fixed.java",
+      "line": 86,
+      "repo": "jenkinsci/jenkins",
+      "message": "[SECURITY-3188]  (cherry picked from commit 1b9f1ccdbb7d00705b036d1332908fe52c2cd7ae)"
+    },
+    {
+      "id": "cfaebe145fbc",
+      "category": "",
+      "cwe": "",
+      "vuln": "cfaebe145fbc_vuln.java",
+      "fixed": "cfaebe145fbc_fixed.java",
+      "line": 703,
+      "repo": "runelite/runelite",
+      "message": "runelite: fix npe from --insecure-skip-tls-verificiation  The return value from getAcceptedIssuers must always be non-nu"
+    },
+    {
+      "id": "a63b22c0b8ec",
+      "category": "",
+      "cwe": "",
+      "vuln": "a63b22c0b8ec_vuln.java",
+      "fixed": "a63b22c0b8ec_fixed.java",
+      "line": 130,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Avoid likely deadlock in the calltree under alarm manager  by switching execution thread here in Fingerprint Service Bug"
+    },
+    {
+      "id": "450e090252d9",
+      "category": "",
+      "cwe": "",
+      "vuln": "450e090252d9_vuln.java",
+      "fixed": "450e090252d9_fixed.java",
+      "line": 112,
+      "repo": "Stirling-Tools/Stirling-PDF",
+      "message": "Protect `readLine()` against DoS"
+    },
+    {
+      "id": "2178216b98bf",
+      "category": "",
+      "cwe": "",
+      "vuln": "2178216b98bf_vuln.java",
+      "fixed": "2178216b98bf_fixed.java",
+      "line": 83,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Sanitize VPN label to prevent HTML injection  This commit will try to sanitize the content of VpnDialog. This commit cre"
+    },
+    {
+      "id": "790a9ec1549e",
+      "category": "",
+      "cwe": "",
+      "vuln": "790a9ec1549e_vuln.java",
+      "fixed": "790a9ec1549e_fixed.java",
+      "line": 740,
+      "repo": "uber/NullAway",
+      "message": "Build NullAway with JSpecify mode enabled (#841)  This will give us a bit better test coverage as we continue to impleme"
+    },
+    {
+      "id": "6ee27224a57d",
+      "category": "",
+      "cwe": "",
+      "vuln": "6ee27224a57d_vuln.java",
+      "fixed": "6ee27224a57d_fixed.java",
+      "line": 1,
+      "repo": "apache/activemq-artemis",
+      "message": "ARTEMIS-4352 Avod Deadlock in case the SecurityManager is reusing the Netty executor.  If the Security Manager is using "
+    },
+    {
+      "id": "7464a27752c5",
+      "category": "",
+      "cwe": "",
+      "vuln": "7464a27752c5_vuln.java",
+      "fixed": "7464a27752c5_fixed.java",
+      "line": 1,
+      "repo": "SonicCloudOrg/sonic-server",
+      "message": "fix: ldap authenticate success when empty password is provided"
+    },
+    {
+      "id": "28dad44621bd",
+      "category": "",
+      "cwe": "",
+      "vuln": "28dad44621bd_vuln.java",
+      "fixed": "28dad44621bd_fixed.java",
+      "line": 54,
+      "repo": "apache/pinot",
+      "message": "chronicle_hack"
+    },
+    {
+      "id": "7bd9998c9974",
+      "category": "",
+      "cwe": "",
+      "vuln": "7bd9998c9974_vuln.java",
+      "fixed": "7bd9998c9974_fixed.java",
+      "line": 99,
+      "repo": "apache/pulsar",
+      "message": "[improve][build] Revert \"Upgrade jackson version to 2.15.0 for CVE-2022-1471 (#20177)\" (#20182)"
+    },
+    {
+      "id": "a01ce3f24c2f",
+      "category": "",
+      "cwe": "",
+      "vuln": "a01ce3f24c2f_vuln.java",
+      "fixed": "a01ce3f24c2f_fixed.java",
+      "line": 81,
+      "repo": "TGX-Android/Telegram-X",
+      "message": "Attemp to fix device/android-specific crash when entering `Edit Group` and there are certain emoji in title / descriptio"
+    },
+    {
+      "id": "7847cf53ed6f",
+      "category": "",
+      "cwe": "",
+      "vuln": "7847cf53ed6f_vuln.java",
+      "fixed": "7847cf53ed6f_fixed.java",
+      "line": 59,
+      "repo": "M66B/FairEmail",
+      "message": "Prevent crash"
+    },
+    {
+      "id": "c3042522fc1e",
+      "category": "",
+      "cwe": "",
+      "vuln": "c3042522fc1e_vuln.java",
+      "fixed": "c3042522fc1e_fixed.java",
+      "line": 703,
+      "repo": "runelite/runelite",
+      "message": "runelite: fix npe from --insecure-skip-tls-verificiation  The return value from getAcceptedIssuers must always be non-nu"
+    },
+    {
+      "id": "7308888c703f",
+      "category": "",
+      "cwe": "",
+      "vuln": "7308888c703f_vuln.java",
+      "fixed": "7308888c703f_fixed.java",
+      "line": 98,
+      "repo": "apache/dolphinscheduler",
+      "message": "fix security issue (#15192)"
+    },
+    {
+      "id": "0a39b819a9ec",
+      "category": "",
+      "cwe": "",
+      "vuln": "0a39b819a9ec_vuln.java",
+      "fixed": "0a39b819a9ec_fixed.java",
+      "line": 102,
+      "repo": "apache/pulsar",
+      "message": "[fix][fn] JavaInstanceStarter --tls_allow_insecure default to false (#20267)"
+    },
+    {
+      "id": "6b2e962047d6",
+      "category": "",
+      "cwe": "",
+      "vuln": "6b2e962047d6_vuln.java",
+      "fixed": "6b2e962047d6_fixed.java",
+      "line": 117,
+      "repo": "jenkinsci/jenkins",
+      "message": "[SECURITY-3315]"
+    },
+    {
+      "id": "3cf94df45f55",
+      "category": "",
+      "cwe": "",
+      "vuln": "3cf94df45f55_vuln.java",
+      "fixed": "3cf94df45f55_fixed.java",
+      "line": 1145,
+      "repo": "facebook/react-native",
+      "message": "For targeting SDK 34 - Added RECEIVER_EXPORTED/RECEIVER_NOT_EXPORTED flag support in DevSupportManagerBase (#38256)  Sum"
+    },
+    {
+      "id": "5406475bedfb",
+      "category": "",
+      "cwe": "",
+      "vuln": "5406475bedfb_vuln.java",
+      "fixed": "5406475bedfb_fixed.java",
+      "line": 204,
+      "repo": "emanuele-f/PCAPdroid",
+      "message": "Fix possible crashes in MitmAddon"
+    },
+    {
+      "id": "1cc7def6f9be",
+      "category": "",
+      "cwe": "",
+      "vuln": "1cc7def6f9be_vuln.java",
+      "fixed": "1cc7def6f9be_fixed.java",
+      "line": 67,
+      "repo": "hibernate/hibernate-orm",
+      "message": "HHH-17159 java.lang.StackOverflowError during Update on Entity with Embeddable and JSON"
+    },
+    {
+      "id": "e3b9099bb16f",
+      "category": "",
+      "cwe": "",
+      "vuln": "e3b9099bb16f_vuln.java",
+      "fixed": "e3b9099bb16f_fixed.java",
+      "line": 70,
+      "repo": "thingsboard/thingsboard",
+      "message": "fixed cookie deserialization vulnerability"
+    },
+    {
+      "id": "0d31ea519a16",
+      "category": "",
+      "cwe": "",
+      "vuln": "0d31ea519a16_vuln.java",
+      "fixed": "0d31ea519a16_fixed.java",
+      "line": 276,
+      "repo": "infinispan/infinispan",
+      "message": "ISPN-15316 Security issue overriding users roles with mappers"
+    },
+    {
+      "id": "4a13449056f1",
+      "category": "",
+      "cwe": "",
+      "vuln": "4a13449056f1_vuln.java",
+      "fixed": "4a13449056f1_fixed.java",
+      "line": 126,
+      "repo": "apache/activemq-artemis",
+      "message": "ARTEMIS-4499 fix ThreadCreateAction so it works properly with SecurityManager  Issue: https://issues.apache.org/jira/bro"
+    },
+    {
+      "id": "23bd25e8fc34",
+      "category": "",
+      "cwe": "",
+      "vuln": "23bd25e8fc34_vuln.java",
+      "fixed": "23bd25e8fc34_fixed.java",
+      "line": 21,
+      "repo": "bazelbuild/bazel",
+      "message": "Exclude ArtifactNestedSetKeys from the path to cycles.  ArtifactNestedSetKeys are just an implementation detail of Skyfr"
+    },
+    {
+      "id": "686a582b8eee",
+      "category": "",
+      "cwe": "",
+      "vuln": "686a582b8eee_vuln.java",
+      "fixed": "686a582b8eee_fixed.java",
+      "line": 80,
+      "repo": "SAP/fosstars-rating-core",
+      "message": "Change in the accept header for vulnerability alerts  The code seems to be raising false GH issues so I checked the upda"
+    },
+    {
+      "id": "5b3dfec29216",
+      "category": "",
+      "cwe": "",
+      "vuln": "5b3dfec29216_vuln.java",
+      "fixed": "5b3dfec29216_fixed.java",
+      "line": 32,
+      "repo": "apache/nifi",
+      "message": "NIFI-11918 Used java.security.cert in ListenGRPC  This closes #7580  Signed-off-by: David Handermann <exceptionfactory@a"
+    },
+    {
+      "id": "de450967f383",
+      "category": "",
+      "cwe": "",
+      "vuln": "de450967f383_vuln.java",
+      "fixed": "de450967f383_fixed.java",
+      "line": 117,
+      "repo": "jenkinsci/jenkins",
+      "message": "[SECURITY-3315]"
+    },
+    {
+      "id": "98a8b9e3df33",
+      "category": "",
+      "cwe": "",
+      "vuln": "98a8b9e3df33_vuln.java",
+      "fixed": "98a8b9e3df33_fixed.java",
+      "line": 193,
+      "repo": "PixelExperience/frameworks_base",
+      "message": "Fix crash when calling sendTimeShiftMode  Bug: 269185572 Test: atest TvInteractiveAppServiceTest Change-Id: Ia916536d2cf"
+    },
+    {
+      "id": "aa1569c41ddd",
+      "category": "",
+      "cwe": "",
+      "vuln": "aa1569c41ddd_vuln.java",
+      "fixed": "aa1569c41ddd_fixed.java",
+      "line": 1,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "AttributionSource: Deprecate setNext, add new setNextAttributionSource  setNext accepts a null argument, which is proble"
+    },
+    {
+      "id": "a3ec7686f5d7",
+      "category": "",
+      "cwe": "",
+      "vuln": "a3ec7686f5d7_vuln.java",
+      "fixed": "a3ec7686f5d7_fixed.java",
+      "line": 290,
+      "repo": "keycloak/keycloak",
+      "message": "Prevent NPE in AuthenticationManager.backchannelLogout (#23313)  Previously, if the user was already removed from the us"
+    },
+    {
+      "id": "a19f342b47ff",
+      "category": "",
+      "cwe": "",
+      "vuln": "a19f342b47ff_vuln.java",
+      "fixed": "a19f342b47ff_fixed.java",
+      "line": 94,
+      "repo": "halo-dev/halo",
+      "message": "Fix the problem of logging in successfully even if request not permitted (#4101)  #### What type of PR is this?  /kind b"
+    },
+    {
+      "id": "4c83138c5aaf",
+      "category": "",
+      "cwe": "",
+      "vuln": "4c83138c5aaf_vuln.java",
+      "fixed": "4c83138c5aaf_fixed.java",
+      "line": 729,
+      "repo": "bcgit/bc-java",
+      "message": "delayed verify failing for potential vulnerability for Falcon in complete_private()"
+    },
+    {
+      "id": "f4ae379d9ae7",
+      "category": "",
+      "cwe": "",
+      "vuln": "f4ae379d9ae7_vuln.java",
+      "fixed": "f4ae379d9ae7_fixed.java",
+      "line": 58,
+      "repo": "payara/Payara",
+      "message": "FISH-7947 Avoid protocol relative redirects  Ports fix from Tomcat for CVE-2023-41080  Signed-off-by: Andrew Pielage <pa"
+    },
+    {
+      "id": "4edd04be8d1b",
+      "category": "",
+      "cwe": "",
+      "vuln": "4edd04be8d1b_vuln.java",
+      "fixed": "4edd04be8d1b_fixed.java",
+      "line": 1,
+      "repo": "Aliucord/Aliucord",
+      "message": "fix: crash when displaying AutoMod embed  Aliucord doesn't support newer AutoMod types like \"Quarrantined a member at us"
+    },
+    {
+      "id": "3c7dec56ca27",
+      "category": "",
+      "cwe": "",
+      "vuln": "3c7dec56ca27_vuln.java",
+      "fixed": "3c7dec56ca27_fixed.java",
+      "line": 68,
+      "repo": "apache/druid",
+      "message": "update kubernetes java client to 19.0.0 and docker-java to 3.3.4 (#15449)  Update of direct dependencies: * kubernetes j"
+    },
+    {
+      "id": "433c10b07f7a",
+      "category": "",
+      "cwe": "",
+      "vuln": "433c10b07f7a_vuln.java",
+      "fixed": "433c10b07f7a_fixed.java",
+      "line": 2,
+      "repo": "openjdk/jdk11u",
+      "message": "8265349: vmTestbase/../stress/compiler/deoptimize/Test.java fails with OOME due to CodeCache exhaustion.  Reviewed-by: l"
+    },
+    {
+      "id": "71b5b293a153",
+      "category": "",
+      "cwe": "",
+      "vuln": "71b5b293a153_vuln.java",
+      "fixed": "71b5b293a153_fixed.java",
+      "line": 36,
+      "repo": "camunda/zeebe",
+      "message": "fix(engine): prevent record corruption during message TTL checking  When multiple message TTL checker were running concu"
+    },
+    {
+      "id": "d3766c810550",
+      "category": "",
+      "cwe": "",
+      "vuln": "d3766c810550_vuln.java",
+      "fixed": "d3766c810550_fixed.java",
+      "line": 24,
+      "repo": "apache/pulsar",
+      "message": "[branch-2.10][improve][build] Upgrade jackson version to 2.15.0 for CVE-2022-1471 (#20181)"
+    },
+    {
+      "id": "45ed1e43da11",
+      "category": "",
+      "cwe": "",
+      "vuln": "45ed1e43da11_vuln.java",
+      "fixed": "45ed1e43da11_fixed.java",
+      "line": 1,
+      "repo": "M66B/FairEmail",
+      "message": "Prevent crash"
+    },
+    {
+      "id": "14de6500387e",
+      "category": "",
+      "cwe": "",
+      "vuln": "14de6500387e_vuln.java",
+      "fixed": "14de6500387e_fixed.java",
+      "line": 187,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Protect STHelper from calls after detach  Now that we expose detach to upper layers, we should ensure that calling a met"
+    },
+    {
+      "id": "a58a35e2b1ab",
+      "category": "",
+      "cwe": "",
+      "vuln": "a58a35e2b1ab_vuln.java",
+      "fixed": "a58a35e2b1ab_fixed.java",
+      "line": 88,
+      "repo": "apache/flink",
+      "message": "[FLINK-33238][Formats/Avro] Upgrade AVRO dependency to 1.11.3. This closes #23508  Upgrade AVRO dependency to 1.11.3 to "
+    },
+    {
+      "id": "6c5d4a0bca38",
+      "category": "",
+      "cwe": "",
+      "vuln": "6c5d4a0bca38_vuln.java",
+      "fixed": "6c5d4a0bca38_fixed.java",
+      "line": 119,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Add a missing null check to BeginGetCredentialOption  Bug: 262614389 Test: CTS Change-Id: I48f7932a0da4f941871eeebaa1695"
+    },
+    {
+      "id": "21ee5d945a5e",
+      "category": "",
+      "cwe": "",
+      "vuln": "21ee5d945a5e_vuln.java",
+      "fixed": "21ee5d945a5e_fixed.java",
+      "line": 1,
+      "repo": "apache/storm",
+      "message": "Fix infinite loop when no files are left to remove (#3541)  An infinite loop can occur when the worker directory takes t"
+    },
+    {
+      "id": "37247d53dc82",
+      "category": "",
+      "cwe": "",
+      "vuln": "37247d53dc82_vuln.java",
+      "fixed": "37247d53dc82_fixed.java",
+      "line": 586,
+      "repo": "bazelbuild/bazel",
+      "message": "Fix a hanging issue with skymeld & `--combined_report=lcov`.  With Skymeld, the combined report is done right before the"
+    },
+    {
+      "id": "f516a9b7be04",
+      "category": "",
+      "cwe": "",
+      "vuln": "f516a9b7be04_vuln.java",
+      "fixed": "f516a9b7be04_fixed.java",
+      "line": 542,
+      "repo": "bcgit/bc-java",
+      "message": "fixed confirmed side-channel vulnerability for BIKE in convertToCompact()"
+    },
+    {
+      "id": "31529fbda072",
+      "category": "",
+      "cwe": "",
+      "vuln": "31529fbda072_vuln.java",
+      "fixed": "31529fbda072_fixed.java",
+      "line": 76,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Expose calls to get the inset sensitivity for the calling user  - Launcher is a per-user process so we should only use t"
+    },
+    {
+      "id": "f959db095620",
+      "category": "",
+      "cwe": "",
+      "vuln": "f959db095620_vuln.java",
+      "fixed": "f959db095620_fixed.java",
+      "line": 62,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "fix security exception in VoipCallMonitor  While investigating how the VoipCallMonitor class treats transactional calls,"
+    },
+    {
+      "id": "7205ead9dd46",
+      "category": "",
+      "cwe": "",
+      "vuln": "7205ead9dd46_vuln.java",
+      "fixed": "7205ead9dd46_fixed.java",
+      "line": 121,
+      "repo": "jenkinsci/jenkins",
+      "message": "[SECURITY-3058]"
+    },
+    {
+      "id": "addd0884d6da",
+      "category": "",
+      "cwe": "",
+      "vuln": "addd0884d6da_vuln.java",
+      "fixed": "addd0884d6da_fixed.java",
+      "line": 4893,
+      "repo": "raphw/byte-buddy",
+      "message": "Fixes: #1512 Plugin Engine crashes on types with missing dependencies even when error handlers are disabled."
+    },
+    {
+      "id": "3c8cc171c55c",
+      "category": "",
+      "cwe": "",
+      "vuln": "3c8cc171c55c_vuln.java",
+      "fixed": "3c8cc171c55c_fixed.java",
+      "line": 119,
+      "repo": "apache/ambari",
+      "message": "fix xss vulnerability. Contributed by Nikhil Daf <Nikhil.Daf@microsoft.com>."
+    },
+    {
+      "id": "bbab0d87e52d",
+      "category": "",
+      "cwe": "",
+      "vuln": "bbab0d87e52d_vuln.java",
+      "fixed": "bbab0d87e52d_fixed.java",
+      "line": 49,
+      "repo": "tapdata/tapdata",
+      "message": "fix: #145546 oom"
+    },
+    {
+      "id": "68fe9b54b2a3",
+      "category": "",
+      "cwe": "",
+      "vuln": "68fe9b54b2a3_vuln.java",
+      "fixed": "68fe9b54b2a3_fixed.java",
+      "line": 22189,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "[frameworks/base] Fix issues in PasswordTest  Test: btest a.d.c.PasswordTest Bug: 274890916 Change-Id: I196353c3be3a8397"
+    },
+    {
+      "id": "1a654eba5c03",
+      "category": "",
+      "cwe": "",
+      "vuln": "1a654eba5c03_vuln.java",
+      "fixed": "1a654eba5c03_fixed.java",
+      "line": 1,
+      "repo": "OpenAPITools/openapi-generator",
+      "message": "better handling of null pointer in CodegenSecurity (#16433)"
+    },
+    {
+      "id": "b2af8bc1cd08",
+      "category": "",
+      "cwe": "",
+      "vuln": "b2af8bc1cd08_vuln.java",
+      "fixed": "b2af8bc1cd08_fixed.java",
+      "line": 25,
+      "repo": "Tiviacz1337/Travelers-Backpack",
+      "message": "\ud83d\udc1b Fixed crash with memory slots"
+    },
+    {
+      "id": "7b43d21866c8",
+      "category": "",
+      "cwe": "",
+      "vuln": "7b43d21866c8_vuln.java",
+      "fixed": "7b43d21866c8_fixed.java",
+      "line": 8,
+      "repo": "halo-dev/halo",
+      "message": "refactor: delete dependent userconnection resources when an user is deleted (#3640)  #### What type of PR is this? /kind"
+    },
+    {
+      "id": "e02042e3add0",
+      "category": "",
+      "cwe": "",
+      "vuln": "e02042e3add0_vuln.java",
+      "fixed": "e02042e3add0_fixed.java",
+      "line": 257,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Specifies RECEIVER_NOT_EXPORTED for FlashNotificationsController broadcast receiver  After changing Flash Notifications "
+    },
+    {
+      "id": "f0261b5b38cd",
+      "category": "",
+      "cwe": "",
+      "vuln": "f0261b5b38cd_vuln.java",
+      "fixed": "f0261b5b38cd_fixed.java",
+      "line": 1,
+      "repo": "LawnchairLauncher/lawnchair",
+      "message": "[RESTRICT AUTOMERGE] Fix permission issue in legacy shortcut  When building legacy shortcut, Launcher calls PackageManag"
+    },
+    {
+      "id": "e3f64ad8c4be",
+      "category": "",
+      "cwe": "",
+      "vuln": "e3f64ad8c4be_vuln.java",
+      "fixed": "e3f64ad8c4be_fixed.java",
+      "line": 1,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Remove Activity if it enters PiP without window  This is to prevent malicious app entering PiP without being visible fir"
+    },
+    {
+      "id": "6efa1f306c49",
+      "category": "",
+      "cwe": "",
+      "vuln": "6efa1f306c49_vuln.java",
+      "fixed": "6efa1f306c49_fixed.java",
+      "line": 1,
+      "repo": "apache/ranger",
+      "message": "RANGER-4244: security-zone REST APIs to return status code 409 in case of simultaneous update calls"
+    },
+    {
+      "id": "5afe1f18ad32",
+      "category": "",
+      "cwe": "",
+      "vuln": "5afe1f18ad32_vuln.java",
+      "fixed": "5afe1f18ad32_fixed.java",
+      "line": 1,
+      "repo": "networknt/light-4j",
+      "message": "fixes #1845 update security config to add swtClientIdHeader and swtClientSecretHeader (#1846)"
+    },
+    {
+      "id": "7337afdd7ec5",
+      "category": "",
+      "cwe": "",
+      "vuln": "7337afdd7ec5_vuln.java",
+      "fixed": "7337afdd7ec5_fixed.java",
+      "line": 1,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Fix a SecurityExcption when trying to start low-light dream.  A SecurityException can occur when attempting to start a d"
+    },
+    {
+      "id": "2d906783aaf2",
+      "category": "",
+      "cwe": "",
+      "vuln": "2d906783aaf2_vuln.java",
+      "fixed": "2d906783aaf2_fixed.java",
+      "line": 1863,
+      "repo": "jenkinsci/jenkins",
+      "message": "[SECURITY-2823]"
+    },
+    {
+      "id": "9d3fa2715d69",
+      "category": "",
+      "cwe": "",
+      "vuln": "9d3fa2715d69_vuln.java",
+      "fixed": "9d3fa2715d69_fixed.java",
+      "line": 16,
+      "repo": "facebook/react-native",
+      "message": "Reduce visibility of ExecutorException  Summary: In an attempt to reduce footprint of React Native Android public APIs w"
+    },
+    {
+      "id": "ffa069a33bd1",
+      "category": "",
+      "cwe": "",
+      "vuln": "ffa069a33bd1_vuln.java",
+      "fixed": "ffa069a33bd1_fixed.java",
+      "line": 51,
+      "repo": "keycloak/keycloak",
+      "message": "Invalidate authentication session on repeated Recovery Code failures Closes #26180  Signed-off-by: Douglas Palmer <dpalm"
+    },
+    {
+      "id": "09b9d34e8ef4",
+      "category": "",
+      "cwe": "",
+      "vuln": "09b9d34e8ef4_vuln.java",
+      "fixed": "09b9d34e8ef4_fixed.java",
+      "line": 22,
+      "repo": "CreativeMD/LittleTiles",
+      "message": "Potential fix for crash with flywheel"
+    },
+    {
+      "id": "f00399f4d423",
+      "category": "",
+      "cwe": "",
+      "vuln": "f00399f4d423_vuln.java",
+      "fixed": "f00399f4d423_fixed.java",
+      "line": 7300,
+      "repo": "Alluxio/alluxio",
+      "message": "Bump hadoop version to 3.3.4  ### What changes are proposed in this pull request?  Bump Hadoop version from `3.3.1` to `"
+    },
+    {
+      "id": "6336540c8b03",
+      "category": "",
+      "cwe": "",
+      "vuln": "6336540c8b03_vuln.java",
+      "fixed": "6336540c8b03_fixed.java",
+      "line": 1,
+      "repo": "simplyi/SpringCloudVideoCourse",
+      "message": "Register AuthenticationFilter with HttpSecurity"
+    },
+    {
+      "id": "d88c4a6522a9",
+      "category": "",
+      "cwe": "",
+      "vuln": "d88c4a6522a9_vuln.java",
+      "fixed": "d88c4a6522a9_fixed.java",
+      "line": 102,
+      "repo": "opensearch-project/OpenSearch",
+      "message": "Replaces ZipInputStream with ZipFile to fix Zip Slip vulnerability (#7230) (#7366)  * Replaces ZipInputStream with ZipFi"
+    },
+    {
+      "id": "65ea56f54c05",
+      "category": "",
+      "cwe": "",
+      "vuln": "65ea56f54c05_vuln.java",
+      "fixed": "65ea56f54c05_fixed.java",
+      "line": 394,
+      "repo": "PixelExperience/frameworks_base",
+      "message": "Dismiss keyguard when simpin auth'd and...  security method is none. This is mostly to fix the case where we auth sim pi"
+    },
+    {
+      "id": "541705593a85",
+      "category": "",
+      "cwe": "",
+      "vuln": "541705593a85_vuln.java",
+      "fixed": "541705593a85_fixed.java",
+      "line": 71,
+      "repo": "gravitee-io/gravitee-api-management",
+      "message": "fix: replace left join by multiples queries to avoid deadlock issues  https://gravitee.atlassian.net/browse/APIM-3113 ht"
+    },
+    {
+      "id": "8dbe61749091",
+      "category": "",
+      "cwe": "",
+      "vuln": "8dbe61749091_vuln.java",
+      "fixed": "8dbe61749091_fixed.java",
+      "line": 3,
+      "repo": "jsorrell/CarpetSkyAdditions",
+      "message": "Fix crash when converting vex to allay"
+    },
+    {
+      "id": "7cc9176a9b7a",
+      "category": "",
+      "cwe": "",
+      "vuln": "7cc9176a9b7a_vuln.java",
+      "fixed": "7cc9176a9b7a_fixed.java",
+      "line": 231,
+      "repo": "questdb/questdb",
+      "message": "chore(core): remove redundant security context call (#3552)"
+    },
+    {
+      "id": "2a3ce1cb6926",
+      "category": "",
+      "cwe": "",
+      "vuln": "2a3ce1cb6926_vuln.java",
+      "fixed": "2a3ce1cb6926_fixed.java",
+      "line": 32,
+      "repo": "apache/nifi",
+      "message": "NIFI-11918 Used java.security.cert in ListenGRPC  This closes #7580  Signed-off-by: David Handermann <exceptionfactory@a"
+    },
+    {
+      "id": "77c2115fa874",
+      "category": "",
+      "cwe": "",
+      "vuln": "77c2115fa874_vuln.java",
+      "fixed": "77c2115fa874_fixed.java",
+      "line": 117,
+      "repo": "jenkinsci/jenkins",
+      "message": "[SECURITY-3315]  (cherry picked from commit de450967f38398169650b55c002f1229a3fcdb1b)"
+    },
+    {
+      "id": "c7996156ed0b",
+      "category": "",
+      "cwe": "",
+      "vuln": "c7996156ed0b_vuln.java",
+      "fixed": "c7996156ed0b_fixed.java",
+      "line": 331,
+      "repo": "M66B/FairEmail",
+      "message": "Prevent crash"
+    },
+    {
+      "id": "bcad78b61942",
+      "category": "",
+      "cwe": "",
+      "vuln": "bcad78b61942_vuln.java",
+      "fixed": "bcad78b61942_fixed.java",
+      "line": 1,
+      "repo": "FasterXML/jackson-databind",
+      "message": "set transformer factory attributes to improve protection against XXE (#3837)"
+    },
+    {
+      "id": "9858b3c345b8",
+      "category": "",
+      "cwe": "",
+      "vuln": "9858b3c345b8_vuln.java",
+      "fixed": "9858b3c345b8_fixed.java",
+      "line": 33,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "DO NOT MERGE Revert \"Fix vulnerability in AttributionSource due to incorrect ...\"  Revert submission 21778792-sc-dev-2-a"
+    },
+    {
+      "id": "bb4d8e7acd35",
+      "category": "",
+      "cwe": "",
+      "vuln": "bb4d8e7acd35_vuln.java",
+      "fixed": "bb4d8e7acd35_fixed.java",
+      "line": 2554,
+      "repo": "trinodb/trino",
+      "message": "Fix potential infinite loop at IterativeOptimizer with Iceberg"
+    },
+    {
+      "id": "426f2c0d8e66",
+      "category": "",
+      "cwe": "",
+      "vuln": "426f2c0d8e66_vuln.java",
+      "fixed": "426f2c0d8e66_fixed.java",
+      "line": 52,
+      "repo": "simplyi/SpringCloudVideoCourse",
+      "message": "Updated HttpSecurity configuration to use the AntPathRequestMatcher for /users API endpoint"
+    },
+    {
+      "id": "0117978f9ad1",
+      "category": "",
+      "cwe": "",
+      "vuln": "0117978f9ad1_vuln.java",
+      "fixed": "0117978f9ad1_fixed.java",
+      "line": 290,
+      "repo": "networknt/light-4j",
+      "message": "fixes #1627 null pointer check for security config pass through claims (#1628)"
+    },
+    {
+      "id": "be9e0b793a3b",
+      "category": "",
+      "cwe": "",
+      "vuln": "be9e0b793a3b_vuln.java",
+      "fixed": "be9e0b793a3b_fixed.java",
+      "line": 1,
+      "repo": "apache/ranger",
+      "message": "RANGER-4244: security-zone REST APIs to return status code 409 in case of simultaneous update calls  (cherry picked from"
+    },
+    {
+      "id": "d8e6159180bb",
+      "category": "",
+      "cwe": "",
+      "vuln": "d8e6159180bb_vuln.java",
+      "fixed": "d8e6159180bb_fixed.java",
+      "line": 57,
+      "repo": "GoogleCloudPlatform/DataflowTemplates",
+      "message": "[Security] Upgrade hadoop-common dependency to 3.3.5 due to CVE-2022-26612  PiperOrigin-RevId: 523503596"
+    },
+    {
+      "id": "00480a7f757f",
+      "category": "",
+      "cwe": "",
+      "vuln": "00480a7f757f_vuln.java",
+      "fixed": "00480a7f757f_fixed.java",
+      "line": 1,
+      "repo": "trinodb/trino",
+      "message": "Add @ConfigSecuritySensitive to Hive S3 proxy password"
+    },
+    {
+      "id": "606d0241a36e",
+      "category": "",
+      "cwe": "",
+      "vuln": "606d0241a36e_vuln.java",
+      "fixed": "606d0241a36e_fixed.java",
+      "line": 301,
+      "repo": "jeremylong/DependencyCheck",
+      "message": "fix: Configure nvd.api.delay to take the coded defaults and raise log in case of actual misconfiguration to WARN level"
+    },
+    {
+      "id": "b720cc204bbb",
+      "category": "",
+      "cwe": "",
+      "vuln": "b720cc204bbb_vuln.java",
+      "fixed": "b720cc204bbb_fixed.java",
+      "line": 24,
+      "repo": "apache/logging-log4j2",
+      "message": "[1223] Change FormattedMessage pattern heuristic  We change the order in which `FormattedMessage` checks the format of t"
+    },
+    {
+      "id": "602cb48c72b4",
+      "category": "",
+      "cwe": "",
+      "vuln": "602cb48c72b4_vuln.java",
+      "fixed": "602cb48c72b4_fixed.java",
+      "line": 150,
+      "repo": "LawnchairLauncher/lawnchair",
+      "message": "RESTRICT AUTOMERGE Fix permission bypass in legacy shortcut  Intent created for Chooser should not be allowed in legacy "
+    },
+    {
+      "id": "a94744f97522",
+      "category": "",
+      "cwe": "",
+      "vuln": "a94744f97522_vuln.java",
+      "fixed": "a94744f97522_fixed.java",
+      "line": 524,
+      "repo": "elastic/elasticsearch",
+      "message": "Fix deadlock between Cache.put and invalidateAll (#99480) (#99579)  The invalidateAll method is taking out the lru lock "
+    },
+    {
+      "id": "a535abf313fe",
+      "category": "",
+      "cwe": "",
+      "vuln": "a535abf313fe_vuln.java",
+      "fixed": "a535abf313fe_fixed.java",
+      "line": 1524,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Fix launch background activity  Fixed security issue where maliciolus activities can be launched in the background via E"
+    },
+    {
+      "id": "84227681555b",
+      "category": "",
+      "cwe": "",
+      "vuln": "84227681555b_vuln.java",
+      "fixed": "84227681555b_fixed.java",
+      "line": 102,
+      "repo": "opensearch-project/OpenSearch",
+      "message": "Replaces ZipInputStream with ZipFile to fix Zip Slip vulnerability (#7230)  * Replaces ZipInputStream with ZipFile to fi"
+    },
+    {
+      "id": "a51618967243",
+      "category": "",
+      "cwe": "",
+      "vuln": "a51618967243_vuln.java",
+      "fixed": "a51618967243_fixed.java",
+      "line": 55,
+      "repo": "bazelbuild/bazel-buildfarm",
+      "message": "Clean vuln scan for buildfarm-server (#1232)  * Clean vuln scan for buildfarm-server  Updates all libraries and deps to "
+    },
+    {
+      "id": "8ed3e4a82635",
+      "category": "",
+      "cwe": "",
+      "vuln": "8ed3e4a82635_vuln.java",
+      "fixed": "8ed3e4a82635_fixed.java",
+      "line": 2052,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Accept a Window as shown if it's in any transition  Previously, a malicious or confused app can DoS all other apps with "
+    },
+    {
+      "id": "bfd26b751492",
+      "category": "",
+      "cwe": "",
+      "vuln": "bfd26b751492_vuln.java",
+      "fixed": "bfd26b751492_fixed.java",
+      "line": 1101,
+      "repo": "facebook/react-native",
+      "message": "For targeting SDK 34 - Added RECEIVER_EXPORTED/RECEIVER_NOT_EXPORTED flag support in DevSupportManagerBase (#38256)  Sum"
+    },
+    {
+      "id": "87ebe2b2e66e",
+      "category": "",
+      "cwe": "",
+      "vuln": "87ebe2b2e66e_vuln.java",
+      "fixed": "87ebe2b2e66e_fixed.java",
+      "line": 1,
+      "repo": "TGX-Android/Telegram-X",
+      "message": "Fixed crash when cancelling video recording with animations disabled"
+    },
+    {
+      "id": "8ef918d66784",
+      "category": "",
+      "cwe": "",
+      "vuln": "8ef918d66784_vuln.java",
+      "fixed": "8ef918d66784_fixed.java",
+      "line": 2,
+      "repo": "openjdk/jdk",
+      "message": "8324646: Avoid Class.forName in SecureRandom constructor  Reviewed-by: shade, weijun"
+    },
+    {
+      "id": "c2e31eb49ac5",
+      "category": "",
+      "cwe": "",
+      "vuln": "c2e31eb49ac5_vuln.java",
+      "fixed": "c2e31eb49ac5_fixed.java",
+      "line": 1231,
+      "repo": "aosp-mirror/platform_frameworks_base",
+      "message": "Fix: Security exception in case of work profile  Test: manual Bug: 272522906 Change-Id: I9057e793641950e2ad903404d591b4e"
+    },
+    {
+      "id": "fe2a0e8273f1",
+      "category": "",
+      "cwe": "",
+      "vuln": "fe2a0e8273f1_vuln.java",
+      "fixed": "fe2a0e8273f1_fixed.java",
+      "line": 5,
+      "repo": "simplyi/SpringCloudVideoCourse",
+      "message": "Created AuthenticationFilter class. Implemented attemptAuthentication() method.  (cherry picked from commit 30ce55b626ae"
+    }
+  ]
+}
