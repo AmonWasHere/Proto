@@ -32,7 +32,7 @@ IDs are permanent; do not renumber. State changes should be made in place.
 | B7 | High | resolved | plan | No compute budget estimate |
 | B8 | High | open | plan | Privacy/redaction architecture not concrete |
 | B9 | Medium | open | plan | Synthetic injection gym underspecified |
-| B10 | Medium | open | plan | Benchmarks named but not validated |
+| B10 | Medium | resolved | plan | Benchmarks named but not validated |
 | B11 | Medium | open | plan | Logic/business flaws deferred without verifier design |
 | B12 | Medium | open | plan | No per-track success criteria |
 | B13 | Medium | open | product | No consumer/persona, integration, SLA, or cost model |
@@ -45,15 +45,19 @@ IDs are permanent; do not renumber. State changes should be made in place.
 | C6 | Medium | open | env | Bleeding-edge/EA toolchains (Python 3.14, Java 27-ea, clang 22) |
 | C7 | Medium | open | env | Untrusted-code execution on a personal workstation |
 | C8 | Low | open | env | Dataset/model/bundle egress availability unknown |
-| D1 | High | open | method | Precision and recall only partially measurable |
+| D1 | High | in-progress | method | Precision and recall only partially measurable |
 | D2 | High | open | method | Pretraining contamination cannot be fully eliminated |
 | D3 | Medium | deferred | method | RL premise unvalidated and currently unaffordable |
 | D4 | Medium | open | method | No threat model for the analyzer itself |
-| D5 | Medium | open | method | Reproducibility promised but not implemented |
+| D5 | Medium | in-progress | method | Reproducibility promised but not implemented |
 | D6 | Low | open | method | No external/adversarial review recorded |
 | E1 | Blocker | resolved | novelty | Plan is not novel; core overlaps VulAgentRL / Antares |
 | E2 | Blocker | resolved | novelty | No single declared research contribution |
 | E3 | Medium | resolved | repo | Working name "VulnGym" collides with published work |
+| F1 | High | open | reuse | `sastaudit` is Java-centric; E1 targets C/C++ |
+| F2 | Medium | open | reuse | Two-repo coupling vs freezing Patch |
+| F3 | High | open | reuse | Self-overlap with FINDINGS.md |
+| F4 | Medium | open | reuse | Wrapper trap |
 
 **Blocking order (post-ADR-0002):** `B1` → `A1`/`A3`/`A4` → **M0 harness**
 → **M1 verifiers/dataset** → **M2 E1 result**. RL items (B2/B3/D3/E2-RL) are
@@ -200,12 +204,14 @@ deferred; the project is inference-only.
   difficulty tiers, and a held-out realism audit.
 
 ### B10 — Benchmarks named but not validated
-- **Severity:** Medium · **State:** open · **Owner:** TBD
+- **Severity:** Medium · **State:** resolved · **Owner:** TBD
 - **Problem:** Availability, licensing, contamination status, label granularity
   unchecked.
 - **Impact:** Eval may be unusable or invalid.
-- **Resolution:** Benchmark inventory + acquisition test; record license and
-  checksum. (Pairs with A6.)
+- **Resolution (2026-09-24):** the prior `Patch` project supplies validated
+  corpora on disk — OWASP Benchmark v1.2 (2,740 cases), JavaVFC (784 commits,
+  with a measured composition caveat), 15 cloned C/C++/Python repos, and 179,481
+  commit pairs. Use these; record provenance from `sastaudit/artifact/pins.json`.
 
 ### B11 — Logic/business flaws deferred without verifier design
 - **Severity:** Medium · **State:** open · **Owner:** TBD
@@ -302,11 +308,16 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 ## D. Methodological / scientific
 
 ### D1 — Precision and recall only partially measurable
-- **Severity:** High · **State:** open · **Owner:** TBD
+- **Severity:** High · **State:** in-progress · **Owner:** TBD
 - **Problem:** Unknown unknowns; FNR mentioned but no instrument.
 - **Impact:** Optimizing an unmeasurable objective invites gaming.
 - **Resolution:** Design a false-negative estimation method (e.g., injection
   recovery tests, blinded audit sampling); add confidence intervals.
+- **Progress (2026-09-24):** the **four-way decomposition** from
+  `Patch/sastaudit/artifact/FINDINGS.md` (flagged-both / vulnerable-only /
+  fixed-only / neither) is a working, cheap instrument for measuring whether a
+  verdict tracks the fix; adopt it for LLM verifiers in E1. Injection-recovery
+  and blinded sampling still to add.
 
 ### D2 — Pretraining contamination cannot be fully eliminated
 - **Severity:** High · **State:** open · **Owner:** TBD
@@ -328,10 +339,13 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
   abuse cases) covering the analyzer and its tool fleet.
 
 ### D5 — Reproducibility promised but not implemented
-- **Severity:** Medium · **State:** open · **Owner:** TBD
+- **Severity:** Medium · **State:** in-progress · **Owner:** TBD
 - **Problem:** Seeds, pinned digests, and run manifests absent.
 - **Resolution:** Implement run-manifest format + seeded runners + pinned image
   digests; wire into CI (A3).
+- **Progress (2026-09-24):** `sastaudit/artifact/pins.json` already pins tool
+  bytes, query packs, dataset hashes, and commits, with 99 tests and per-result
+  JSON. Reuse that discipline rather than re-inventing it.
 
 ### D6 — No external/adversarial review recorded
 - **Severity:** Low · **State:** open · **Owner:** TBD
@@ -370,6 +384,37 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 - **Resolution:** Renamed. Study/artifact name is **RewardAudit**; plan header
   uses provisional **TriAgent**. Rename complete.
 
+## F. Reuse & integration risks (from `~/Projects/Patch`)
+
+### F1 — `sastaudit` is Java-centric; E1 targets C/C++
+- **Severity:** High · **State:** open · **Owner:** TBD
+- **Problem:** the harness corpora (OWASP BenchmarkJava, JavaVFC) and rules are
+  Java; E1's natural data is C/C++ (the 15 cloned repos, 179K commit pairs).
+- **Resolution:** extend the corpus/tool layer to C/C++ using the existing repos
+  and commit pairs; keep the four-way decomposition language-agnostic.
+
+### F2 — Two-repo coupling vs freezing Patch
+- **Severity:** Medium · **State:** open · **Owner:** TBD
+- **Problem:** extending `sastaudit` risks mutating a "final" project and its
+  published negative result.
+- **Resolution:** consume Patch **read-only** (path dependency); new code lives in
+  Research. If a harness fix is unavoidable, land it as a small additive patch.
+
+### F3 — Self-overlap with FINDINGS.md
+- **Severity:** High · **State:** open · **Owner:** TBD
+- **Problem:** RewardAudit is adjacent to the author's own prior result; risk of
+  duplicating or contradicting it without citation.
+- **Resolution:** cite explicitly; differentiate by **object** (LLM/agentic
+  verifiers, adversarial input) while reusing the instrument; pre-register the
+  new claim.
+
+### F4 — Wrapper trap
+- **Severity:** Medium · **State:** open · **Owner:** TBD
+- **Problem:** the postmortem warned the framework is a wrapper unless a *novel*
+  question clears the bar.
+- **Resolution:** the novel question is verifier trust under adversarial input
+  (E1); a null result is still a contribution.
+
 ---
 
 ## Change log
@@ -389,3 +434,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-24 | Added brutal self-critique of LastLine; marked not endorsed. |
 | 2026-09-24 | **`docs/PLAN.md` created as canonical north star**; README repointed; other docs demoted to background. |
 | 2026-09-24 | Discovered prior project `~/Projects/Patch`: `sastaudit` harness + corpora + 179K CVE pairs. Plan revised to **extend `sastaudit`**, not build greenfield. Pretrained C/C++ model judged not useful. |
+| 2026-09-24 | Post-Patch deltas: E1 sharpened to four-way decomposition on LLM verifiers; B10 resolved; D1/D5 in-progress; new reuse risks F1–F4. |

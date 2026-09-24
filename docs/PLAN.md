@@ -28,12 +28,26 @@ always. Everything else is explicitly out of scope.
 **Headline:** verifier composition and design determine whether an agentic
 security verdict can be trusted under adaptive adversarial code.
 
-**Open sub-question (the interesting one):** does adding deterministic verifiers
-improve trust, or move it (DB freshness, reachability, router calibration) one
-layer down?
+**This extends prior work by the same author.** `~/Projects/Patch` already
+produced (`sastaudit/artifact/FINDINGS.md`) a rigorous measurement that
+*static-scanner* benchmark scores do not predict real detection, and introduced
+the **four-way decomposition** (flagged-both / vulnerable-only / fixed-only /
+neither) plus the finding that **20.7% of real security fixes delete no line**.
+RewardAudit asks the **same question of LLM/agentic verifiers**, with the
+**same instrument** — and adds an adversary.
+
+**Sharpened E1 (the headline experiment):** apply the four-way decomposition to
+LLM adjudicators. *Does an LLM's verdict move when the vulnerability is removed,
+or does it flag the same construct before and after — exactly the failure mode
+FINDINGS.md measured in Semgrep?* Then attack it with adversarial code comments
+and measure the evasion delta.
+
+**Open sub-question:** does adding deterministic verifiers improve trust, or move
+it (DB freshness, reachability, router calibration) one layer down?
 
 **Artifacts:** RewardAudit benchmark + harness (canary repos, adversarial
-generator, verifier implementations, calibration toolkit, reporting protocol).
+generator, verifier implementations, calibration toolkit, reporting protocol),
+built by extending `sastaudit`.
 
 ## 4. Ideal architecture — evidence-first, not cost-first
 
@@ -126,7 +140,7 @@ become it.
 
 | ID | Experiment | Needs training? | Purpose |
 |---|---|---|---|
-| **E1** | Adversarial verifier evasion across V1 LLM-judge / V2 exact-CPG / V5 hybrid | **No** | the headline number |
+| **E1** | **Four-way decomposition applied to LLM verifiers** + adversarial comment evasion across V1 LLM-judge / V2 exact-CPG / V5 hybrid | **No** | the headline number |
 | **E1b** | Attack the verifier *score* directly (RL-free reward-hack proxy) | No | RQ2 without RL |
 | **E2** | Calibration + auditable FNR + cost-per-TP | No | the measurement instrument |
 | **E3** | Small LoRA adjudicator on residual cases; does it match an API model? | Yes (cheap) | validates the small-model thesis |
