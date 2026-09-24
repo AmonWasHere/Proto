@@ -1,6 +1,7 @@
 # Architecture: LastLine — Tool-First, LLM-Last Cascade
 
-**Status:** Proposed design (candidate ADR-0003)
+**Status:** Proposed, **not endorsed** — see §10 for a candid critique before
+adopting.
 **Date:** 2026-09-24
 **Working name:** LastLine (check for collisions before publication)
 **Related:** `docs/compute-reduction.md`, `docs/novelty-and-related-work.md`,
@@ -264,3 +265,89 @@ trained**, and the LLM arrives last — exactly matching the inversion.
   questions, now with a concrete system to measure.
 - **Portfolio value:** a real, reproducible, local-first security pipeline that
   demonstrably gets stronger as its database learns.
+
+---
+
+## 10. Brutal self-critique — why this may be the wrong spine
+
+The architecture above is coherent and buildable. It is also, on reflection,
+probably **the wrong thing to build**, for these reasons:
+
+1. **It is not novel — it is the standard SAST product architecture.** Snyk,
+   Semgrep, GitHub Advanced Security, Checkmarx, SonarQube, Endor Labs, Socket,
+   Corgea, ZeroPath all do "scanners + vuln DB + reachability + ML triage +
+   LLM explain/fix." LastLine re-derives the state of practice. As a *research*
+   contribution it is empty; every tier is prior art.
+
+2. **"Auto-rule synthesis from fix diffs" is already published**, and the hard
+   part is not generation but generalization. A rule mined from one fix detects
+   *that* bug; variants and re-introductions evade it. LLM-driven CodeQL query
+   synthesis is literally a 2026 paper (arXiv 2609.10412). Rule proliferation and
+   false positives at scale are well-known maintenance failures.
+
+3. **It optimizes the problem that is already solved and starves the one that
+   isn't.** Known CVEs and known patterns are handled by scanners and the DB with
+   no LLM. The only place an LLM adds value is *novel/logic* vulnerabilities —
+   and the cascade gives that case the **least context, least budget, and the
+   smallest model**. That is exactly backwards.
+
+4. **Its failure mode is silent false negatives — the worst property for a
+   security system.** A case no tier flags simply disappears. The cascade's
+   headline metric (auto-resolution rate) is precisely the one that cannot see
+   omissions.
+
+5. **The conformal-prediction guarantee does not hold here.** Conformal methods
+   rely on exchangeability between calibration and test data. Security data is
+   adversarially non-stationary (new classes, new languages, adapting attackers).
+   And `P_error` needs labeled ground truth we do not have (see D1/D2). The
+   controller's central input is unreliable, so misrouting is likely — and
+   misrouting produces false confidence on skipped cases.
+
+6. **The economics are backwards.** It minimizes the cheap, elastic cost (LLM
+   tokens) while maximizing the expensive, permanent one (engineering and
+   operations: dozens of feed integrations, per-language reachability, rule
+   upkeep). A few dollars of frontier API on ambiguous cases is likely cheaper
+   than the personnel cost of maintaining tiers 2–4.
+
+7. **It confounds the research measurement.** RewardAudit asks whether *a*
+   verifier can be trusted. A seven-tier cascade multiplies the trust
+   assumptions (DB freshness, reachability correctness, router calibration,
+   scanner recall) so a failure can no longer be attributed to the model. It
+   shrinks the object of study into a filtered residual slice.
+
+8. **It cannot be evaluated without the ground truth it presupposes.** Per-tier
+   accuracy requires labeled corpora at each stage. Absent that, the metrics
+   ("80% auto-resolved") are vanity numbers that say nothing about security
+   correctness.
+
+9. **Operational and legal minefield.** Feed licensing/rate limits (NVD, EPSS,
+   exploit DBs), distro backport version-range matching (famously error-prone),
+   and cross-language reachability (an open research problem for dynamic
+   languages) are each full-time concerns.
+
+10. **It is a scope trap for a solo, inference-only, small-budget project.** The
+    doc count in this repository is already large; code count is zero. LastLine
+    is the most elaborate artifact yet and would consume the time the actual
+    differentiator (E1 / RewardAudit) needs.
+
+### What is worth salvaging
+
+Keep these small, cheap pieces — they are genuinely useful and low-risk:
+
+- **T0 finding schema + evidence ledger** (needed by everything).
+- **Dependency/CVE auto-resolution** (T1+T2 passive): simple, high-value, a
+  weekend of work with OSV.
+- **Abstention / `unknown_risk` discipline** — the honest-reporting idea is good.
+- **The research question hiding in the design:** *does composing more
+  deterministic verifiers actually make an LLM's output more trustworthy, or
+  does it merely relocate the trust problem one layer down?* That is cheap,
+  publishable, and does **not** require building the cascade.
+
+### Recommendation
+
+Do **not** adopt LastLine as the project spine. Treat it as (a) a documented
+alternative, and (b) a source of two or three cheap components. The genuine value
+of this project remains the **measurement** (RewardAudit **E1**), not the
+pipeline. If the goal is a portfolio artifact, build the *thin* slice — T0/T1 +
+OSV dependency matching + one LLM adjudicator + abstention — in ~2 weeks and
+stop, rather than the full seven-tier system.
