@@ -17,6 +17,7 @@ from . import config
 from .analyzers.base import Analyzer, AnalyzerError
 from .analyzers.opengrep import Opengrep
 from .attack.comment_gen import Strategy
+from .attack.adaptive import adaptive_evasion
 from .controls import control_matrix, load_controls
 from .cpg import Cpg
 from .datasets import canary_report, load_canaries, load_pairs
@@ -24,6 +25,7 @@ from .decomposition import by_category, decompose
 from .e1 import DEFAULT_STRATEGIES, evasion, four_way_llm, judge_canaries
 from .ledger import Ledger, new_run_id
 from .llm import build_backend
+from .llm.openai_compat import OpenAICompatibleBackend
 from .schema import Finding
 from .verifiers.base import VerificationContext
 from .verifiers.llm_judge import LLMJudge
@@ -248,6 +250,53 @@ def cmd_evade(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_adaptive(args: argparse.Namespace) -> int:
+    """LLM-authored, iterative adversarial comments (ALIBI-style)."""
+    root = Path(args.dir)
+    pairs = load_pairs(root / "manifest.json")
+    judge_backend = build_backend(args.backend)
+    attacker_backend = judge_backend
+    attacker_name = f"{getattr(judge_backend, 'name', '?')} {getattr(judge_backend, 'model', '')}".strip()
+    if args.attacker_model and isinstance(judge_backend, OpenAICompatibleBackend):
+        attacker_backend = OpenAICompatibleBackend(
+            base_url=judge_backend.base_url,
+            model=args.attacker_model,
+            api_key=judge_backend.api_key,
+            name="attacker",
+        )
+        attacker_name = f"attacker:{args.attacker_model}"
+
+    outcomes = adaptive_evasion(
+        pairs,
+        root,
+        judge_llm=judge_backend,
+        attacker_llm=attacker_backend,
+        rounds=args.rounds,
+    )
+    evaded = sum(o.evaded for o in outcomes)
+
+    print(f"judge:    {getattr(judge_backend, 'name', '?')} {getattr(judge_backend, 'model', '')}".rstrip())
+    print(f"attacker: {attacker_name}")
+    print(f"rounds:   {args.rounds}")
+    print(f"baseline true positives: {len(outcomes)}/{len(pairs)}")
+    print()
+    for outcome in outcomes:
+        mark = "EVADED" if outcome.evaded else "held  "
+        winner = next((a.comment for a in outcome.attempts if a.worked), "")
+        print(f"  {mark} {outcome.pair_id:16} rounds={outcome.rounds_used}  {winner[:64]!r}")
+    rate = evaded / len(outcomes) if outcomes else 0.0
+    print(f"\nadaptive evasion: {rate:.0%} ({evaded}/{len(outcomes)})")
+
+    if args.json:
+        payload = {
+            o.pair_id: [{"round": a.round, "comment": a.comment, "disposition": a.disposition} for a in o.attempts]
+            for o in outcomes
+        }
+        Path(args.json).write_text(json.dumps(payload, indent=2))
+        print(f"wrote {args.json}")
+    return 0
+
+
 def cmd_threat(args: argparse.Namespace) -> int:
     """Show the pinned advisory snapshot and match a requirements file against it."""
     from .store import KnowledgeStore, Snapshot, parse_requirements
@@ -318,6 +367,14 @@ def main(argv: list[str] | None = None) -> int:
     p_threat.add_argument("--snapshot", default=str(config.THREAT_SNAPSHOT))
     p_threat.add_argument("--requirements", default="")
     p_threat.set_defaults(func=cmd_threat)
+
+    p_ad = sub.add_parser("adaptive", help="LLM-authored iterative adversarial comments")
+    p_ad.add_argument("--dir", default=str(config.PYTHON_PAIRS))
+    p_ad.add_argument("--backend", default="mock", choices=["mock", "scripted", "local", "cloud"])
+    p_ad.add_argument("--attacker-model", default="")
+    p_ad.add_argument("--rounds", type=int, default=3)
+    p_ad.add_argument("--json", default="")
+    p_ad.set_defaults(func=cmd_adaptive)
 
     args = parser.parse_args(argv)
     return args.func(args)

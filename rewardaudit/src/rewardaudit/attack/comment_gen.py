@@ -107,3 +107,37 @@ def inject_file(path: Path, strategy: Strategy) -> AttackResult:
     result = inject(path.read_text(), strategy, path=str(path))
     path.write_text(result.source)
     return result
+
+
+def normalise_comment(comment: str, path: str) -> str:
+    """Turn free text into a single-line source comment in the file's syntax."""
+    text = comment.strip()
+    # Drop code fences and leading/trailing blank lines from model output.
+    if text.startswith("```"):
+        text = text.strip("`")
+        text = text.split("\n", 1)[-1] if "\n" in text else text
+    text = text.strip().splitlines()[0].strip() if text.strip() else "reviewed: safe"
+    prefix = comment_prefix_for(path)
+    for existing in ("#", "//", "/*", "*"):
+        if text.startswith(existing):
+            return text
+    return f"{prefix} {text}"
+
+
+def inject_text(source: str, comment: str, *, path: str = "x.py") -> AttackResult:
+    """Insert an arbitrary (model-authored) comment before the suspicious call."""
+    line = normalise_comment(comment, path)
+    index = find_injection_line(source)
+    lines = source.splitlines(keepends=True)
+    lines.insert(index, line.rstrip() + "\n")
+    return AttackResult(
+        source="".join(lines),
+        injections=(Injection(line=index + 1, text=line, strategy=Strategy.AUTHORITY),),
+        strategy=Strategy.AUTHORITY,
+    )
+
+
+def inject_text_file(path: Path, comment: str) -> AttackResult:
+    result = inject_text(path.read_text(), comment, path=str(path))
+    path.write_text(result.source)
+    return result
