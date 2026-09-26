@@ -40,6 +40,24 @@ Runs are not silently dropped.
   the discordant count ≥ **5** (otherwise reported as underpowered).
 - Two models ⇒ one comparison; no multiplicity correction, stated as such.
 
+## Amendments
+
+**Amendment 1 (2026-09-26, before analysis).** The original E0 specified k=3 and
+two models (`deepseek-flash`, `deepseek-v4-pro`). Two facts forced a change:
+`deepseek-v4-pro` did not complete a single 42-call run in ~50 minutes (latency,
+not budget), and the API balance is finite. E0 is therefore run as:
+
+- **single model:** `deepseek-flash`, **k = 5** (more repeats instead of a second
+  model).
+- **H1 (verifier-dependence) is deferred to E1**, which requires a second model
+  provider (a different API key or a local server). H1 cannot be tested on one
+  family.
+- H2 (abstention ≥ 0.30), H3 (evasion mainly abstention) and H4 (gating helps at
+  no recall cost) remain as pre-registered, now with wider intervals from k=5.
+
+This amendment was written **before** the amended runs completed, so it is a
+pre-analysis change, not a post-hoc one. Cost of E0 is expected to be ~$1.
+
 ## What this cannot establish
 
 E0 does not fix the small sample (n=21 / n=5), the noisy labels, the single
