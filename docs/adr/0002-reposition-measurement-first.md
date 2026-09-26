@@ -7,7 +7,7 @@
   measurement study.
 - **Date:** 2026-09-24
 - **Deciders:** project owner
-- **Related:** `docs/novelty-and-related-work.md`, issues E1–E3, B1, B7, D3
+- **Related:** `docs/archive/novelty-and-related-work.md`, issues E1–E3, B1, B7, D3
 
 ## Context
 

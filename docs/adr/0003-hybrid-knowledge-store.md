@@ -3,7 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-09-24
 - **Deciders:** project owner
-- **Related:** `docs/issues.md` F4, `docs/architecture-lastline.md` §10,
+- **Related:** `docs/issues.md` F4, `docs/archive/architecture-lastline.md` §10,
   `pinned/sastaudit-src/artifact/FINDINGS.md`
 
 ## Context

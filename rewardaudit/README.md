@@ -65,8 +65,10 @@ The operator launches it once:
 or install the desktop entry:
 
 ```bash
-cp rewardaudit.desktop ~/.local/share/applications/   # then launch "RewardAudit" from the menu
+cp packaging/rewardaudit.desktop ~/.local/share/applications/   # then launch "RewardAudit" from the menu
 ```
+
+(The `.desktop` file has an absolute `Exec=` path; edit it if the repo moves.)
 
 Users then work entirely in the browser — no shell:
 

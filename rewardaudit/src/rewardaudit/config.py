@@ -73,7 +73,7 @@ JAVAVFC_MODULE = _first(
     env="REWARDAUDIT_JAVAVFC_MODULE",
 )
 
-#: Vendored small Python repositories.
+#: Vendored small Python repositories (optional; not used by default).
 PYTHON_REPOS = _first(
     ASSETS / "data/repos-python",
     _PATCH / "data/repos",

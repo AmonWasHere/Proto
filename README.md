@@ -1,67 +1,68 @@
 # Research
 
-Research and design work for an **evidence-first security adjudicator** and the
-**RewardAudit** benchmark: measuring when deterministic verifiers make an LLM's
-security verdict trustworthy.
+An **evidence-first security adjudicator**: deterministic analyzers find
+candidates, a bounded LLM verifier adjudicates them, and a measurement (the
+**four-way decomposition**) asks whether the verdict actually tracks the fix.
+Umbrella name for the code: **RewardAudit**.
 
-## Start here
+It is a *measurement harness with a usable front end*, not a vulnerability
+detector — detection is done by pinned off-the-shelf analyzers.
 
-- **[`docs/REPORT.md`](docs/REPORT.md)** — consolidated findings report (draft,
-  P6). The results.
-- **[`docs/COST.md`](docs/COST.md)** — measured cost and optimizations (thinking
-  mode, verdict cache).
-- **[`docs/design/whole-codebase-graph.md`](docs/design/whole-codebase-graph.md)**
-  — design: analyse the *system*, not the repository (interface edges,
-  reachability-first path candidates, coverage propagation).
-- **[`docs/PLAN.md`](docs/PLAN.md)** — the plan and remaining phases.
-  - [`docs/tools.md`](docs/tools.md) — language coverage and analyzer inventory.
-- **[`rewardaudit/`](rewardaudit/)** — the working harness **and a local web app**
-  (`./scripts/rewardaudit-app`, or the `rewardaudit.desktop` entry) so users need
-  no command line.
+## Quick start
 
-## Everything else (background)
+```bash
+make app        # launch the local web app and open the browser (no CLI for users)
+make test       # run the test suite
+```
 
-- [`docs/rl-vulnerability-analysis-plan.md`](docs/rl-vulnerability-analysis-plan.md) —
-  original broad plan (superseded as a spine; kept for context).
-- [`docs/research-proposal.md`](docs/research-proposal.md) — RewardAudit proposal.
-- [`docs/novelty-and-related-work.md`](docs/novelty-and-related-work.md) — prior art.
-- [`docs/compute-and-model-strategy.md`](docs/compute-and-model-strategy.md),
-  [`docs/gcp-rl-cost-estimate.md`](docs/gcp-rl-cost-estimate.md),
-  [`docs/compute-reduction.md`](docs/compute-reduction.md) — cost/efficiency.
-- [`docs/architecture-lastline.md`](docs/architecture-lastline.md) — rejected
-  alternative, with critique.
-- [`docs/issues.md`](docs/issues.md) — tracked backlog.
-- [`docs/adr/`](docs/adr/) — decisions.
-  - [ADR-0001](docs/adr/0001-model-strategy-preexisting-llm.md) — adapt a
-    pre-existing LLM; never pretrain from scratch.
-  - [ADR-0002](docs/adr/0002-reposition-measurement-first.md) — measurement-first,
-    inference-only.
-  - [ADR-0003](docs/adr/0003-hybrid-knowledge-store.md) — hybrid knowledge store:
-    pinned public feed + active own findings.
+The app binds to `127.0.0.1` only. It runs **offline** out of the box (the
+`scripted` backend needs no model); connect a Local or Cloud model in the Setup
+drawer when you want real LLM verdicts. API keys live in
+`~/.config/rewardaudit/env` (mode 600) and are never sent to the browser.
+
+## Layout
+
+| Path | What |
+|---|---|
+| `rewardaudit/` | the harness, verifiers, graph, store, and local web app |
+| `rewardaudit/scripts/` | `rewardaudit-app` launcher, `with_env.sh`, `env.example` |
+| `rewardaudit/packaging/` | `rewardaudit.desktop` + install instructions |
+| `pinned/` | pinned analyzers, rules, controls, corpora (see `pinned/README.md`) |
+| `docs/` | plan, findings, cost, tools, ADRs, design, archive (see `docs/README.md`) |
+| `Makefile` | `make app` · `make test` · `make clean` |
+
+## Documentation
+
+Start with **[`docs/README.md`](docs/README.md)**. The essentials:
+
+- [`docs/PLAN.md`](docs/PLAN.md) — plan and phases
+- [`docs/REPORT.md`](docs/REPORT.md) — findings report
+- [`docs/e1-results.md`](docs/e1-results.md) — measured results by round
+- [`docs/COST.md`](docs/COST.md) — measured cost and optimizations
+- [`docs/tools.md`](docs/tools.md) — languages and analyzers
+- [`docs/design/whole-codebase-graph.md`](docs/design/whole-codebase-graph.md) — system-level design
+- [`docs/issues.md`](docs/issues.md) — tracked backlog
 
 ## Status
 
-**M0–M2 complete, including the first real E1 run** (see
-[`docs/e1-results.md`](docs/e1-results.md)): across three verifiers on identical
-input, flip rate 80–100% and canary false positives 0/3–1/3 — verifier-dependence
-confirmed on a small sample. 59 tests green.
+Working and tested: **112 tests**. The app, the harness commands
+(`controls`, `pairs`, `javavfc`, `e1`, `evade`, `adaptive`, `calibrate`,
+`threat`), the four verifier arms (LLM gated/ungated, tool, hybrid), the
+Whole-Codebase graph (interface edges, reachability, coverage), the cost
+optimizations (thinking-off, verdict cache), and the frontend are all in place.
+Language coverage is **Java (full)** and **Python (minimal rules)**; other
+languages are reported as *unchecked*, never silently clean.
 
-Reproduce the offline pipeline:
+## Reproduce offline
 
 ```bash
 cd rewardaudit
 PYTHONPATH=src python3 -m pytest
-PYTHONPATH=src python3 -m rewardaudit.harness controls
-PYTHONPATH=src python3 -m rewardaudit.harness pairs
-PYTHONPATH=src python3 -m rewardaudit.harness e1    --backend scripted
-PYTHONPATH=src python3 -m rewardaudit.harness evade --backend scripted
+PYTHONPATH=src python3 -m rewardaudit.harness controls          # 12/18, 1/3
+PYTHONPATH=src python3 -m rewardaudit.harness pairs             # four-way
+PYTHONPATH=src python3 -m rewardaudit.harness javavfc --offline # build the corpus
 ```
 
-Real runs use `--backend local` (ollama/LM Studio) or `--backend cloud`
-(`REWARDAUDIT_LLM_BASE_URL/MODEL/API_KEY`). Next: scale E1 to the JavaVFC
-real-fix corpus (784 pinned commits).
+## License
 
-## Status (design)
-
-Design + planning. Next action: **M0** (finding schema, one scanner, two
-verifiers, ten CVEs, a canary repo) → **M2 (E1)**.
+MIT — see [`LICENSE`](LICENSE). Security policy: [`SECURITY.md`](SECURITY.md).

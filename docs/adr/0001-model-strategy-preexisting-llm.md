@@ -3,8 +3,8 @@
 - **Status:** Accepted
 - **Date:** 2026-09-24
 - **Deciders:** TBD (project owner)
-- **Related:** `docs/rl-vulnerability-analysis-plan.md` §2.3, §2.7;
-  `docs/compute-and-model-strategy.md` §5, §6; issues B7, C1, D3.
+- **Related:** `docs/archive/rl-vulnerability-analysis-plan.md` §2.3, §2.7;
+  `docs/archive/compute-and-model-strategy.md` §5, §6; issues B7, C1, D3.
 
 ## Context
 

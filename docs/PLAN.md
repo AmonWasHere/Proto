@@ -239,11 +239,11 @@ of work already done and validated.
 
 ## 11. Background documents
 
-- `docs/rl-vulnerability-analysis-plan.md` — original broad plan (background).
-- `docs/compute-and-model-strategy.md`, `docs/gcp-rl-cost-estimate.md`,
-  `docs/compute-reduction.md` — cost and efficiency (contingency).
-- `docs/novelty-and-related-work.md` — prior art and positioning.
-- `docs/architecture-lastline.md` — rejected alternative + its critique.
+- `docs/archive/rl-vulnerability-analysis-plan.md` — original broad plan (background).
+- `docs/archive/compute-and-model-strategy.md`, `docs/archive/gcp-rl-cost-estimate.md`,
+  `docs/archive/compute-reduction.md` — cost and efficiency (contingency).
+- `docs/archive/novelty-and-related-work.md` — prior art and positioning.
+- `docs/archive/architecture-lastline.md` — rejected alternative + its critique.
 - `docs/issues.md`, `docs/adr/` — decisions and tracked work.
 
 ## 12. The only next action

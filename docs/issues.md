@@ -1,7 +1,7 @@
 # Issue Backlog — Research
 
 Stable IDs for the issues identified in the project review of
-`docs/rl-vulnerability-analysis-plan.md` and the local environment.
+`docs/archive/rl-vulnerability-analysis-plan.md` and the local environment.
 IDs are permanent; do not renumber. State changes should be made in place.
 
 **Legend**
@@ -179,7 +179,7 @@ deferred; the project is inference-only.
 - **Problem:** No GPU-hours, token spend, or sandbox-minute estimate.
 - **Impact:** The ablation gate (RL vs SFT) is undecidable; costs can explode.
 - **Resolution:** Budget fixed at **$0–$1k, inference-only** (ADR-0002). Phase and
-  scenario estimates in `docs/compute-and-model-strategy.md`.
+  scenario estimates in `docs/archive/compute-and-model-strategy.md`.
 
 ### B8 — Privacy/redaction architecture not concrete
 - **Severity:** High · **State:** open · **Owner:** TBD
@@ -246,7 +246,7 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
   locally; RL rollout workers infeasible at scale here.
 - **Resolution:** Architecture is **inference-only**: local 7B Q4 + CPU tooling,
   optional modest API. No training. See ADR-0002 and
-  `docs/compute-and-model-strategy.md` §4 (verdict table).
+  `docs/archive/compute-and-model-strategy.md` §4 (verdict table).
 
 ### C2 — Python 3.14; no trl/vllm; dependency risk
 - **Severity:** High · **State:** open · **Owner:** TBD
@@ -358,7 +358,7 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
   (2608.25905).
 - **Resolution:** Repositioned to a measurement study on reward/verifier
   trustworthiness (ADR-0002); pipeline novelty claims dropped. See
-  `docs/novelty-and-related-work.md`.
+  `docs/archive/novelty-and-related-work.md`.
 - **Depends on:** B1.
 
 ### E2 — No single declared research contribution
@@ -367,7 +367,7 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 - **Resolution:** Headline chosen in ADR-0002 — verifier design determines
   trustworthiness under adversarial code (N4), instrumented by calibration/FNR
   (N2). Deliverable: RewardAudit harness + benchmark. See
-  `docs/research-proposal.md`.
+  `docs/archive/research-proposal.md`.
 
 ### E3 — Working name "VulnGym" collides
 - **Severity:** Medium · **State:** resolved · **Owner:** TBD

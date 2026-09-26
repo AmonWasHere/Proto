@@ -26,8 +26,8 @@ pinned/bin/
 pinned/corpus/
 pinned/data/
 
-# Derived datasets (regenerable from the pinned corpus + cache)
-datasets/javavfc_pairs/
+# Derived datasets (regenerable: `harness javavfc --offline`)
+rewardaudit/datasets/javavfc_pairs/
 
 # Logs / artifacts
 *.log
