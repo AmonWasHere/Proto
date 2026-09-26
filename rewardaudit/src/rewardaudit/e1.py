@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .attack.comment_gen import Strategy, inject_file
+from .calibration import Point
 from .cpg import Cpg
 from .decomposition import DecompositionReport, RevisionPair, classify, decompose
 from .llm.base import LLMBackend
@@ -179,6 +180,33 @@ def four_way_hybrid(
         report.categories[pair.id] = pair.category
         verdicts[pair.id] = (vuln, fixed)
     return LLMDecomposition(report, verdicts)
+
+
+def collect_calibration(
+    pairs: list[RevisionPair], ctx: VerificationContext, judge: LLMJudge | None = None
+) -> tuple[list[Point], int]:
+    """One Point per revision: vulnerable (should be flagged) and fixed (should not)."""
+    judge = judge or LLMJudge()
+    points: list[Point] = []
+    abstained = 0
+    for pair in pairs:
+        for side, name, expect_flag in (("vuln", pair.vuln, True), ("fixed", pair.fixed, False)):
+            verdict = judge.verify(
+                file_candidate(name, cwe=pair.cwe, line=pair.line, context=pair.message), ctx
+            )
+            flagged = verdict.disposition is Disposition.TRUE_POSITIVE
+            if verdict.disposition is Disposition.UNKNOWN_RISK:
+                abstained += 1
+            points.append(
+                Point(
+                    confidence=verdict.confidence,
+                    correct=(flagged == expect_flag),
+                    side=side,
+                    flagged=flagged,
+                    disposition=verdict.disposition.value,
+                )
+            )
+    return points, abstained
 
 
 def judge_canaries(canaries: list[dict], ctx: VerificationContext, judge: LLMJudge | None = None) -> dict:

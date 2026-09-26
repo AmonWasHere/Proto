@@ -227,6 +227,47 @@ verdict answer for itself" is.
 - n=21, single run; baseline TP counts vary run-to-run (reasoning model).
 - The hybrid is a strict AND; looser compositions (tool as tie-breaker) untested.
 
+## Round 5 — calibration, FNR, cost (P5, 2026-09-26)
+
+21 JavaVFC security pairs = 42 revision judgements, `deepseek-flash`.
+
+| Metric | Value |
+|---|---|
+| abstention rate | **50.0%** (21/42) |
+| detection rate (recall on the vulnerable revision) | **38.1%** |
+| **false-negative rate** | **61.9%** |
+| fixed-side false-positive rate | **0.0%** |
+| accuracy (scored) | 81.0% |
+| **ECE** (expected calibration error) | **0.025** |
+| tokens | in 43,817 · out 109,972 (reasoning-heavy) |
+
+**Reliability** (confidence → accuracy): 0.4–0.6 → 0.50 (n=2); 0.6–0.8 → 0.74
+(n=7); 0.8–1.0 → 0.92 (n=12). Slightly *under*-confident, not over.
+
+**Selective risk** (keep confidence ≥ t): t=0.0 → coverage 100%, risk 0.19;
+t=0.7 → 81%, 0.18; t=0.9 → **43% coverage, risk 0.11**.
+
+### What this says
+
+The verifier is **calibrated and precise but low-coverage**. When it commits it is
+right ~81% of the time with **zero fixed-side false positives**, and its confidence
+is trustworthy (ECE 0.025). Its weakness is not lying — it is **silence**:
+half of all judgements are abstentions, and it misses 62% of genuinely vulnerable
+revisions.
+
+This reframes the failure mode measured in P2–P3: adversarial comments almost
+always push the judge toward **abstention**, and abstention was already the
+dominant failure mode *without an adversary*. The attack amplifies an existing
+weakness rather than creating a new one — which is a more actionable finding than
+"comments fool LLMs."
+
+### Caveats (round 5)
+
+- n=21; ground truth is JavaVFC's screening labels (~18% of the corpus is not a
+  genuine security fix), so recall is a floor with respect to a cleaner label set.
+- Cost is reported in tokens, not dollars: set `REWARDAUDIT_PRICE_IN/OUT` (USD per
+  1M tokens) to have `calibrate` print cost per true positive.
+
 ## Replication
 
 ```bash

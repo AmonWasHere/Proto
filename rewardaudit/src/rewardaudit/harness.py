@@ -371,6 +371,59 @@ def cmd_threat(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_calibrate(args: argparse.Namespace) -> int:
+    """P5 — calibration, selective risk, FNR, and token cost of the judge."""
+    import os
+
+    from .calibration import analyze
+    from .e1 import collect_calibration
+
+    root = Path(args.dir)
+    pairs = load_pairs(root / "manifest.json")
+    if getattr(args, "limit", 0):
+        pairs = pairs[: args.limit]
+    backend = build_backend(args.backend)
+    judge = LLMJudge(
+        require_decision=getattr(args, "require_decision", False),
+        gate_evidence=not getattr(args, "no_gate", False),
+    )
+    ctx = VerificationContext(root.resolve(), Cpg(root), backend)
+    points, abstained = collect_calibration(pairs, ctx, judge)
+    result = analyze(points, abstained=abstained)
+
+    print(f"backend:            {getattr(backend, 'name', '?')} {getattr(backend, 'model', '')}".rstrip())
+    print(f"pairs:              {result['n_pairs']}")
+    print(f"abstention rate:    {result['abstention_rate']:.1%}  ({result['abstentions']}/{len(points)})")
+    print(f"detection rate:     {result['detection_rate']:.1%}  (recall on the vulnerable revision)")
+    print(f"false-negative rate:{result['false_negative_rate']:.1%}")
+    print(f"fixed-side FP rate: {result['fixed_side_fp_rate']:.1%}")
+    print(f"accuracy (scored):  {result['accuracy']:.1%}")
+    print(f"ECE:                {result['ece']:.3f}")
+    print("\nreliability (confidence -> accuracy):")
+    for row in result["reliability"]:
+        print(f"  {row['bin']:8} n={row['n']:<3} conf={row['mean_confidence']:.2f} acc={row['accuracy']:.2f}")
+    print("\nselective risk (keep confidence >= t):")
+    for row in result["selective_risk"]:
+        risk = "n/a" if row["risk"] is None else f"{row['risk']:.2f}"
+        print(f"  t={row['threshold']:.1f}  coverage={row['coverage']:.0%}  n={row['n']:<3} risk={risk}")
+    print(f"\ntokens: in={judge.tokens_in} out={judge.tokens_out} calls={judge.calls}")
+    price_in = float(os.environ.get("REWARDAUDIT_PRICE_IN", 0) or 0)
+    price_out = float(os.environ.get("REWARDAUDIT_PRICE_OUT", 0) or 0)
+    if price_in or price_out:
+        cost = judge.tokens_in / 1e6 * price_in + judge.tokens_out / 1e6 * price_out
+        tps = result["detection_rate"] * result["n_pairs"]
+        cpt = cost / tps if tps else float("inf")
+        print(f"cost: ${cost:.4f}   cost per true positive: ${cpt:.4f}")
+
+    if args.json:
+        out = dict(result)
+        out["tokens_in"] = judge.tokens_in
+        out["tokens_out"] = judge.tokens_out
+        Path(args.json).write_text(json.dumps(out, indent=2, default=str))
+        print(f"wrote {args.json}")
+    return 0
+
+
 def cmd_build_javavfc(args: argparse.Namespace) -> int:
     """Materialise JavaVFC revision pairs (vuln/fixed) into a directory."""
     from .javavfc import build_pairs
@@ -457,6 +510,15 @@ def main(argv: list[str] | None = None) -> int:
     p_jv.add_argument("--stride", type=int, default=1)
     p_jv.add_argument("--offline", action="store_true", help="cache only, no network")
     p_jv.set_defaults(func=cmd_build_javavfc)
+
+    p_cal = sub.add_parser("calibrate", help="P5: calibration, selective risk, FNR, cost")
+    p_cal.add_argument("--dir", default=str(config.JAVAVFC_PAIRS))
+    p_cal.add_argument("--backend", default="scripted", choices=["mock", "scripted", "local", "cloud"])
+    p_cal.add_argument("--limit", type=int, default=0)
+    p_cal.add_argument("--require-decision", action="store_true")
+    p_cal.add_argument("--no-gate", action="store_true")
+    p_cal.add_argument("--json", default="")
+    p_cal.set_defaults(func=cmd_calibrate)
 
     args = parser.parse_args(argv)
     return args.func(args)

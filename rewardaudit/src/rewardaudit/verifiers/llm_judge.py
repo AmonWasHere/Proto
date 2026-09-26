@@ -95,6 +95,10 @@ class LLMJudge:
         #: When False, the judge is taken at its word (no evidence verification).
         #: This is the "LLM alone" arm of the composition test.
         self.gate_evidence = gate_evidence
+        #: Usage accounting for cost-per-true-positive (P5).
+        self.calls = 0
+        self.tokens_in = 0
+        self.tokens_out = 0
 
     def _request(self, finding: Finding, ctx: VerificationContext) -> LLMRequest:
         slice_text = ""
@@ -124,6 +128,9 @@ class LLMJudge:
         if ctx.llm is None:
             raise LLMError("LLMJudge requires ctx.llm")
         response = ctx.llm.complete(self._request(finding, ctx))
+        self.calls += 1
+        self.tokens_in += response.tokens_in
+        self.tokens_out += response.tokens_out
         data = extract_json(response.text)
         if data is None:
             return _abstain(finding, "unparseable model response")

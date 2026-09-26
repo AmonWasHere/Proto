@@ -440,3 +440,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-24 | **Adaptive attacker** (`attack/adaptive.py`, ALIBI-style) + DeepSeek run: adaptive evasion 40% vs 12% templates; abstention is a distinct evasion path. 64 tests. |
 | 2026-09-24 | **P1–P3**: JavaVFC scale-up (207 pairs; security subset n=21) — E1 flip 19–24% vs Semgrep 0.83%; evasion split (P2); adaptive 50% (P3). Fixed reasoning-model token-budget bug. 67 tests. |
 | 2026-09-26 | **P4 composition**: tool over-reports 6×; evidence gating improves trust for free; tool-agreement hybrid loses recall with no gain. 70 tests. |
+| 2026-09-26 | **P5 calibration/FNR/cost**: ECE 0.025, 0% fixed-side FP, 50% abstention, 62% FNR. Verifier trustworthy but silent; attacks amplify abstention. 74 tests. |

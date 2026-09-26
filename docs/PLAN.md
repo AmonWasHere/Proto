@@ -170,8 +170,9 @@ comment generator, and an **adaptive LLM attacker**. 64 tests green.
 | P2 | evasion split into false-positive vs abstention → **almost all evasions are abstention** |
 | P3 | adaptive attacker at scale → **50% evasion** (3/6), all via abstention |
 | P4 | **composition test** → the tool over-reports 6×; evidence gating improves trust for free; **requiring tool agreement loses recall with no gain** — composition relocates trust |
+| P5 | **calibration/FNR** → ECE 0.025, 0% fixed-side FP, but **50% abstention and 62% FNR**: the verifier is trustworthy but silent |
 
-See `docs/e1-results.md` (rounds 3–4). Remaining: P5 calibration/FNR, P6 write-up.
+See `docs/e1-results.md` (rounds 3–5). Remaining: P6 write-up + release.
 
 ### Remaining phases — bounded finish (P1–P6)
 
