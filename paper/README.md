@@ -25,6 +25,12 @@ because no LaTeX toolchain was available on the build machine. Where TeX exists,
 | `main.html` | HTML mirror used for the preview PDF (and easy reading) |
 | `main.pdf` | rendered preview (committed) |
 
+The LaTeX source uses the **IEEE standard conference template**:
+`\documentclass[conference]{IEEEtran}`, an `abstract` environment, `IEEEkeywords`,
+Roman-numeral sectioning, and `IEEEtran` bibliography style. The IEEE
+copyright/notice block is intentionally omitted here and is added at camera-ready
+once a venue and paper ID are assigned.
+
 ## Status and honesty
 
 This is a **draft**, written to be submittable to a **workshop or short-track**

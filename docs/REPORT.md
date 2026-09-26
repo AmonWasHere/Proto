@@ -1,7 +1,7 @@
 # RewardAudit — Findings Report (draft)
 
-**Working title:** *Trustworthy but silent: LLM security verdicts, evidence
-gating, and adversarial comments*
+**Working title:** *Measuring LLM Security Verdicts* (working subtitle: evidence
+gating and adversarial comments).
 
 **Status:** draft for P6. All numbers are from runs recorded in
 `docs/e1-results.md`; none are projected.
