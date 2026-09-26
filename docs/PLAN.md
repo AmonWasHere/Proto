@@ -169,9 +169,9 @@ comment generator, and an **adaptive LLM attacker**. 64 tests green.
 | P1 | **JavaVFC scale-up**: 207 pairs materialised offline; E1 on the 21-pair security subset → **flip rate 19–24%** vs Semgrep's 0.83% |
 | P2 | evasion split into false-positive vs abstention → **almost all evasions are abstention** |
 | P3 | adaptive attacker at scale → **50% evasion** (3/6), all via abstention |
+| P4 | **composition test** → the tool over-reports 6×; evidence gating improves trust for free; **requiring tool agreement loses recall with no gain** — composition relocates trust |
 
-See `docs/e1-results.md` (round 3). Remaining: P4 composition, P5 calibration/FNR,
-P6 write-up.
+See `docs/e1-results.md` (rounds 3–4). Remaining: P5 calibration/FNR, P6 write-up.
 
 ### Remaining phases — bounded finish (P1–P6)
 

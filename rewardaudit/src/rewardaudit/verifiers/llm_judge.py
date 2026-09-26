@@ -87,10 +87,14 @@ class LLMJudge:
         max_tokens: int = 4096,
         temperature: float = 0.0,
         require_decision: bool = False,
+        gate_evidence: bool = True,
     ) -> None:
         self.max_tokens = max_tokens
         self.temperature = temperature
         self.require_decision = require_decision
+        #: When False, the judge is taken at its word (no evidence verification).
+        #: This is the "LLM alone" arm of the composition test.
+        self.gate_evidence = gate_evidence
 
     def _request(self, finding: Finding, ctx: VerificationContext) -> LLMRequest:
         slice_text = ""
@@ -145,19 +149,20 @@ class LLMJudge:
 
         valid: list[str] = []
         invalid: list[str] = []
-        if ctx.cpg.available():
+        if self.gate_evidence and ctx.cpg.available():
             for ref in refs:
                 check = ctx.cpg.verify_ref(ref)
                 (valid if check.ok else invalid).append(ref)
-        else:  # cannot verify without a CPG
+        else:  # ungated (or no CPG): accept the model's references as-is
             valid = refs
 
         rationale = str(data.get("rationale", "")).strip()
         if invalid:
             rationale = f"{rationale} [unverified refs dropped: {', '.join(invalid)}]".strip()
 
-        # A positive verdict with nothing verifiable is not a positive verdict.
-        if disposition is Disposition.TRUE_POSITIVE and refs and not valid:
+        # A positive verdict with nothing verifiable is not a positive verdict
+        # (only when evidence gating is on).
+        if self.gate_evidence and disposition is Disposition.TRUE_POSITIVE and refs and not valid:
             return _abstain(finding, f"no verifiable evidence: {rationale}")
 
         return Verdict(

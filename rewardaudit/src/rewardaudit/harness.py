@@ -22,7 +22,14 @@ from .controls import control_matrix, load_controls
 from .cpg import Cpg
 from .datasets import canary_report, load_canaries, load_pairs
 from .decomposition import by_category, decompose
-from .e1 import DEFAULT_STRATEGIES, evasion, four_way_llm, judge_canaries
+from .e1 import (
+    DEFAULT_STRATEGIES,
+    evasion,
+    four_way_hybrid,
+    four_way_llm,
+    four_way_tool,
+    judge_canaries,
+)
 from .ledger import Ledger, new_run_id
 from .llm import build_backend
 from .llm.openai_compat import OpenAICompatibleBackend
@@ -178,37 +185,62 @@ def cmd_canaries(args: argparse.Namespace) -> int:
 
 
 def cmd_e1(args: argparse.Namespace) -> int:
-    """Four-way decomposition applied to LLM verdicts (does the verdict track the fix?)."""
+    """Four-way decomposition: V1 LLM, V2 tool, or V5 hybrid (does the verdict track the fix?)."""
     root = Path(args.dir)
     pairs = load_pairs(root / "manifest.json")
     if getattr(args, "limit", 0):
         pairs = pairs[: args.limit]
-    backend = build_backend(args.backend)
-    ctx = VerificationContext(root.resolve(), Cpg(root), backend)
-    result = four_way_llm(pairs, ctx, LLMJudge(require_decision=getattr(args, 'require_decision', False)))
-    report = result.report
+    verifier = getattr(args, "verifier", "llm")
+    rules = Path(args.rules) if getattr(args, "rules", "") else (
+        config.JAVA_RULES if any(p.vuln.endswith(".java") for p in pairs) else config.PYTHON_RULES
+    )
 
-    print(f"backend:  {backend.name} {getattr(backend, 'model', '')}".rstrip())
+    if verifier == "tool":
+        analyzer, findings = run_scan(root, rules)
+        report = four_way_tool(pairs, findings)
+        verdicts = None
+        print(f"verifier: tool ({analyzer.name} {analyzer.version()})")
+    else:
+        backend = build_backend(args.backend)
+        judge = LLMJudge(
+            require_decision=getattr(args, "require_decision", False),
+            gate_evidence=not getattr(args, "no_gate", False),
+        )
+        ctx = VerificationContext(root.resolve(), Cpg(root), backend)
+        if verifier == "hybrid":
+            analyzer, findings = run_scan(root, rules)
+            result = four_way_hybrid(pairs, ctx, findings, judge)
+            print(f"verifier: hybrid (llm gate_evidence={judge.gate_evidence} + {analyzer.name})")
+        else:
+            result = four_way_llm(pairs, ctx, judge)
+            print(f"verifier: llm gate_evidence={judge.gate_evidence}")
+        report = result.report
+        verdicts = result.verdicts
+        print(f"backend:  {getattr(backend, 'name', '?')} {getattr(backend, 'model', '')}".rstrip())
+
     print(f"pairs:    {report.total}")
     print()
     for pair in pairs:
         cell = report.cells[pair.id]
-        vuln, fixed = result.verdicts[pair.id]
-        print(
-            f"  {cell.value:10} {pair.id:16} "
-            f"vuln={vuln.disposition.value:14} fixed={fixed.disposition.value}"
-        )
+        if verdicts is not None:
+            vuln, fixed = verdicts[pair.id]
+            print(
+                f"  {cell.value:10} {pair.id:16} "
+                f"vuln={vuln.disposition.value:14} fixed={fixed.disposition.value}"
+            )
+        else:
+            print(f"  {cell.value:10} {pair.id:16}")
     print()
     print(f"counts:         {report.counts()}")
     print(f"naive coverage: {report.naive_coverage:.2%}")
     print(f"flip rate:      {report.flip_rate:.2%}   (verdict moved with the fix)")
     print(f"over-report:    {report.over_report_factor:.2f}x")
 
-    if args.canaries:
+    if getattr(args, "canaries", False) and verifier != "tool":
         canary_dir = Path(args.canaries_dir)
         canaries = load_canaries(canary_dir / "manifest.json")
         canary_ctx = VerificationContext(canary_dir.resolve(), Cpg(canary_dir), backend)
-        report_c = judge_canaries(canaries, canary_ctx)
+        report_c = judge_canaries(canaries, canary_ctx, judge)
         print(
             f"\ncanaries: {report_c['total']}  false positives: {report_c['false_positives']}"
         )
@@ -218,7 +250,7 @@ def cmd_e1(args: argparse.Namespace) -> int:
 
     if args.json:
         payload = {
-            "backend": backend.name,
+            "verifier": verifier,
             "counts": report.counts(),
             "naive_coverage": report.naive_coverage,
             "flip_rate": report.flip_rate,
@@ -389,6 +421,9 @@ def main(argv: list[str] | None = None) -> int:
     p_e1.add_argument("--canaries-dir", default=str(config.PYTHON_CANARIES))
     p_e1.add_argument("--limit", type=int, default=0)
     p_e1.add_argument("--require-decision", action="store_true")
+    p_e1.add_argument("--verifier", default="llm", choices=["llm", "tool", "hybrid"])
+    p_e1.add_argument("--no-gate", action="store_true", help="LLM alone (skip evidence gating)")
+    p_e1.add_argument("--rules", default="", help="analyzer ruleset (default by file type)")
     p_e1.add_argument("--json", default="")
     p_e1.set_defaults(func=cmd_e1)
 

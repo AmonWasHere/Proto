@@ -188,6 +188,45 @@ would have looked like a null result rather than a misconfiguration.
   context (like a bug report).
 - Single run per configuration.
 
+## Round 4 — composition (P4, 2026-09-24)
+
+Same 21 JavaVFC security pairs, `deepseek-flash`, four verifier configurations:
+
+| Verifier | both | vuln_only | fixed_only | neither | naive cov. | **flip rate** | over-report |
+|---|---|---|---|---|---|---|---|
+| **V2 tool** (opengrep, pinned Java) | **5** | 1 | 0 | 15 | 28.6% | **4.8%** | **6.0×** |
+| **V1 LLM ungated** | 1 | 4 | 0 | 16 | 23.8% | **19.0%** | 1.25× |
+| **V1g LLM gated** (evidence required) | **0** | 4 | 1 | 16 | 19.0% | **19.0%** | 1.00× |
+| **V5 hybrid** (LLM gated ∧ tool agrees) | 0 | 3 | 0 | 18 | 14.3% | **14.3%** | 1.00× |
+
+### Reading it
+
+1. **The tool over-reports 6×.** It flags a construct on both revisions in 5 of
+   21 pairs — present before and after the fix — so naive coverage (28.6%) is six
+   times its flip rate (4.8%). This reproduces `FINDINGS.md`'s central mechanism
+   on this subset.
+2. **The LLM tracks the fix ~4× better** (19.0% vs 4.8%) and barely over-reports
+   (1.0–1.25×). It notices that the code *changed*.
+3. **Evidence gating is a genuine, free improvement.** Requiring the LLM to cite
+   a real node removed the single `both` case (1 → 0) **without losing a flip**
+   (vuln_only stayed 4). Cheap deterministic grounding improved trust at no recall
+   cost.
+4. **Full tool agreement made it worse, not better.** The hybrid lost one flip
+   (4 → 3) and gained nothing on `both` (already 0). The deterministic tool's
+   blind spot became the composition's blind spot.
+
+### Answer to the P4 question
+
+**Composition does not automatically improve trust — it relocates it.** *Grounding*
+(a claim must resolve to real code) helped; *consensus with a weaker verifier*
+hurt. "Add another verifier" is not a reliability strategy; "make the existing
+verdict answer for itself" is.
+
+### Caveats (round 4)
+
+- n=21, single run; baseline TP counts vary run-to-run (reasoning model).
+- The hybrid is a strict AND; looser compositions (tool as tie-breaker) untested.
+
 ## Replication
 
 ```bash

@@ -20,7 +20,7 @@ from pathlib import Path
 
 from .attack.comment_gen import Strategy, inject_file
 from .cpg import Cpg
-from .decomposition import DecompositionReport, RevisionPair, classify
+from .decomposition import DecompositionReport, RevisionPair, classify, decompose
 from .llm.base import LLMBackend
 from .schema import Disposition, Finding, Location, Verdict
 from .verifiers.base import VerificationContext
@@ -137,6 +137,48 @@ def evasion(
                 "rate": evaded / len(baseline) if baseline else 0.0,
             }
     return report
+
+
+def four_way_tool(pairs: list[RevisionPair], findings: list[Finding]) -> DecompositionReport:
+    """V2 — the deterministic tool's verdict, decomposed over the pairs."""
+    return decompose(pairs, findings)
+
+
+def four_way_hybrid(
+    pairs: list[RevisionPair],
+    ctx: VerificationContext,
+    tool_findings: list[Finding],
+    judge: LLMJudge | None = None,
+) -> LLMDecomposition:
+    """V5 — the LLM verdict, gated by the deterministic tool's agreement.
+
+    A revision counts as flagged only when the (evidence-gated) judge says
+    true_positive *and* the pinned analyzer flags the same revision. This is the
+    composition arm: does requiring agreement improve trust, or just relocate it?
+    """
+    judge = judge or LLMJudge()
+    tool_paths = {f.location.path.lstrip("./") for f in tool_findings}
+
+    def tool_flagged(name: str) -> bool:
+        target = name.lstrip("./")
+        return any(p == target or p.endswith("/" + target) for p in tool_paths)
+
+    report = DecompositionReport()
+    verdicts: dict[str, tuple[Verdict, Verdict]] = {}
+    for pair in pairs:
+        vuln = judge.verify(
+            file_candidate(pair.vuln, cwe=pair.cwe, line=pair.line, context=pair.message), ctx
+        )
+        fixed = judge.verify(
+            file_candidate(pair.fixed, cwe=pair.cwe, line=pair.line, context=pair.message), ctx
+        )
+        report.cells[pair.id] = classify(
+            vuln.disposition is Disposition.TRUE_POSITIVE and tool_flagged(pair.vuln),
+            fixed.disposition is Disposition.TRUE_POSITIVE and tool_flagged(pair.fixed),
+        )
+        report.categories[pair.id] = pair.category
+        verdicts[pair.id] = (vuln, fixed)
+    return LLMDecomposition(report, verdicts)
 
 
 def judge_canaries(canaries: list[dict], ctx: VerificationContext, judge: LLMJudge | None = None) -> dict:
