@@ -27,5 +27,33 @@ safe flagged** (`python -m rewardaudit.harness --controls`).
 PYTHONPATH=src python3 -m pytest
 ```
 
+## Desktop / web app (no command line for users)
+
+The operator launches it once:
+
+```bash
+./scripts/rewardaudit-app            # starts the server and opens the browser
+```
+
+or install the desktop entry:
+
+```bash
+cp rewardaudit.desktop ~/.local/share/applications/   # then launch "RewardAudit" from the menu
+```
+
+Users then use three tabs in the browser — no shell:
+
+- **Review** — point at a folder; the analyzer finds candidates and the LLM
+  verifier returns a grounded verdict per candidate (true/false/abstain) with
+  rationale and tokens.
+- **Measure** — reproduce the project's own results on pinned datasets (Java
+  controls, Python pairs, JavaVFC four-way, calibration/FNR).
+- **Settings** — pick `scripted` (offline), `local` (ollama/LM Studio), or
+  `cloud`; the API key is stored in `~/.config/rewardaudit/env` (mode 600) and is
+  never returned to the browser.
+
+The server binds to `127.0.0.1` only. Code stays local unless a cloud backend is
+selected.
+
 Integration tests that need the bundled opengrep binary are skipped
 automatically when it is absent.

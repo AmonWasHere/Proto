@@ -443,3 +443,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-26 | **P5 calibration/FNR/cost**: ECE 0.025, 0% fixed-side FP, 50% abstention, 62% FNR. Verifier trustworthy but silent; attacks amplify abstention. 74 tests. |
 | 2026-09-26 | **P6 draft report** (`docs/REPORT.md`) consolidating rounds 1–5. Remaining: raise n, second judge family, release. |
 | 2026-09-26 | **Cost optimizations**: thinking-off measured ~8× cheaper (accuracy/FP cost); verdict cache 100% on repeats; `docs/COST.md`. 83 tests. |
+| 2026-09-26 | **Local web app** (`rewardaudit/web/`): Review / Measure / Settings tabs, background jobs, no-CLI launcher + desktop entry. 89 tests. |

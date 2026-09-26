@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=RewardAudit
+Comment=Evidence-grounded security verification for code
+Exec=/home/amon/Research/rewardaudit/scripts/rewardaudit-app
+Icon=utilities-terminal
+Terminal=false
+Categories=Development;Security;IDE;
+Keywords=security;vulnerability;sast;llm;

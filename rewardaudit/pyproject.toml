@@ -15,6 +15,9 @@ dependencies = []
 cpg = ["tree-sitter>=0.24", "tree-sitter-java", "tree-sitter-python", "tree-sitter-c"]
 dev = ["pytest>=8", "pyyaml"]
 
+[project.scripts]
+rewardaudit-web = "rewardaudit.web.server:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

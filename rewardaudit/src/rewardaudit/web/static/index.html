@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RewardAudit</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <h1>RewardAudit</h1>
+    <p class="sub">Evidence-grounded security verification — runs locally, nothing leaves your machine unless you select a cloud backend.</p>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="review">Review</button>
+    <button class="tab" data-tab="measure">Measure</button>
+    <button class="tab" data-tab="settings">Settings</button>
+  </nav>
+
+  <main>
+    <section id="tab-review" class="panel active">
+      <h2>Review a codebase</h2>
+      <div class="form">
+        <label>Repository or folder path
+          <input id="review-path" type="text" placeholder="/home/you/project" />
+        </label>
+        <label>Verifier
+          <select id="review-verifier">
+            <option value="llm">LLM (evidence-gated)</option>
+            <option value="llm_ungated">LLM (no gate)</option>
+          </select>
+        </label>
+        <label>Max candidates (0 = all)
+          <input id="review-limit" type="number" value="25" min="0" />
+        </label>
+        <button id="review-run" class="primary">Scan &amp; verify</button>
+      </div>
+      <div id="review-progress" class="progress hidden"><div class="bar"></div><span></span></div>
+      <div id="review-summary" class="summary"></div>
+      <div id="review-results"></div>
+    </section>
+
+    <section id="tab-measure" class="panel">
+      <h2>Run a measurement</h2>
+      <p class="hint">These reproduce the project's own results on pinned datasets.</p>
+      <div class="form">
+        <label>Dataset
+          <select id="measure-dataset">
+            <option value="controls">Java controls (12/18 expected)</option>
+            <option value="python_pairs">Python revision pairs (four-way)</option>
+            <option value="javavfc_llm">JavaVFC security pair (LLM four-way)</option>
+            <option value="calibrate">Calibration / FNR (LLM)</option>
+          </select>
+        </label>
+        <label>Limit (0 = all)
+          <input id="measure-limit" type="number" value="0" min="0" />
+        </label>
+        <button id="measure-run" class="primary">Run</button>
+      </div>
+      <div id="measure-progress" class="progress hidden"><div class="bar"></div><span></span></div>
+      <div id="measure-results"></div>
+    </section>
+
+    <section id="tab-settings" class="panel">
+      <h2>Settings</h2>
+      <div class="form">
+        <label>Backend
+          <select id="set-backend">
+            <option value="scripted">Scripted (offline, no model)</option>
+            <option value="local">Local server (ollama / LM Studio)</option>
+            <option value="cloud">Cloud API (OpenAI-compatible)</option>
+            <option value="mock">Mock (tests)</option>
+          </select>
+        </label>
+        <label>Base URL
+          <input id="set-base-url" type="text" placeholder="https://api.deepseek.com/v1" />
+        </label>
+        <label>Model
+          <input id="set-model" type="text" placeholder="deepseek-flash" />
+        </label>
+        <label>API key <span class="hint">(stored locally, mode 600; never shown again)</span>
+          <input id="set-api-key" type="password" placeholder="leave blank to keep current" />
+        </label>
+        <label class="check"><input id="set-no-thinking" type="checkbox" /> Disable thinking mode (cheaper, less precise)</label>
+        <label class="check"><input id="set-cache" type="checkbox" /> Use verdict cache</label>
+        <button id="set-save" class="primary">Save settings</button>
+      </div>
+      <div id="set-status" class="summary"></div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

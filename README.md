@@ -12,7 +12,9 @@ security verdict trustworthy.
   mode, verdict cache).
 - **[`docs/PLAN.md`](docs/PLAN.md)** — the plan and remaining phases.
   - [`docs/tools.md`](docs/tools.md) — language coverage and analyzer inventory.
-- **[`rewardaudit/`](rewardaudit/)** — the working harness.
+- **[`rewardaudit/`](rewardaudit/)** — the working harness **and a local web app**
+  (`./scripts/rewardaudit-app`, or the `rewardaudit.desktop` entry) so users need
+  no command line.
 
 ## Everything else (background)
 

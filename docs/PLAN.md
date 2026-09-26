@@ -171,8 +171,10 @@ comment generator, and an **adaptive LLM attacker**. 64 tests green.
 | P3 | adaptive attacker at scale → **50% evasion** (3/6), all via abstention |
 | P4 | **composition test** → the tool over-reports 6×; evidence gating improves trust for free; **requiring tool agreement loses recall with no gain** — composition relocates trust |
 | P5 | **calibration/FNR** → ECE 0.025, 0% fixed-side FP, but **50% abstention and 62% FNR**: the verifier is trustworthy but silent |
+| P6 | **report** (`docs/REPORT.md`) + **local web app** (`python -m rewardaudit.web`, tabs: Review / Measure / Settings); launcher + desktop entry |
 
-See `docs/e1-results.md` (rounds 3–5). Remaining: P6 write-up + release.
+See `docs/e1-results.md` (rounds 3–5) and `docs/COST.md`. Cost optimizations
+(thinking-off, verdict cache) are implemented and measured.
 
 ### Remaining phases — bounded finish (P1–P6)
 
