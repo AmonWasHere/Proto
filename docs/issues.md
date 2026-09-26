@@ -446,3 +446,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-26 | **Local web app** (`rewardaudit/web/`): Review / Measure / Settings tabs, background jobs, no-CLI launcher + desktop entry. 89 tests. |
 | 2026-09-26 | **Design: Whole-Codebase Graph** (`docs/design/whole-codebase-graph.md`) — interface edges, reachability-first path candidates, coverage propagation, path-level measurement. |
 | 2026-09-26 | **WCG MVP (steps 1–3)**: language registry + explicit coverage (unchecked languages never look clean), multi-ruleset scanning, graph-lite with route→handler→sink path candidates in the web Review tab. 97 tests. |
+| 2026-09-26 | **Interface edges**: HTTP client→route binding + env/config sources (`.env`/Dockerfile/compose); cross-file entry→sink paths. 102 tests. |

@@ -37,6 +37,10 @@ Analysis treats the **system** as the unit, not the file:
 - `graph.py` — a graph-lite of files, functions, calls, HTTP routes, package
   imports, and findings, with **reachability from entrypoints**. Findings become
   **path candidates** (`entry → … → sink`) carrying a per-path coverage label.
+- **Interface edges** connect the seams: an HTTP client call in one function is
+  bound to the route handler it reaches (by URL path), and reads of
+  environment/config keys become untrusted **sources** bound to where the value is
+  defined (`.env`, Dockerfile, compose).
 - `Opengrep` accepts **multiple rulesets in one scan**, so a polyglot repo is
   scanned with every ruleset it has (instead of picking one).
 

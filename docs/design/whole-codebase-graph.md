@@ -130,17 +130,17 @@ the verifier already follows.
 
 ## MVP (graph-lite) — buildable on what exists
 
+**Status:** steps 1–4 done (`languages.py`, `graph.py`, multi-ruleset scan,
+interface edges for HTTP and env/config, path candidates in the Review tab).
+Remaining: dependency edges via SBOM, path-level E1 re-run.
+
 1. **Graph schema + builder** reusing the current CPG for functions/calls and the
-   SBOM/store for dependencies.
-2. **Two boundary types only:** HTTP routes and dependency usage. They cover the
-   majority of real cross-file/cross-service findings and are the easiest to bind.
-3. **Reachability** from route handlers and public/exported symbols.
-4. **Path candidates** replacing (not adding to) file candidates in `e1.py`; the
-   existing evidence gate verifies each hop.
-5. **Coverage report** in the app's Review tab: `checked / unchecked / unsupported`
-   per language and per path.
-6. **Re-run E1** at path granularity on the same corpora to see whether the flip
-   rate improves.
+   SBOM/store for dependencies. ✅
+2. **Boundary types:** HTTP routes ✅ and env/config ✅; dependency usage ⬜.
+3. **Reachability** from route handlers and untrusted-config sources ✅.
+4. **Path candidates** in `e1.py` / the Review tab; the evidence gate verifies hops ✅.
+5. **Coverage report** in the app: `checked / unchecked / unsupported` ✅.
+6. **Re-run E1** at path granularity ⬜.
 
 Everything downstream — verifier, four-way decomposition, calibration, ledger,
 cache, cost model, web app — is reused unchanged. That is the point: the WCG is a
