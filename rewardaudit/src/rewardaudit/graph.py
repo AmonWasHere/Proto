@@ -25,9 +25,24 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import urlparse
 
-from . import languages
+from . import config, deps, languages
 from .cpg import FUNCTION_TYPES, Cpg
 from .schema import Finding
+from .store import KnowledgeStore, Snapshot
+
+_SNAPSHOT: Snapshot | bool | None = None
+
+
+def _snapshot() -> Snapshot | None:
+    """The pinned advisory snapshot, loaded once (None if absent)."""
+    global _SNAPSHOT
+    if _SNAPSHOT is None:
+        path = config.THREAT_SNAPSHOT
+        try:
+            _SNAPSHOT = Snapshot.load(path) if path.is_file() else False
+        except Exception:  # noqa: BLE001
+            _SNAPSHOT = False
+    return _SNAPSHOT if isinstance(_SNAPSHOT, Snapshot) else None
 
 CALL_TYPES = {"call", "method_invocation", "call_expression"}
 
@@ -82,6 +97,7 @@ class Graph:
     handlers: list[str] = field(default_factory=list)
     sources: list[str] = field(default_factory=list)
     source_labels: dict[str, str] = field(default_factory=dict)
+    boundaries_unresolved: int = 0
 
     def add(self, node: Node) -> None:
         self.nodes[node.id] = node
@@ -351,12 +367,21 @@ def build(root: Path, findings: list[Finding] | None = None) -> Graph:
             tree = cpg.tree(rel)
             raw = cpg.source(rel)
             for enclosing, url in _http_calls_with_enclosing(tree, raw):
+                matched = False
                 for src in by_name.get(enclosing, []):
                     if graph.nodes[src].path != rel:
                         continue
                     for route_path, handler_id in route_index:
                         if _route_matches(url, route_path) and handler_id != src:
                             graph.link(src, handler_id, "http_call")
+                            matched = True
+                    if not matched:
+                        # Unresolved outbound boundary: make it visible instead of
+                        # silently truncating the path (design: opaque boundary).
+                        boundary_id = f"external|{_norm_path(url)}"
+                        graph.add(Node(boundary_id, "external", _norm_path(url), rel, 0, language, "unknown"))
+                        graph.link(src, boundary_id, "unresolved")
+                        graph.boundaries_unresolved += 1
 
     # config definitions (`.env`, Dockerfile, compose)
     for var, defining_file in _config_definitions(root).items():
@@ -366,6 +391,33 @@ def build(root: Path, findings: list[Finding] | None = None) -> Graph:
         if file_id not in graph.nodes:
             graph.add(Node(file_id, "file", defining_file, defining_file, 0, "", "unknown"))
         graph.link(file_id, config_id, "defines_config")
+
+    # dependency edges (manifests) -> advisory links (pinned store)
+    declared = deps.scan(root)
+    if declared:
+        repo_id = "repo|."
+        graph.add(Node(repo_id, "repo", root.name or ".", "", 0, "", "unknown"))
+        for dep in declared:
+            dep_id = f"dependency|{dep.ecosystem}|{dep.package}|{dep.version}"
+            graph.add(Node(dep_id, "dependency", f"{dep.package}@{dep.version}", "", 0, "", "unknown"))
+            graph.link(repo_id, dep_id, "depends_on")
+        # link imported package nodes to declared dependencies (via alias map)
+        for node in graph.nodes.values():
+            if node.kind != "package":
+                continue
+            resolved = deps.distribution_name(node.name)
+            for dep in declared:
+                if dep.package in (node.name, resolved):
+                    graph.link(node.id, f"dependency|{dep.ecosystem}|{dep.package}|{dep.version}", "resolves_to")
+        snapshot = _snapshot()
+        if snapshot is not None:
+            for match in KnowledgeStore(snapshot).match_dependencies(declared):
+                dep = match["dependency"]
+                dep_id = f"dependency|{dep.ecosystem}|{dep.package}|{dep.version}"
+                for advisory in match["advisories"]:
+                    adv_id = f"advisory|{advisory.id}"
+                    graph.add(Node(adv_id, "advisory", advisory.id, "", 0, "", "unknown"))
+                    graph.link(dep_id, adv_id, "vulnerable_to")
 
     if findings:
         for finding in findings:

@@ -130,16 +130,18 @@ the verifier already follows.
 
 ## MVP (graph-lite) — buildable on what exists
 
-**Status:** steps 1–4 done (`languages.py`, `graph.py`, multi-ruleset scan,
-interface edges for HTTP and env/config, path candidates in the Review tab).
-Remaining: dependency edges via SBOM, path-level E1 re-run.
+**Status:** steps 1–5 done (`languages.py`, `graph.py`, multi-ruleset scan,
+interface edges for HTTP, env/config and **dependencies↔advisories**, unresolved
+boundaries marked, path candidates in the Review tab). Remaining: path-level E1
+re-run.
 
 1. **Graph schema + builder** reusing the current CPG for functions/calls and the
-   SBOM/store for dependencies. ✅
-2. **Boundary types:** HTTP routes ✅ and env/config ✅; dependency usage ⬜.
+   SBOM/manifests for dependencies. ✅
+2. **Boundary types:** HTTP routes ✅, env/config ✅, dependency→advisory ✅.
 3. **Reachability** from route handlers and untrusted-config sources ✅.
 4. **Path candidates** in `e1.py` / the Review tab; the evidence gate verifies hops ✅.
-5. **Coverage report** in the app: `checked / unchecked / unsupported` ✅.
+5. **Coverage report** in the app: `checked / unchecked / unsupported` ✅, plus an
+   explicit count of **unresolved boundaries** (opaque nodes, not silent gaps) ✅.
 6. **Re-run E1** at path granularity ⬜.
 
 Everything downstream — verifier, four-way decomposition, calibration, ledger,
