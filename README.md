@@ -10,6 +10,9 @@ security verdict trustworthy.
   P6). The results.
 - **[`docs/COST.md`](docs/COST.md)** — measured cost and optimizations (thinking
   mode, verdict cache).
+- **[`docs/design/whole-codebase-graph.md`](docs/design/whole-codebase-graph.md)**
+  — design: analyse the *system*, not the repository (interface edges,
+  reachability-first path candidates, coverage propagation).
 - **[`docs/PLAN.md`](docs/PLAN.md)** — the plan and remaining phases.
   - [`docs/tools.md`](docs/tools.md) — language coverage and analyzer inventory.
 - **[`rewardaudit/`](rewardaudit/)** — the working harness **and a local web app**
