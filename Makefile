@@ -20,6 +20,11 @@ controls:
 pairs:
 	cd rewardaudit && PYTHONPATH=src python3 -m rewardaudit.harness pairs
 
+e0:
+	cd rewardaudit && REWARDAUDIT_LLM_CACHE=off PYTHONPATH=src python3 -m rewardaudit.harness repeats \
+		--dir datasets/javavfc_pairs --experiments e1,calibrate \
+		--models deepseek-flash,deepseek-v4-pro --k 3 --json runs/e0.json
+
 paper:
 	./paper/build.sh
 

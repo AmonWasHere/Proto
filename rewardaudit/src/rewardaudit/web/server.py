@@ -66,8 +66,14 @@ def _load_env_file() -> None:
 
 
 def _save_env_file() -> None:
-    base = SETTINGS["base_url"] or ("http://localhost:11434/v1" if SETTINGS["backend"] == "local" else "")
-    model = SETTINGS["model"] or ("qwen2.5-coder:7b" if SETTINGS["backend"] == "local" else "")
+    # Preserve an existing base URL / model when the incoming value is empty, so
+    # switching to an offline backend does not wipe a configured cloud endpoint.
+    base = SETTINGS["base_url"] or os.environ.get("REWARDAUDIT_LLM_BASE_URL", "") or (
+        "http://localhost:11434/v1" if SETTINGS["backend"] == "local" else ""
+    )
+    model = SETTINGS["model"] or os.environ.get("REWARDAUDIT_LLM_MODEL", "") or (
+        "qwen2.5-coder:7b" if SETTINGS["backend"] == "local" else ""
+    )
     key = os.environ.get("REWARDAUDIT_LLM_API_KEY", "")
     lines = [
         "# Written by the RewardAudit web app. Never commit this file.",

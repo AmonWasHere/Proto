@@ -451,3 +451,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-26 | **Frontend rework**: setup drawer + status pills, folder picker, coverage preview before running, filter/search/expand/export results, readable measure cards, browse/inspect/test endpoints. 112 tests. |
 | 2026-09-26 | **Repo cleanup**: untracked derived data, dropped reference duplicates, archived superseded docs, added Makefile. |
 | 2026-09-26 | **Draft IEEE paper** in `paper/` (IEEEtran + BibTeX), grounded in the measured results; workshop/short-track target, scale-up required before submission. |
+| 2026-09-26 | **E0 started**: `repeats` command + `stats.py` (Wilson/bootstrap CIs, exact McNemar), pre-registration, evidence plan; fixed a settings-save bug that blanked the cloud endpoint. 120 tests. |

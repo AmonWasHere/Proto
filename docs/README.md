@@ -9,6 +9,8 @@
 | [`e1-results.md`](e1-results.md) | every measured result, by round |
 | [`COST.md`](COST.md) | measured cost and optimizations |
 | [`tools.md`](tools.md) | language coverage and analyzer inventory |
+| [`EVIDENCE-PLAN.md`](EVIDENCE-PLAN.md) | the evidence ladder (E0–E5) and gates |
+| [`PREREGISTRATION.md`](PREREGISTRATION.md) | pre-registered thresholds for E0 |
 | [`issues.md`](issues.md) | tracked backlog and change log |
 
 ## Sub-folders

@@ -424,6 +424,47 @@ def cmd_calibrate(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_repeats(args: argparse.Namespace) -> int:
+    """E0: run a configuration k times per model, aggregate with confidence intervals."""
+    from .repeats import METRICS, aggregate, run_experiment
+
+    root = Path(args.dir)
+    models = [m.strip() for m in args.models.split(",") if m.strip()]
+    experiments = [e.strip() for e in args.experiments.split(",") if e.strip()]
+    raw: list[dict] = []
+    for experiment in experiments:
+        for model in models:
+            print(f"# {experiment} / {model}: {args.k} runs", flush=True)
+            result = run_experiment(experiment, root, model, k=args.k, no_thinking=args.no_thinking)
+            for index, run in enumerate(result["runs"], start=1):
+                shown = {k: round(float(v), 3) for k, v in run.items() if k != "per_pair"}
+                print(f"    run {index}: {shown}", flush=True)
+            raw.append(result)
+            if args.json:
+                Path(args.json).parent.mkdir(parents=True, exist_ok=True)
+                Path(args.json).write_text(json.dumps(raw, indent=2, default=str))
+
+    print("\n=== aggregated (mean [95% CI]) ===")
+    aggregated = {}
+    for experiment in experiments:
+        agg = aggregate(raw, experiment)
+        aggregated[experiment] = agg
+        print(f"\n{experiment}")
+        for model, data in agg["models"].items():
+            for metric in METRICS[experiment]:
+                s = data["metrics"][metric]
+                print(f"  {model:20s} {metric:22s} {s['mean']:7.3f}  [{s['lo']:.3f}, {s['hi']:.3f}]")
+        if "comparison" in agg:
+            c = agg["comparison"]
+            print(f"  McNemar {c['a']} vs {c['b']}: a_only={c['a_only']} "
+                  f"b_only={c['b_only']} p={c['mcnemar_p']:.4f}")
+
+    if args.json:
+        Path(args.json).write_text(json.dumps({"raw": raw, "aggregated": aggregated}, indent=2, default=str))
+        print(f"\nwrote {args.json}")
+    return 0
+
+
 def cmd_build_javavfc(args: argparse.Namespace) -> int:
     """Materialise JavaVFC revision pairs (vuln/fixed) into a directory."""
     from .javavfc import build_pairs
@@ -523,6 +564,15 @@ def main(argv: list[str] | None = None) -> int:
     p_cal.add_argument("--no-thinking", action="store_true")
     p_cal.add_argument("--json", default="")
     p_cal.set_defaults(func=cmd_calibrate)
+
+    p_rep = sub.add_parser("repeats", help="E0: k repeats per model, mean [95% CI], McNemar")
+    p_rep.add_argument("--dir", default=str(config.JAVAVFC_PAIRS))
+    p_rep.add_argument("--experiments", default="e1")
+    p_rep.add_argument("--models", default="")
+    p_rep.add_argument("--k", type=int, default=3)
+    p_rep.add_argument("--no-thinking", action="store_true")
+    p_rep.add_argument("--json", default="")
+    p_rep.set_defaults(func=cmd_repeats)
 
     args = parser.parse_args(argv)
     return args.func(args)
