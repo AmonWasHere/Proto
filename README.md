@@ -6,10 +6,11 @@ security verdict trustworthy.
 
 ## Start here
 
-- **[`docs/PLAN.md`](docs/PLAN.md)** — the canonical north star. Read this first.
+- **[`docs/REPORT.md`](docs/REPORT.md)** — consolidated findings report (draft,
+  P6). The results.
+- **[`docs/PLAN.md`](docs/PLAN.md)** — the plan and remaining phases.
   - [`docs/tools.md`](docs/tools.md) — language coverage and analyzer inventory.
-- **[`rewardaudit/`](rewardaudit/)** — M0 working code (harness, adapters, CPG
-  evidence layer, local/cloud LLM backends, V1/V2 verifiers).
+- **[`rewardaudit/`](rewardaudit/)** — the working harness.
 
 ## Everything else (background)
 
