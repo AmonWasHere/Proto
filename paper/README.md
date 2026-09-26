@@ -8,19 +8,22 @@ IEEE-format manuscript for the RewardAudit measurement study.
 ## Compile
 
 ```bash
-cd paper
-pdflatex main
-bibtex main
-pdflatex main
-pdflatex main
-# -> main.pdf
+./build.sh          # picks LaTeX if present, else WeasyPrint, else LibreOffice
+# or: make paper   (from the repository root)
 ```
 
-Or with `latexmk`:
+`main.pdf` is committed so the paper is readable without a toolchain. It was
+produced with WeasyPrint from `main.html` (a faithful HTML mirror of `main.tex`),
+because no LaTeX toolchain was available on the build machine. Where TeX exists,
+`build.sh` uses `main.tex` and produces the true IEEEtran two-column PDF.
 
-```bash
-latexmk -pdf main.tex
-```
+### Sources
+
+| File | Role |
+|---|---|
+| `main.tex` + `references.bib` | **submission source** (IEEEtran, two-column) |
+| `main.html` | HTML mirror used for the preview PDF (and easy reading) |
+| `main.pdf` | rendered preview (committed) |
 
 ## Status and honesty
 
