@@ -8,6 +8,8 @@ security verdict trustworthy.
 
 - **[`docs/REPORT.md`](docs/REPORT.md)** — consolidated findings report (draft,
   P6). The results.
+- **[`docs/COST.md`](docs/COST.md)** — measured cost and optimizations (thinking
+  mode, verdict cache).
 - **[`docs/PLAN.md`](docs/PLAN.md)** — the plan and remaining phases.
   - [`docs/tools.md`](docs/tools.md) — language coverage and analyzer inventory.
 - **[`rewardaudit/`](rewardaudit/)** — the working harness.

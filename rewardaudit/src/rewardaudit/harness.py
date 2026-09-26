@@ -102,7 +102,7 @@ def cmd_judge(args: argparse.Namespace) -> int:
     """Scan `--root`, then run V1 (LLM) and V2 (tool) on the first N findings."""
     root = Path(args.root)
     analyzer, findings = run_opengrep_over(root)
-    backend = build_backend(args.backend)
+    backend = build_backend(args.backend, no_thinking=getattr(args, "no_thinking", False))
     ctx = VerificationContext(repo_root=root.resolve(), cpg=Cpg(root), llm=backend)
     judge = LLMJudge()
     tool = ToolVerdict(findings, source=analyzer.name)
@@ -201,7 +201,7 @@ def cmd_e1(args: argparse.Namespace) -> int:
         verdicts = None
         print(f"verifier: tool ({analyzer.name} {analyzer.version()})")
     else:
-        backend = build_backend(args.backend)
+        backend = build_backend(args.backend, no_thinking=getattr(args, "no_thinking", False))
         judge = LLMJudge(
             require_decision=getattr(args, "require_decision", False),
             gate_evidence=not getattr(args, "no_gate", False),
@@ -267,7 +267,7 @@ def cmd_evade(args: argparse.Namespace) -> int:
     pairs = load_pairs(root / "manifest.json")
     if getattr(args, "limit", 0):
         pairs = pairs[: args.limit]
-    backend = build_backend(args.backend)
+    backend = build_backend(args.backend, no_thinking=getattr(args, "no_thinking", False))
     strategies = (
         tuple(Strategy(s) for s in args.strategies) if args.strategies else DEFAULT_STRATEGIES
     )
@@ -296,7 +296,7 @@ def cmd_adaptive(args: argparse.Namespace) -> int:
     pairs = load_pairs(root / "manifest.json")
     if getattr(args, "limit", 0):
         pairs = pairs[: args.limit]
-    judge_backend = build_backend(args.backend)
+    judge_backend = build_backend(args.backend, no_thinking=getattr(args, "no_thinking", False))
     attacker_backend = judge_backend
     attacker_name = f"{getattr(judge_backend, 'name', '?')} {getattr(judge_backend, 'model', '')}".strip()
     if args.attacker_model and isinstance(judge_backend, OpenAICompatibleBackend):
@@ -382,7 +382,7 @@ def cmd_calibrate(args: argparse.Namespace) -> int:
     pairs = load_pairs(root / "manifest.json")
     if getattr(args, "limit", 0):
         pairs = pairs[: args.limit]
-    backend = build_backend(args.backend)
+    backend = build_backend(args.backend, no_thinking=getattr(args, "no_thinking", False))
     judge = LLMJudge(
         require_decision=getattr(args, "require_decision", False),
         gate_evidence=not getattr(args, "no_gate", False),
@@ -476,6 +476,7 @@ def main(argv: list[str] | None = None) -> int:
     p_e1.add_argument("--require-decision", action="store_true")
     p_e1.add_argument("--verifier", default="llm", choices=["llm", "tool", "hybrid"])
     p_e1.add_argument("--no-gate", action="store_true", help="LLM alone (skip evidence gating)")
+    p_e1.add_argument("--no-thinking", action="store_true", help="disable provider thinking mode")
     p_e1.add_argument("--rules", default="", help="analyzer ruleset (default by file type)")
     p_e1.add_argument("--json", default="")
     p_e1.set_defaults(func=cmd_e1)
@@ -486,6 +487,7 @@ def main(argv: list[str] | None = None) -> int:
     p_ev.add_argument("--strategies", nargs="*", default=None)
     p_ev.add_argument("--limit", type=int, default=0)
     p_ev.add_argument("--require-decision", action="store_true")
+    p_ev.add_argument("--no-thinking", action="store_true")
     p_ev.add_argument("--json", default="")
     p_ev.set_defaults(func=cmd_evade)
 
@@ -501,6 +503,7 @@ def main(argv: list[str] | None = None) -> int:
     p_ad.add_argument("--rounds", type=int, default=3)
     p_ad.add_argument("--limit", type=int, default=0)
     p_ad.add_argument("--require-decision", action="store_true")
+    p_ad.add_argument("--no-thinking", action="store_true")
     p_ad.add_argument("--json", default="")
     p_ad.set_defaults(func=cmd_adaptive)
 
@@ -517,6 +520,7 @@ def main(argv: list[str] | None = None) -> int:
     p_cal.add_argument("--limit", type=int, default=0)
     p_cal.add_argument("--require-decision", action="store_true")
     p_cal.add_argument("--no-gate", action="store_true")
+    p_cal.add_argument("--no-thinking", action="store_true")
     p_cal.add_argument("--json", default="")
     p_cal.set_defaults(func=cmd_calibrate)
 

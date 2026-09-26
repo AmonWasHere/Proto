@@ -88,6 +88,9 @@ PYTHON_CANARIES = DATASETS / "python/canaries"
 #: Materialised JavaVFC revision pairs (vuln/fixed) for E1 at scale.
 JAVAVFC_PAIRS = DATASETS / "javavfc_pairs"
 
+#: Derived run artifacts (gitignored): caches, manifests, ledgers.
+RUNS_DIR = Path(os.environ.get("REWARDAUDIT_RUNS", str(_PROJECT_ROOT / "runs")))
+
 #: Pinned public-advisory snapshot (OSV JSON Lines). Never edited in place (ADR-0003).
 THREAT_SNAPSHOT = _first(
     DATASETS / "threat/osv_snapshot.jsonl",

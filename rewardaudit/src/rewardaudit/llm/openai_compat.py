@@ -34,6 +34,7 @@ class OpenAICompatibleBackend:
         timeout: float = 120.0,
         retries: int = 10,
         backoff_base: float = 1.5,
+        extra_body: dict | None = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.model = model
@@ -41,16 +42,45 @@ class OpenAICompatibleBackend:
         self.timeout = timeout
         self.retries = max(1, retries)
         self.backoff_base = backoff_base
+        #: Extra top-level fields merged into every request body. Used to toggle
+        #: provider features, e.g. DeepSeek's {"thinking": {"type": "disabled"}}.
+        self.extra_body = dict(extra_body or {})
         if name:
             self.name = name
 
     @classmethod
-    def from_env(cls) -> "OpenAICompatibleBackend":
+    def from_env(cls, *, no_thinking: bool = False) -> "OpenAICompatibleBackend":
+        extra: dict = {}
+        raw = os.environ.get("REWARDAUDIT_LLM_EXTRA_JSON")
+        if raw:
+            extra.update(json.loads(raw))
+        if no_thinking or os.environ.get("REWARDAUDIT_NO_THINKING", "").lower() in (
+            "1", "true", "yes",
+        ):
+            extra["thinking"] = {"type": "disabled"}
         return cls(
             base_url=os.environ.get("REWARDAUDIT_LLM_BASE_URL", "https://api.openai.com/v1"),
             model=os.environ.get("REWARDAUDIT_LLM_MODEL", "gpt-4o-mini"),
             api_key=os.environ.get("REWARDAUDIT_LLM_API_KEY") or os.environ.get("OPENAI_API_KEY"),
+            extra_body=extra,
         )
+
+    def _body(self, request: LLMRequest) -> dict:
+        body: dict = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": request.system},
+                {"role": "user", "content": request.user},
+            ],
+            "max_tokens": request.max_tokens,
+        }
+        # Thinking-mode providers ignore temperature; harmless to send elsewhere.
+        if not self.extra_body.get("thinking", {}).get("type") == "disabled":
+            body["temperature"] = request.temperature
+        if request.json_mode:
+            body["response_format"] = {"type": "json_object"}
+        body.update(self.extra_body)
+        return body
 
     def _delay(self, attempt: int, detail: str, headers) -> float:
         delay = self.backoff_base * (2**attempt)
@@ -64,19 +94,7 @@ class OpenAICompatibleBackend:
         return min(delay, 60.0)
 
     def complete(self, request: LLMRequest) -> LLMResponse:
-        body: dict = {
-            "model": self.model,
-            "messages": [
-                {"role": "system", "content": request.system},
-                {"role": "user", "content": request.user},
-            ],
-            "temperature": request.temperature,
-            "max_tokens": request.max_tokens,
-        }
-        if request.json_mode:
-            body["response_format"] = {"type": "json_object"}
-
-        data = json.dumps(body).encode()
+        data = json.dumps(self._body(request)).encode()
         headers = {
             "Content-Type": "application/json",
             # Some providers sit behind Cloudflare, which rejects the default
