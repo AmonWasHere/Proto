@@ -52,11 +52,16 @@ $("#review-run").onclick = async () => {
     });
     const result = await poll(id, "#review-progress");
     const s = result.summary;
+    const cov = s.coverage || {};
+    const unchecked = (cov.unchecked_languages || []).join(", ") || "none";
     $("#review-summary").innerHTML = [
       chip("candidates", s.candidates),
       chip("true positive", s.true_positive, "tp"),
       chip("false positive", s.false_positive, "fp"),
       chip("abstained", s.unknown_risk, "ur"),
+      chip("reachable paths", s.reachable),
+      chip("languages checked", `${Math.round((cov.checked_fraction || 0) * 100)}%`),
+      chip("unchecked languages", unchecked),
       chip("tokens in", s.tokens_in),
       chip("tokens out", s.tokens_out),
       chip("analyzer", `${s.analyzer} ${s.analyzer_version}`),
@@ -64,13 +69,16 @@ $("#review-run").onclick = async () => {
     const rows = result.rows.map((r) => `
       <tr>
         <td><code>${r.path}:${r.line}</code></td>
+        <td>${r.language || ""}</td>
         <td>${r.rule}</td>
         <td class="${r.disposition === "true_positive" ? "tp" : r.disposition === "false_positive" ? "fp" : "ur"}">${r.disposition}</td>
         <td>${r.confidence}</td>
+        <td>${r.entry ? `${r.entry} &rarr; ${(r.hops || []).join(" &rarr; ")}` : (r.reachable ? "" : "not reachable")}</td>
+        <td>${r.coverage}</td>
         <td>${r.rationale}</td>
       </tr>`).join("");
     $("#review-results").innerHTML = rows
-      ? `<table><thead><tr><th>location</th><th>rule</th><th>verdict</th><th>conf</th><th>rationale</th></tr></thead><tbody>${rows}</tbody></table>`
+      ? `<table><thead><tr><th>location</th><th>lang</th><th>rule</th><th>verdict</th><th>conf</th><th>path from entrypoint</th><th>coverage</th><th>rationale</th></tr></thead><tbody>${rows}</tbody></table>`
       : "<p class='hint'>No findings.</p>";
   } catch (e) {
     $("#review-summary").innerHTML = `<span class="chip">error: ${e.message}</span>`;

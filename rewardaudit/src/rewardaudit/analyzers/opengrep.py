@@ -67,7 +67,7 @@ class Opengrep:
     def __init__(
         self,
         binary: Path,
-        rules: Path,
+        rules: Path | list[Path],
         *,
         jobs: int = 4,
         scan_timeout: float = 1800.0,
@@ -75,7 +75,7 @@ class Opengrep:
         max_target_bytes: int = 4_000_000,
     ) -> None:
         self.binary = Path(binary)
-        self.rules = Path(rules)
+        self.rules = [Path(rules)] if isinstance(rules, (str, Path)) else [Path(r) for r in rules]
         self.jobs = jobs
         self.scan_timeout = scan_timeout
         self.per_rule_timeout = per_rule_timeout
@@ -91,11 +91,10 @@ class Opengrep:
         return out.strip().splitlines()[0] if out.strip() else "unknown"
 
     def _cmd(self, root: Path) -> list[str]:
-        return [
-            str(self.binary),
-            "scan",
-            "--config",
-            str(self.rules),
+        cmd = [str(self.binary), "scan"]
+        for rule in self.rules:  # multiple rulesets in one pass (multi-language)
+            cmd += ["--config", str(rule)]
+        cmd += [
             "--json",
             "--quiet",
             "--disable-version-check",
@@ -108,12 +107,14 @@ class Opengrep:
             str(self.jobs),
             str(root),
         ]
+        return cmd
 
     def scan(self, root: Path) -> ScanResult:
         if not self.available():
             raise AnalyzerError(f"opengrep binary not found: {self.binary}")
-        if not self.rules.is_file():
-            raise AnalyzerError(f"ruleset not found: {self.rules}")
+        missing = [str(r) for r in self.rules if not Path(r).is_file()]
+        if missing or not self.rules:
+            raise AnalyzerError(f"ruleset(s) not found: {missing or 'none given'}")
         root = Path(root).resolve()
         started = time.monotonic()
         last = ""

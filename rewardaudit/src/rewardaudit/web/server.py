@@ -22,7 +22,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
-from .. import config
+from .. import config, graph, languages
 from ..analyzers import AnalyzerError, Opengrep
 from ..calibration import analyze
 from ..controls import control_matrix, load_controls
@@ -127,11 +127,6 @@ def _update(job_id: str, **fields) -> None:
         JOBS[job_id].update(fields)
 
 
-def _pick_rules(root: Path) -> Path:
-    java = any(root.rglob("*.java"))
-    return config.JAVA_RULES if java else config.PYTHON_RULES
-
-
 def _run_job(job_id: str, kind: str, params: dict) -> None:
     try:
         apply_env()
@@ -151,15 +146,28 @@ def _job_review(job_id: str, params: dict) -> dict:
     root = Path(params["path"]).expanduser().resolve()
     if not root.exists():
         raise FileNotFoundError(f"path not found: {root}")
-    rules = Path(params.get("rules") or _pick_rules(root))
+
+    coverage = languages.coverage_report(root)
+    rules = Path(params["rules"]).resolve() if params.get("rules") else languages.rules_for(root)
+    if not rules:
+        raise AnalyzerError(
+            "no ruleset for any language present; unchecked languages: "
+            + ", ".join(coverage["unchecked_languages"] or ["(none)"])
+        )
     analyzer = Opengrep(config.OPENGREP_BIN, rules)
     if not analyzer.available():
         raise AnalyzerError(f"opengrep not available at {config.OPENGREP_BIN}")
-    _update(job_id, message="scanning with the analyzer", progress=0.1)
+    _update(job_id, message=f"scanning ({len(rules)} ruleset(s))", progress=0.05)
     scan = analyzer.scan(root)
 
     limit = int(params.get("limit") or 0)
     findings = scan.findings[: limit or None]
+
+    # Path candidates give each finding an entry -> ... -> sink traversal and a
+    # per-path coverage label (its least-covered hop).
+    _update(job_id, message="building codebase graph", progress=0.1)
+    paths = {row["finding"]: row for row in graph.path_candidates(root, findings)}
+
     verifier = params.get("verifier", "llm")
     backend = build_backend(SETTINGS["backend"], no_thinking=SETTINGS["no_thinking"])
     judge = LLMJudge(gate_evidence=verifier != "llm_ungated")
@@ -169,30 +177,39 @@ def _job_review(job_id: str, params: dict) -> dict:
     total = len(findings) or 1
     for index, finding in enumerate(findings, start=1):
         verdict = judge.verify(finding, ctx)
+        path_row = paths.get(finding.id, {})
+        hops = path_row.get("hops") or []
         rows.append(
             {
                 "path": finding.location.path,
                 "line": finding.location.start_line,
                 "rule": finding.rule,
                 "cwe": finding.cwes[0] if finding.cwes else "",
+                "language": path_row.get("language") or "",
                 "disposition": verdict.disposition.value,
                 "confidence": round(verdict.confidence, 3),
                 "rationale": verdict.rationale,
                 "evidence": list(verdict.evidence_refs),
+                "entry": path_row.get("entry"),
+                "hops": hops,
+                "reachable": bool(path_row.get("reachable")),
+                "coverage": path_row.get("coverage", "unknown"),
             }
         )
-        _update(job_id, message=f"verified {index}/{len(findings)}", progress=0.1 + 0.9 * index / total)
+        _update(job_id, message=f"verified {index}/{len(findings)}", progress=0.15 + 0.85 * index / total)
 
     summary = {
         "analyzer": analyzer.name,
         "analyzer_version": scan.version,
-        "ruleset": rules.name,
+        "rulesets": [Path(r).name for r in rules],
         "candidates": len(findings),
         "true_positive": sum(r["disposition"] == "true_positive" for r in rows),
         "false_positive": sum(r["disposition"] == "false_positive" for r in rows),
         "unknown_risk": sum(r["disposition"] == "unknown_risk" for r in rows),
+        "reachable": sum(r["reachable"] for r in rows),
         "tokens_in": judge.tokens_in,
         "tokens_out": judge.tokens_out,
+        "coverage": coverage,
     }
     stats = backend.stats() if hasattr(backend, "stats") else {}
     return {"summary": summary, "rows": rows, "cache": stats}

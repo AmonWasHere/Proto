@@ -111,6 +111,13 @@ class Cpg:
     def _source(self, path: str) -> bytes:
         return (self.root / path).read_bytes()
 
+    def tree(self, path: str):
+        """The parsed tree for `path` (public accessor for the graph builder)."""
+        return self._tree(path)
+
+    def source(self, path: str) -> bytes:
+        return self._source(path)
+
     def spans(self, path: str, line: int) -> list[NodeHit]:
         """Nodes whose extent covers `line`, smallest first."""
         tree = self._tree(path)

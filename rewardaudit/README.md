@@ -27,6 +27,26 @@ safe flagged** (`python -m rewardaudit.harness --controls`).
 PYTHONPATH=src python3 -m pytest
 ```
 
+## Whole-codebase graph (MVP)
+
+Analysis treats the **system** as the unit, not the file:
+
+- `languages.py` — registry + **coverage report**. Every language is
+  `covered` / `find_only` / `ground_only` / `unsupported`; files whose language has
+  no ruleset are reported as **unchecked, never clean**.
+- `graph.py` — a graph-lite of files, functions, calls, HTTP routes, package
+  imports, and findings, with **reachability from entrypoints**. Findings become
+  **path candidates** (`entry → … → sink`) carrying a per-path coverage label.
+- `Opengrep` accepts **multiple rulesets in one scan**, so a polyglot repo is
+  scanned with every ruleset it has (instead of picking one).
+
+The web app's Review tab shows the language mix, `languages checked` %, the
+unchecked languages, and each finding's path from an entrypoint.
+
+```bash
+PYTHONPATH=src python3 -m pytest          # 97 tests
+```
+
 ## Desktop / web app (no command line for users)
 
 The operator launches it once:

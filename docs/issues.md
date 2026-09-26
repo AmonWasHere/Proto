@@ -445,3 +445,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-26 | **Cost optimizations**: thinking-off measured ~8× cheaper (accuracy/FP cost); verdict cache 100% on repeats; `docs/COST.md`. 83 tests. |
 | 2026-09-26 | **Local web app** (`rewardaudit/web/`): Review / Measure / Settings tabs, background jobs, no-CLI launcher + desktop entry. 89 tests. |
 | 2026-09-26 | **Design: Whole-Codebase Graph** (`docs/design/whole-codebase-graph.md`) — interface edges, reachability-first path candidates, coverage propagation, path-level measurement. |
+| 2026-09-26 | **WCG MVP (steps 1–3)**: language registry + explicit coverage (unchecked languages never look clean), multi-ruleset scanning, graph-lite with route→handler→sink path candidates in the web Review tab. 97 tests. |
