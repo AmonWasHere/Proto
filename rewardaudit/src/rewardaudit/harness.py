@@ -565,7 +565,7 @@ def main(argv: list[str] | None = None) -> int:
     p_cal.add_argument("--json", default="")
     p_cal.set_defaults(func=cmd_calibrate)
 
-    p_rep = sub.add_parser("repeats", help="E0: k repeats per model, mean [95% CI], McNemar")
+    p_rep = sub.add_parser("repeats", help="E0: k repeats per model, mean [95%% CI], McNemar")
     p_rep.add_argument("--dir", default=str(config.JAVAVFC_PAIRS))
     p_rep.add_argument("--experiments", default="e1")
     p_rep.add_argument("--models", default="")
