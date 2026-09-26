@@ -1,0 +1,392 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+\begin{document}
+
+\title{Trustworthy but Silent:\\ Measuring LLM Security Verdicts with the Four-Way Decomposition}
+
+\author{\IEEEauthorblockN{Author Name}
+\IEEEauthorblockA{Independent Researcher\\
+Email: author@example.org}}
+
+\maketitle
+
+\begin{abstract}
+Large language models (LLMs) are increasingly used as \emph{verifiers} of security
+findings: a scanner proposes a candidate, and a model adjudicates whether it is
+real. Whether such a verdict can be trusted is rarely measured. We adapt the
+\emph{four-way decomposition}---an instrument previously used to show that static
+analyzers flag constructs rather than vulnerabilities---to LLM verifiers, and add
+evidence gating, an adversarial comment attack, a composition study, and a
+calibration analysis. Across five model families and a real-fix corpus we find
+that (i) an evidence-grounded LLM tracks the fix markedly more often than a
+pattern matcher (19--24\% vs.\ 4.8\%, no over-reporting), but (ii) it abstains on
+about half of all judgements and misses most genuine fixes, so its bottleneck is
+\emph{coverage}, not accuracy; (iii) almost every successful adversarial evasion
+is an \emph{abstention} rather than a false positive, and an adaptive attacker
+reaches 50\% evasion where fixed templates reach 26\%; and (iv) composing an LLM
+with a weaker deterministic verifier \emph{relocates} trust---grounding a claim
+helps for free, while requiring consensus with a weaker tool loses recall for no
+gain. Our evidence is directional (a 21-pair security subset and 5-pair
+cross-family sets), and we state this plainly. We release a reproducible harness
+and argue that abstention should be measured and reported as a first-class
+failure mode of security agents.
+\end{abstract}
+
+\begin{IEEEkeywords}
+security verification, large language models, empirical measurement,
+abstention, adversarial robustness, static analysis, calibration.
+\end{IEEEkeywords}
+
+\section{Introduction}
+Automated vulnerability analysis has converged on a standard shape: a policy
+queries tools and a code graph, and is trained or prompted to report findings
+\cite{vulagentrl,antares,eava,openant}. As models take on the
+\emph{verification} role---deciding whether a candidate is real---the question
+becomes whether their verdicts can be trusted. Prior work has shown that LLM
+security \emph{detectors} are highly susceptible to adversarial source comments
+\cite{alibi}; what has not been measured systematically is whether an LLM
+\emph{verdict} tracks the vulnerability, how it fails when it does not, and how it
+behaves under composition and an adversary.
+
+A separate line of work established that benchmark scores do not predict real
+detection: for a static analyzer, the fraction of commits whose verdict moves with
+a fix can be two orders of magnitude below its benchmark true-positive rate, and
+the \emph{four-way decomposition}---whether a tool flagged both revisions, the
+vulnerable revision only, the fixed revision only, or neither---made that visible
+\cite{sastaudit}. We apply that instrument to LLM verifiers and extend it with
+evidence gating, an adversarial comment attack, a composition study, and
+calibration.
+
+\noindent\textbf{Contributions.}
+\begin{itemize}
+\item \textbf{An instrument.} We apply the four-way decomposition to LLM
+verifiers, gate every verdict on machine-checkable evidence, and make coverage
+(languages checked vs.\ unchecked) explicit. The harness is released.
+\item \textbf{A coverage-bound finding.} An evidence-grounded LLM verifier tracks
+the fix far more often than a pattern matcher (19--24\% vs.\ 4.8\%) and does not
+over-report (1.0--1.25$\times$ vs.\ 6.0$\times$), but abstains on $\sim$50\% of
+judgements and misses most genuine fixes: its bottleneck is silence, not error.
+\item \textbf{Abstention as the attack surface.} Under adversarial comments, almost
+every successful evasion is an abstention rather than a false positive; an
+adaptive (LLM-authored, iterative) attacker reaches 50\% evasion against 26\% for
+fixed templates.
+\item \textbf{Composition relocates trust.} Evidence grounding removes an
+ungrounded positive at no recall cost; requiring agreement with a weaker
+deterministic verifier loses recall and gains nothing.
+\item \textbf{Calibration and cost.} The verifier is well calibrated (ECE 0.025)
+and precise (0\% fixed-side false positives) when it commits; disabling model
+thinking cuts cost ${\sim}8\times$ at a measured precision cost, and a
+content-addressed verdict cache removes 100\% of repeat cost.
+\end{itemize}
+
+We are explicit that our evidence is directional and small (Section~\ref{sec:threats});
+we treat it as a measurement-methodology contribution, not a claim of a large
+effect.
+
+\section{Related Work}
+\textbf{LLM agents for vulnerability analysis.} Systems such as OpenAnt
+\cite{openant}, FuzzingBrain~V2 \cite{fuzzingbrain}, DREA \cite{drea}, CLEAR
+\cite{clear}, and ATLANTIS \cite{atlantis} combine LLMs with static analysis,
+symbolic execution, and fuzzing. They report improved discovery; they generally do
+not measure whether a \emph{verdict} tracks the vulnerability.
+
+\textbf{RL from verifiable rewards.} VulAgentRL \cite{vulagentrl} uses a code
+property graph as both a tool and a reward verifier with exact node matching, and
+Antares \cite{antares} trains small models with verifiable rewards; EAVA
+\cite{eava} couples supervised tuning with reinforcement learning for
+vulnerability assessment. We do not train; we ask what trust such a grounded
+verdict actually earns at inference time.
+
+\textbf{Adversarial input.} ALIBI \cite{alibi} shows that adversarial source
+comments defeat LLM vulnerability detectors with $>$90\% success; CoER
+\cite{coer} co-evolves attacker and defender for indirect prompt injection. We
+attack the \emph{verifier} rather than the detector, split evasion by outcome, and
+include an adaptive attacker.
+
+\textbf{Abstention and calibration.} AWA-RL \cite{awarl} learns to abstain rather
+than fabricate in open-domain QA. We bring abstention into security verification
+and show it is the dominant adversarial target.
+
+\textbf{Benchmarks and validity.} The OWASP Benchmark \cite{owaspbench} is the
+standard scanner yardstick; JavaVFC \cite{javavfc} is a corpus of
+vulnerability-fixing commits. A companion study \cite{sastaudit} showed the OWASP
+score is not well defined and does not predict real detection, and introduced the
+four-way decomposition; a 2026 survey \cite{survey} identifies weak oracles,
+temporal leakage, and unreported budgets as recurring validity threats. Our work
+extends \cite{sastaudit} from static tools to LLM verifiers.
+
+\section{Method}
+\subsection{Four-way decomposition}
+For a vulnerable/fixed revision pair, we classify a verifier's verdict into one of
+four cells (Table~\ref{tab:cells}). Only \emph{vuln-only} is evidence of
+detection; \emph{both} means the verifier flagged a construct present before and
+after the fix and therefore could not have been reporting the vulnerability. We
+report the \emph{flip rate} (vuln-only fraction), the \emph{naive coverage}
+(flagged on the vulnerable revision), and their ratio, the \emph{over-report
+factor}.
+
+\begin{table}[t]
+\centering
+\caption{The four-way decomposition.}
+\label{tab:cells}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Cell & Interpretation \\
+\midrule
+both & flagged before \emph{and} after the fix; not detection \\
+vuln-only & flagged only before; a \textbf{flip} (detection) \\
+fixed-only & flagged only after; noise \\
+neither & silent on both; a miss \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Verifier arms}
+We compare four arms on identical inputs:
+\textbf{V1 (LLM, ungated)}: the model's verdict is taken as-is.
+\textbf{V1g (LLM, gated)}: every cited evidence reference must resolve to a real
+syntax node, or a positive verdict is downgraded to \emph{unknown}.
+\textbf{V2 (tool)}: the pinned analyzer's verdict.
+\textbf{V5 (hybrid)}: flagged only if the gated LLM \emph{and} the tool agree.
+
+\subsection{Bounded verdict request and evidence gating}
+The model never sees a repository. For a candidate it receives a bounded request:
+the candidate (rule, location, CWE hint), the enclosing function extracted from a
+tree-sitter code property graph, and optional retrieval. It must respond with a
+strict JSON verdict, cite \code{path:line} references, and may answer
+\code{unknown\_risk}. Each reference is resolved against the graph; an unverifiable
+positive is downgraded. We deliberately never feed whole files by default, since
+that is the strawman this measurement is meant to beat.
+
+\subsection{Adversary}
+\emph{Templates:} five plausible comment strategies (authority, sanitizer,
+tool-output, test-passed, reviewed) inserted just above the suspected sink.
+\emph{Adaptive:} an attacker model writes a comment, observes the verifier's
+verdict, and refines over up to three rounds (ALIBI-style \cite{alibi}). We split
+evasion into \emph{false-positive} and \emph{abstention} outcomes, because they
+target different failure modes.
+
+\subsection{Calibration and cost}
+Per revision judgement we record confidence, correctness, and disposition.
+We compute expected calibration error (ECE), reliability bins, and a
+selective-risk/coverage curve, plus false-negative rate on vulnerable revisions
+and false-positive rate on fixed revisions. Cost is reported in tokens and, at
+known prices, dollars per true positive.
+
+\subsection{Whole-codebase view}
+To avoid the failure where a polyglot repository silently looks clean, files are
+mapped to a language registry with an explicit \emph{coverage} label
+(\code{covered}/\code{find\_only}/\code{ground\_only}/\code{unsupported}), and a
+lightweight system graph connects functions, HTTP routes, configuration sources,
+and dependencies to produce entry-to-sink path candidates whose coverage is that
+of their least-covered hop.
+
+\section{Experimental Setup}
+\label{sec:setup}
+\textbf{Corpora.} (i) 21 Java security-fix pairs drawn from JavaVFC
+\cite{javavfc} (784 commits; 327 usable single-file; 207 materialised offline; the
+strong-security subset used here is 21). (ii) 5 hand-built Python
+vulnerable/fixed pairs and 3 canaries. (iii) The prior study's 21-file Java
+control set (18 vulnerable, 3 safe). Each revision is presented as an isolated
+file; the commit message is supplied as candidate context, as a bug report would
+be.
+
+\textbf{Analyzers.} opengrep 1.30.0 with the prior study's pinned 690-rule Java
+ruleset (sha256 \code{77df32e0\dots}) and a minimal 5-rule Python ruleset.
+
+\textbf{Models.} Five families via an OpenAI-compatible API: \code{gpt-oss-120b},
+\code{gpt-oss-20b}, \code{qwen3.8-27b}, \code{deepseek-flash}, \code{deepseek-v4-pro}.
+The scaled JavaVFC run uses \code{deepseek-flash}; cross-family checks use the
+5-pair Python set.
+
+\textbf{Reproducibility.} All assets are pinned by hash (\code{pins.json}); the
+control reproduction and the Python-pair measurement run fully offline; 112 unit
+and integration tests accompany the harness.
+
+\section{Results}
+\label{sec:results}
+\subsection{Verifier dependence}
+On identical inputs, models disagree in both flip rate and failure mode
+(Table~\ref{tab:cross}). \code{gpt-oss-120b} flipped on 4/5 pairs and flagged a
+safe canary; \code{gpt-oss-20b} and \code{qwen} and \code{deepseek-flash} flipped
+on 5/5 with one family showing a canary false positive; \code{deepseek-v4-pro}
+abstained on one vulnerable revision. The result is verifier-dependent---the
+phenomenon the instrument is designed to expose.
+
+\begin{table}[t]
+\centering
+\caption{Cross-family verdicts on 5 Python pairs / 3 canaries.}
+\label{tab:cross}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Model & flip rate & both & canary FP \\
+\midrule
+gpt-oss-120b & 80\% & 1 & 1/3 \\
+gpt-oss-20b & 100\% & 0 & 1/3 \\
+qwen3.8-27b & 100\% & 0 & 0/3 \\
+deepseek-flash & 100\% & 0 & 0/3 \\
+deepseek-v4-pro & 80\% & 0 & 0/3 (1 abstain) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{LLM versus pattern matcher, and composition}
+Table~\ref{tab:arms} reports the four arms on the 21-pair JavaVFC security subset.
+The tool over-reports $6.0\times$ (it flags 5 pairs on both revisions). The LLM
+tracks the fix $\sim$4$\times$ more often and barely over-reports. Evidence gating
+(V1g) removes the single ungrounded positive at no recall cost. Requiring
+agreement with the tool (V5) \emph{loses} a flip and gains nothing: the tool's
+blind spot becomes the composition's blind spot.
+
+\begin{table}[t]
+\centering
+\caption{Verifier arms on 21 JavaVFC security pairs.}
+\label{tab:arms}
+\small
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Arm & both & vuln & fixed & neither & flip & over-rep. \\
+\midrule
+V2 tool & 5 & 1 & 0 & 15 & 4.8\% & 6.0$\times$ \\
+V1 ungated & 1 & 4 & 0 & 16 & 19.0\% & 1.25$\times$ \\
+V1g gated & 0 & 4 & 1 & 16 & 19.0\% & 1.00$\times$ \\
+V5 hybrid & 0 & 3 & 0 & 18 & 14.3\% & 1.00$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Adversarial comments}
+Table~\ref{tab:evasion} reports template and adaptive evasion. The
+\emph{sanitizer} tactic (``the input is validated upstream'') was strongest across
+families. Critically, all successful adaptive evasions, and 8 of 9 template
+evasions, were \emph{abstentions} rather than false positives: an attacker need
+only make the verifier unsure. The adaptive attacker roughly doubles evasion
+relative to templates.
+
+\begin{table}[t]
+\centering
+\caption{Evasion. JavaVFC templates: baseline 7/21 true positives; adaptive:
+baseline 6/21, attacker \code{deepseek-v4-pro} vs.\ judge \code{deepseek-flash}.}
+\label{tab:evasion}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Attack & evasion & via FP & via abstain \\
+\midrule
+templates (authority) & 43\% (3/7) & 0 & 3 \\
+templates (overall) & 26\% & 1 & 8 \\
+adaptive (3 rounds) & \textbf{50\% (3/6)} & 0 & 3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Calibration and coverage}
+Table~\ref{tab:calib} shows the verifier is well calibrated and precise when it
+commits, but silent half the time. At confidence $\ge 0.9$, coverage falls to
+43\% with risk 0.11. The limiting factor is abstention, not deception.
+
+\begin{table}[t]
+\centering
+\caption{Calibration on 21 pairs (42 revision judgements), \code{deepseek-flash}.}
+\label{tab:calib}
+\small
+\begin{tabular}{@{}lc@{}}
+\toprule
+Metric & Value \\
+\midrule
+abstention rate & 50.0\% \\
+detection (recall on vuln revision) & 38.1\% \\
+false-negative rate & 61.9\% \\
+fixed-side false-positive rate & 0.0\% \\
+accuracy (scored) & 81.0\% \\
+ECE & 0.025 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Cost}
+Output tokens dominate ($\sim$91\% of cost). Disabling model thinking reduced
+output from 121{,}596 to 5{,}271 tokens over 42 judgements ($\sim$8$\times$ lower
+cost) but introduced fixed-side false positives (0\%$\to$9.5\%) and worsened ECE
+(0.153$\to$0.207). A content-addressed verdict cache keyed on the model, prompts,
+and slice removed 100\% of repeat cost. At off-peak prices the gated verifier
+costs ${\approx}\$0.0017$ per judgement.
+
+\section{Discussion}
+\textbf{The bottleneck is silence.} Across the scaled run the verifier is
+calibrated and never false-positives on the fixed side, yet it abstains on half of
+all judgements and misses most fixes. Optimising a security agent for precision
+alone would miss this entirely. We argue abstention should be reported as a
+first-class outcome alongside precision and recall.
+
+\textbf{Attacks target abstention.} Because the verifier already abstains when
+evidence is thin, an adversary does not need to convince it a vulnerability is
+safe---only to make it unsure. This reframes adversarial robustness for verifiers:
+defences that only suppress false positives leave the dominant path open.
+
+\textbf{Composition relocates trust.} Grounding a claim in verifiable evidence is
+cheap and strictly helpful here. Requiring consensus with a weaker verifier is
+not: it inherits that verifier's blind spots. ``Add another verifier'' is not a
+reliability strategy; ``make the existing verdict answer for itself'' is.
+
+\textbf{A practical pitfall.} A reasoning-model verifier silently degrades to
+``always abstain'' when the token budget is consumed by reasoning tokens
+(\code{finish\_reason}=length, empty content). Without the decomposition this is
+indistinguishable from a null result. We report it because it cost us a run.
+
+\section{Threats to Validity}
+\label{sec:threats}
+\textbf{Scale.} The scaled result is 21 security pairs; cross-family claims are on
+5 pairs. Our numbers are directional, not precise, and we do not report confidence
+intervals for the small-sample comparisons. \textbf{Labels.} JavaVFC is a
+screening corpus: a companion audit \cite{sastaudit} found only ${\sim}18\%$ of it
+is a genuine security fix, so recall is a floor against a cleaner label set.
+\textbf{Input shape.} Each revision is an isolated file, which is a floor for
+tools that resolve types and near-neutral for pattern matchers.
+\textbf{Non-determinism.} Reasoning models vary run to run at temperature 0; we
+observed 38.1\% and 28.6\% detection for the same configuration on different runs.
+\textbf{Single family at scale.} Only \code{deepseek-flash} was run on the scaled
+corpus. \textbf{Contamination.} Public fixes may appear in pretraining data; a
+temporal or private holdout is not yet used. \textbf{Adversary.} Our templates are
+fixed; a single adaptive attacker was used, and its adaptivity is shallow.
+
+\section{Ethics and Responsible Release}
+The adversarial comment generator is dual-use. This work is defensive: its purpose
+is to measure and expose a failure mode so that verifiers can be made reportable
+and robust. We do not release a turnkey attack service; the generator is a small,
+reproducible component of a measurement harness, and the paper reports defences
+(evidence gating, coverage reporting, abstention accounting) alongside the risk.
+
+\section{Reproducibility}
+The harness, pinned analyzers and rule sets, control set, and corpora are
+released. The control reproduction (12/18 vulnerable, 1/3 safe) and the Python-pair
+measurement run fully offline; 112 tests accompany the code. A verdict cache makes
+repeat runs deterministic and free.
+
+\section{Conclusion and Future Work}
+LLM security verifiers track fixes far better than pattern matchers, are
+calibrated and precise when they commit, and are nonetheless \emph{silent} on
+about half of their inputs---a weakness that adversarial comments directly
+amplify, and that composition with deterministic tools does not fix. Future work
+must (i) scale to hundreds of genuine fixes across at least two languages and
+three model families with confidence intervals, (ii) evaluate path-level
+candidates on multi-file revisions, and (iii) treat abstention and coverage as
+first-class metrics for security agents.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

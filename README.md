@@ -29,6 +29,7 @@ drawer when you want real LLM verdicts. API keys live in
 | `rewardaudit/packaging/` | `rewardaudit.desktop` + install instructions |
 | `pinned/` | pinned analyzers, rules, controls, corpora (see `pinned/README.md`) |
 | `docs/` | plan, findings, cost, tools, ADRs, design, archive (see `docs/README.md`) |
+| `paper/` | IEEE-format manuscript (draft) |
 | `Makefile` | `make app` · `make test` · `make clean` |
 
 ## Documentation
@@ -42,6 +43,7 @@ Start with **[`docs/README.md`](docs/README.md)**. The essentials:
 - [`docs/tools.md`](docs/tools.md) — languages and analyzers
 - [`docs/design/whole-codebase-graph.md`](docs/design/whole-codebase-graph.md) — system-level design
 - [`docs/issues.md`](docs/issues.md) — tracked backlog
+- [`paper/main.tex`](paper/main.tex) — IEEE-format manuscript (draft)
 
 ## Status
 
