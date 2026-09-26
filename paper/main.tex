@@ -30,7 +30,7 @@ analyzers flag constructs rather than vulnerabilities---to LLM verifiers, and ad
 evidence gating, an adversarial comment attack, a composition study, and a
 calibration analysis. Across five model families and a real-fix corpus we find
 that (i) an evidence-grounded LLM tracks the fix markedly more often than a
-pattern matcher (19--24\% vs.\ 4.8\%, no over-reporting), but (ii) it abstains on
+pattern matcher (mean 31\%, 95\% CI [23,37], vs.\ 4.8\%), but (ii) it abstains on
 about half of all judgements and misses most genuine fixes, so its bottleneck is
 \emph{coverage}, not accuracy; (iii) almost every successful adversarial evasion
 is an \emph{abstention} rather than a false positive, and an adaptive attacker
@@ -74,7 +74,7 @@ calibration.
 verifiers, gate every verdict on machine-checkable evidence, and make coverage
 (languages checked vs.\ unchecked) explicit. The harness is released.
 \item \textbf{A coverage-bound finding.} An evidence-grounded LLM verifier tracks
-the fix far more often than a pattern matcher (19--24\% vs.\ 4.8\%) and does not
+the fix far more often than a pattern matcher (mean 31\%, 95\% CI [23,37]) and does not
 over-report (1.0--1.25$\times$ vs.\ 6.0$\times$), but abstains on $\sim$50\% of
 judgements and misses most genuine fixes: its bottleneck is silence, not error.
 \item \textbf{Abstention as the attack surface.} Under adversarial comments, almost
@@ -84,8 +84,9 @@ fixed templates.
 \item \textbf{Composition relocates trust.} Evidence grounding removes an
 ungrounded positive at no recall cost; requiring agreement with a weaker
 deterministic verifier loses recall and gains nothing.
-\item \textbf{Calibration and cost.} The verifier is well calibrated (ECE 0.025)
-and precise (0\% fixed-side false positives) when it commits; disabling model
+\item \textbf{Calibration and cost.} The verifier is
+precise (0\% fixed-side false positives in every repeat), but its confidence is not
+reliably calibrated (ECE 0.07--0.35 across repeats); disabling model
 thinking cuts cost ${\sim}8\times$ at a measured precision cost, and a
 content-addressed verdict cache removes 100\% of repeat cost.
 \end{itemize}
@@ -294,25 +295,26 @@ adaptive (3 rounds) & \textbf{50\% (3/6)} & 0 & 3 \\
 \end{table}
 
 \subsection{Calibration and coverage}
-Table~\ref{tab:calib} shows the verifier is well calibrated and precise when it
-commits, but silent half the time. At confidence $\ge 0.9$, coverage falls to
-43\% with risk 0.11. The limiting factor is abstention, not deception.
+Table~\ref{tab:calib} reports mean [95\% CI] over five repeated runs (cache
+disabled). The verifier never false-positives on the fixed side, but its
+calibration is unreliable: ECE ranged 0.07--0.35. It abstains on half the
+judgements and misses most fixes.
 
 \begin{table}[t]
 \centering
-\caption{Calibration on 21 pairs (42 revision judgements), \code{deepseek-flash}.}
+\caption{Calibration on 21 pairs, \code{deepseek-flash}, k=5 mean [95\% CI].}
 \label{tab:calib}
 \small
 \begin{tabular}{@{}lc@{}}
 \toprule
-Metric & Value \\
+Metric & Mean [95\% CI] \\
 \midrule
-abstention rate & 50.0\% \\
-detection (recall on vuln revision) & 38.1\% \\
-false-negative rate & 61.9\% \\
-fixed-side false-positive rate & 0.0\% \\
-accuracy (scored) & 81.0\% \\
-ECE & 0.025 \\
+abstention rate & 49.0 [44.3, 53.8] \\
+detection (recall on vuln revision) & 31.4 [27.6, 35.2] \\
+false-negative rate & 68.6 [64.8, 72.4] \\
+fixed-side false-positive rate & 0.0 [0.0, 0.0] \\
+accuracy (scored) & 73.5 [66.1, 81.8] \\
+ECE & 0.206 [0.128, 0.293] \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -326,9 +328,9 @@ and slice removed 100\% of repeat cost. At off-peak prices the gated verifier
 costs ${\approx}\$0.0017$ per judgement.
 
 \section{Discussion}
-\textbf{The bottleneck is silence.} Across the scaled run the verifier is
-calibrated and never false-positives on the fixed side, yet it abstains on half of
-all judgements and misses most fixes. Optimising a security agent for precision
+\textbf{The bottleneck is silence.} Across the scaled run the verifier never
+false-positives on the fixed side and abstains on half of all judgements, but its
+confidence is not reliably calibrated (ECE 0.07--0.35) and it misses most fixes. Optimising a security agent for precision
 alone would miss this entirely. We argue abstention should be reported as a
 first-class outcome alongside precision and recall.
 
@@ -357,7 +359,9 @@ is a genuine security fix, so recall is a floor against a cleaner label set.
 \textbf{Input shape.} Each revision is an isolated file, which is a floor for
 tools that resolve types and near-neutral for pattern matchers.
 \textbf{Non-determinism.} Reasoning models vary run to run at temperature 0; we
-observed 38.1\% and 28.6\% detection for the same configuration on different runs.
+observed detection ranging 23.8--38.1\% and flip rate 19.0--42.9\% across five
+repeats of one configuration; the k=5 bootstrap intervals are narrower than that
+observed range and are reported alongside it.
 \textbf{Single family at scale.} Only \code{deepseek-flash} was run on the scaled
 corpus. \textbf{Contamination.} Public fixes may appear in pretraining data; a
 temporal or private holdout is not yet used. \textbf{Adversary.} Our templates are

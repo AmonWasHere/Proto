@@ -268,6 +268,60 @@ weakness rather than creating a new one — which is a more actionable finding t
 - Cost is reported in tokens, not dollars: set `REWARDAUDIT_PRICE_IN/OUT` (USD per
   1M tokens) to have `calibrate` print cost per true positive.
 
+## Round 6 — E0 repeatability (2026-09-26)
+
+Pre-registered (`docs/PREREGISTRATION.md`), `deepseek-flash`, JavaVFC security
+subset (21 pairs), **k = 5**, cache disabled so runs are independent.
+
+### E1 — flip rate
+
+| run | 1 | 2 | 3 | 4 | 5 | **mean [95% CI]** | observed range |
+|---|---|---|---|---|---|---|---|
+| flip rate | 23.8% | 33.3% | 42.9% | 19.0% | 33.3% | **30.5% [22.9, 37.1]** | 19.0–42.9% |
+
+`both = 0` in all five runs.
+
+### Calibration
+
+| metric | mean [95% CI] | observed range |
+|---|---|---|
+| detection rate | 31.4% [27.6, 35.2] | 23.8–38.1% |
+| false-negative rate | 68.6% [64.8, 72.4] | 61.9–76.2% |
+| fixed-side false-positive rate | **0.0% [0.0, 0.0]** | 0.0% (all runs) |
+| accuracy | 73.5% [66.1, 81.8] | 62.5–90.0% |
+| **ECE** | **0.206 [0.128, 0.293]** | **0.073–0.349** |
+| abstention rate | 49.0% [44.3, 53.8] | 42.9–57.1% |
+
+### What repeatability changes
+
+1. **The single numbers were noise.** Flip rate for one configuration spans
+   **19–43%**; the paper's previously reported 19.0% and 23.8% sit at the low end
+   of one model's range. The defensible statement is **mean ≈ 30% [23–37]**.
+2. **The ECE claim was wrong.** The earlier single run gave ECE 0.025
+   ("well calibrated"); five repeats give **0.206**, ranging 0.07–0.35. The
+   verifier is **precise but not reliably calibrated**.
+3. **Fixed-side precision is genuinely stable:** 0% false positives in all five
+   runs and in every earlier configuration.
+4. **Abstention is stable** (49% [44, 54]), supporting H2.
+
+### Pre-registered gates
+
+| Gate | Result |
+|---|---|
+| H1 verifier-dependence | **deferred** (single model; needs E1) |
+| H2 abstention ≥ 0.30 | **supported** (0.49) |
+| H3 evasion mainly abstention | supported on earlier data; not re-run here |
+| H4 gating helps at no recall cost | supported on earlier data; not re-run here |
+
+### Caveats
+
+- **k=5 bootstrap CIs are optimistic**: they are narrower than the observed range
+  (e.g. flip CI [22.9, 37.1] excludes the observed 19.0% and 42.9%). Read them
+  with the range, not instead of it. A larger k (≥20) would be needed for stable
+  intervals.
+- Single model, single corpus, isolated files — unchanged limitations.
+- Cost of E0: **~$0.79** (balance 7.74 → 6.95).
+
 ## Replication
 
 ```bash

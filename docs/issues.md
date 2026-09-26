@@ -452,3 +452,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-26 | **Repo cleanup**: untracked derived data, dropped reference duplicates, archived superseded docs, added Makefile. |
 | 2026-09-26 | **Draft IEEE paper** in `paper/` (IEEEtran + BibTeX), grounded in the measured results; workshop/short-track target, scale-up required before submission. |
 | 2026-09-26 | **E0 started**: `repeats` command + `stats.py` (Wilson/bootstrap CIs, exact McNemar), pre-registration, evidence plan; fixed a settings-save bug that blanked the cloud endpoint. 120 tests. |
+| 2026-09-26 | **E0 complete** (k=5, `deepseek-flash`): flip rate **30.5% [22.9,37.1]** (runs 19.0–42.9%); ECE **0.206 [0.128,0.293]** (runs 0.073–0.349) — the earlier 0.025 was a lucky run; fixed-side FP 0.0% in every run. Paper/table corrected; cost ~$0.79. |
