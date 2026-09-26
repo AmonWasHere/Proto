@@ -68,19 +68,23 @@ or install the desktop entry:
 cp rewardaudit.desktop ~/.local/share/applications/   # then launch "RewardAudit" from the menu
 ```
 
-Users then use three tabs in the browser — no shell:
+Users then work entirely in the browser — no shell:
 
-- **Review** — point at a folder; the analyzer finds candidates and the LLM
-  verifier returns a grounded verdict per candidate (true/false/abstain) with
-  rationale and tokens.
-- **Measure** — reproduce the project's own results on pinned datasets (Java
-  controls, Python pairs, JavaVFC four-way, calibration/FNR).
-- **Settings** — pick `scripted` (offline), `local` (ollama/LM Studio), or
-  `cloud`; the API key is stored in `~/.config/rewardaudit/env` (mode 600) and is
-  never returned to the browser.
+- **Setup drawer** — pick *Offline* / *Local* / *Cloud*, with a **Test
+  connection** button. Status pills in the header always show the active backend,
+  model, API-key state, analyzer availability, and cache.
+- **Review** — a 3-step flow: (1) **Browse…** to pick a folder (server-side folder
+  picker, confined to your home directory) with an immediate **coverage preview**
+  (languages, files, `checked` %, and which languages are *unchecked*); (2) choose
+  the verifier and candidate limit; (3) Run. Results show summary stats, a
+  filterable/searchable table, **expandable rows** (rationale, evidence, entry →
+  hop path, coverage), and **Export JSON/CSV**.
+- **Measure** — one-click cards for each pinned dataset (Java controls, Python
+  pairs, JavaVFC four-way, calibration/FNR) with clearly rendered results instead
+  of raw JSON.
 
-The server binds to `127.0.0.1` only. Code stays local unless a cloud backend is
-selected.
+The API key lives in `~/.config/rewardaudit/env` (mode 600) and is never returned
+to the browser. The server binds to `127.0.0.1` only.
 
 Integration tests that need the bundled opengrep binary are skipped
 automatically when it is absent.

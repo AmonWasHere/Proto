@@ -448,3 +448,4 @@ absent, `docker`/`semgrep`/`codeql`/`opengrep`/`go`/`cargo` not on PATH.
 | 2026-09-26 | **WCG MVP (steps 1–3)**: language registry + explicit coverage (unchecked languages never look clean), multi-ruleset scanning, graph-lite with route→handler→sink path candidates in the web Review tab. 97 tests. |
 | 2026-09-26 | **Interface edges**: HTTP client→route binding + env/config sources (`.env`/Dockerfile/compose); cross-file entry→sink paths. 102 tests. |
 | 2026-09-26 | **Dependency boundaries**: manifest parsing (requirements/package.json/Cargo/go.mod/pom), dependency→advisory edges via the pinned store, unresolved boundaries as explicit opaque nodes. 107 tests. |
+| 2026-09-26 | **Frontend rework**: setup drawer + status pills, folder picker, coverage preview before running, filter/search/expand/export results, readable measure cards, browse/inspect/test endpoints. 112 tests. |

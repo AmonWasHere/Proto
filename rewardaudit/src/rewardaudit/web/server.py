@@ -20,7 +20,7 @@ import traceback
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from .. import config, graph, languages
 from ..analyzers import AnalyzerError, Opengrep
@@ -140,6 +140,54 @@ def _run_job(job_id: str, kind: str, params: dict) -> None:
     except Exception as exc:  # noqa: BLE001 - surfaced to the UI
         _update(job_id, status="error", error=f"{type(exc).__name__}: {exc}",
                 trace=traceback.format_exc()[-2000:])
+
+
+BROWSE_ROOT = Path(os.environ.get("REWARDAUDIT_BROWSE_ROOT", str(Path.home()))).expanduser()
+
+
+def _browse(raw_path: str | None) -> dict:
+    """List subdirectories for the folder picker, confined to BROWSE_ROOT."""
+    root = BROWSE_ROOT.resolve()
+    requested = Path(raw_path).expanduser().resolve() if raw_path else root
+    if root not in requested.parents and requested != root:
+        requested = root
+    entries = []
+    try:
+        for child in sorted(requested.iterdir(), key=lambda p: p.name.lower()):
+            if child.is_dir() and not child.name.startswith("."):
+                entries.append({"name": child.name, "path": str(child)})
+    except OSError as exc:
+        return {"error": str(exc), "path": str(requested), "root": str(root), "entries": []}
+    parent = str(requested.parent) if requested != root else None
+    return {"path": str(requested), "root": str(root), "parent": parent, "entries": entries}
+
+
+def _inspect(raw_path: str | None) -> dict:
+    """Coverage + language mix for a directory, before running anything."""
+    if not raw_path:
+        return {"error": "no path"}
+    target = Path(raw_path).expanduser()
+    if not target.is_dir():
+        return {"error": f"not a directory: {target}"}
+    report = languages.coverage_report(target)
+    return report
+
+
+def _test_connection() -> dict:
+    """One tiny call against the configured backend, to prove it works."""
+    try:
+        backend = build_backend(SETTINGS["backend"], cache=False, no_thinking=SETTINGS["no_thinking"])
+        from ..llm.base import LLMRequest
+
+        response = backend.complete(LLMRequest(system="Reply with JSON only.", user='Reply {"ok": true}', max_tokens=256))
+        return {
+            "ok": True,
+            "backend": getattr(backend, "name", SETTINGS["backend"]),
+            "model": getattr(backend, "model", ""),
+            "reply": response.text[:120],
+        }
+    except Exception as exc:  # noqa: BLE001 - surfaced to the UI
+        return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
 
 
 def _job_review(job_id: str, params: dict) -> dict:
@@ -291,7 +339,9 @@ class Handler(BaseHTTPRequestHandler):
             return {}
 
     def do_GET(self):  # noqa: N802
-        path = urlparse(self.path).path
+        parsed = urlparse(self.path)
+        path = parsed.path
+        query = parse_qs(parsed.query)
         if path in ("/", "/index.html"):
             return self._serve_static("index.html")
         if path.startswith("/static/"):
@@ -300,6 +350,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(200, public_settings())
         if path == "/api/backends":
             return self._json(200, {"backends": BACKENDS})
+        if path == "/api/browse":
+            return self._json(200, _browse((query.get("path") or [None])[0]))
+        if path == "/api/inspect":
+            return self._json(200, _inspect((query.get("path") or [None])[0]))
         if path.startswith("/api/jobs/"):
             job_id = path.rsplit("/", 1)[-1]
             with _LOCK:
@@ -332,6 +386,8 @@ class Handler(BaseHTTPRequestHandler):
             params = body.get("params", {})
             job_id = _new_job(kind, params)
             return self._json(200, {"id": job_id})
+        if path == "/api/test":
+            return self._json(200, _test_connection())
         return self._json(404, {"error": "not found"})
 
     def _serve_static(self, name: str) -> None:

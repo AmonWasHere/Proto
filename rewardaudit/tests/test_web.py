@@ -74,6 +74,46 @@ def test_api_key_is_never_returned(base):
     assert payload["api_key_set"] is True
 
 
+def test_browse_lists_directories(base, tmp_path, monkeypatch):
+    monkeypatch.setattr(web, "BROWSE_ROOT", tmp_path)
+    (tmp_path / "project").mkdir()
+    (tmp_path / "project" / "src").mkdir()
+    status, data = _getj(base + f"/api/browse?path={tmp_path}")
+    assert status == 200
+    assert data["path"] == str(tmp_path)
+    assert any(e["name"] == "project" for e in data["entries"])
+
+
+def test_browse_is_confined_to_root(base, tmp_path, monkeypatch):
+    root = tmp_path / "root"
+    outside = tmp_path / "outside"
+    root.mkdir(); outside.mkdir()
+    monkeypatch.setattr(web, "BROWSE_ROOT", root)
+    _, data = _getj(base + f"/api/browse?path={outside}")
+    assert data["path"] == str(root)  # escaped path is rejected
+
+
+def test_inspect_reports_coverage(base, tmp_path):
+    (tmp_path / "a.py").write_text("x = 1\n")
+    (tmp_path / "b.js").write_text("const x = 1;\n")
+    status, data = _getj(base + f"/api/inspect?path={tmp_path}")
+    assert status == 200
+    assert data["files_total"] == 2
+    assert "javascript" in data["unchecked_languages"]
+
+
+def test_inspect_missing_path(base):
+    status, data = _getj(base + "/api/inspect?path=/no/such/dir")
+    assert "error" in data
+
+
+def test_test_connection_with_scripted_backend(base):
+    _post(base + "/api/settings", {"backend": "scripted", "cache": False})
+    status, data = _post(base + "/api/test", {})
+    assert status == 200
+    assert data["ok"] is True
+
+
 def test_measure_controls_job(base):
     if not config.OPENGREP_BIN.is_file():
         pytest.skip("opengrep not available")
