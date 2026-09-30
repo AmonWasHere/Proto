@@ -28,6 +28,21 @@ SKIP_DIRS = {
     ".mypy_cache", ".pytest_cache", ".tox",
 }
 
+#: Non-source files that must not be counted as "unchecked code".
+NONCODE_EXT = {
+    ".md", ".rst", ".txt", ".json", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf",
+    ".lock", ".env", ".xml", ".html", ".htm", ".svg", ".png", ".jpg", ".jpeg", ".gif",
+    ".pdf", ".csv", ".log", ".bak", ".orig", ".patch", ".diff", ".sum",
+}
+NONCODE_NAMES = {
+    ".env", ".gitignore", ".gitattributes", "license", "licence", "notice",
+    "readme", "makefile", "dockerfile", "changelog",
+}
+
+
+def _is_noncode(path: Path) -> bool:
+    return path.suffix.lower() in NONCODE_EXT or path.name.lower() in NONCODE_NAMES
+
 
 @dataclass(frozen=True, slots=True)
 class LanguageSpec:
@@ -114,6 +129,8 @@ def coverage_report(root: Path) -> dict:
     counts: dict[str, int] = {}
     files: dict[str, int] = {}
     for path in _walk(root):
+        if _is_noncode(path):
+            continue
         lang = language_of(path) or "unknown"
         files[lang] = files.get(lang, 0) + 1
         if lang == "unknown":

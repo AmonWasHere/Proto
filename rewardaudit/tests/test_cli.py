@@ -19,7 +19,7 @@ def test_cli_parser_builds_and_help_exits_clean(capsys):
 def test_cli_subcommand_help_all_build(capsys):
     for command in [
         "controls", "pairs", "canaries", "e1", "evade", "adaptive",
-        "threat", "javavfc", "calibrate", "repeats",
+        "threat", "javavfc", "calibrate", "repeats", "review",
     ]:
         with pytest.raises(SystemExit) as excinfo:
             harness.main([command, "--help"])

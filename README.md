@@ -10,15 +10,39 @@ detector — detection is done by pinned off-the-shelf analyzers.
 
 ## Quick start
 
+Launch the app (no CLI for users):
+
 ```bash
-make app        # launch the local web app and open the browser (no CLI for users)
-make test       # run the test suite
+make app        # starts the local server and opens the browser
 ```
 
-The app binds to `127.0.0.1` only. It runs **offline** out of the box (the
-`scripted` backend needs no model); connect a Local or Cloud model in the Setup
-drawer when you want real LLM verdicts. API keys live in
-`~/.config/rewardaudit/env` (mode 600) and are never sent to the browser.
+Run from the terminal instead:
+
+```bash
+cd rewardaudit
+PYTHONPATH=src python3 -m pytest                                     # tests
+PYTHONPATH=src python3 -m rewardaudit.harness controls               # 12/18, 1/3
+PYTHONPATH=src python3 -m rewardaudit.harness review \
+    --path ../examples/vulnerable-app --backend scripted             # end-to-end demo
+```
+
+The `examples/vulnerable-app/` folder is an intentionally vulnerable sample that
+demonstrates detection, entry-to-sink paths, coverage reporting, and dependency
+advisories — see its README. It runs **fully offline** (`--backend scripted`); no
+model or API key is required.
+
+To use a real model (Local or Cloud), configure an endpoint in
+`~/.config/rewardaudit/env` (see `rewardaudit/scripts/env.example`), then pass
+`--backend cloud` (or `--backend local`), e.g.:
+
+```bash
+set -a; . ~/.config/rewardaudit/env; set +a
+export REWARDAUDIT_LLM_BASE_URL=https://api.deepseek.com/v1 REWARDAUDIT_LLM_CACHE=off PYTHONPATH=src
+python3 -m rewardaudit.harness review --path ../examples/vulnerable-app --backend cloud
+```
+
+The app binds to `127.0.0.1` only. API keys live in `~/.config/rewardaudit/env`
+(mode 600) and are never sent to the browser.
 
 ## Layout
 

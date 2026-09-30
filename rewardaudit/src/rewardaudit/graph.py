@@ -323,7 +323,7 @@ def build(root: Path, findings: list[Finding] | None = None) -> Graph:
 
                 for route, handler in _routes(lines, language):
                     route_id = f"route|{language}|{route}"
-                    graph.add(Node(route_id, "route", f"{route} -> {handler}", rel, 0, language, spec.status))
+                    graph.add(Node(route_id, "route", route, rel, 0, language, spec.status))
                     for fn_id in by_name.get(handler, []):
                         if graph.nodes[fn_id].path == rel:
                             graph.link(route_id, fn_id, "calls")

@@ -465,6 +465,48 @@ def cmd_repeats(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_review(args: argparse.Namespace) -> int:
+    """Scan a directory, build entry-to-sink paths, verify each candidate."""
+    from .review import run_review
+
+    result = run_review(
+        args.path,
+        backend_kind=args.backend,
+        verifier=args.verifier,
+        limit=args.limit,
+        no_thinking=getattr(args, "no_thinking", False),
+    )
+    summary = result["summary"]
+    coverage = summary["coverage"]
+
+    print(f"path:      {result['root']}")
+    print(f"analyzer:  {summary['analyzer']} {summary['analyzer_version']}  rulesets={summary['rulesets']}")
+    print(f"coverage:  {coverage['by_status']}  checked={coverage['checked_fraction']:.0%}")
+    if coverage["unchecked_languages"]:
+        print(f"UNCHECKED: {', '.join(coverage['unchecked_languages'])}  (no ruleset; not clean)")
+    print(
+        f"candidates {summary['candidates']}  |  true positive {summary['true_positive']}  "
+        f"false positive {summary['false_positive']}  abstained {summary['unknown_risk']}  "
+        f"|  reachable paths {summary['reachable']}"
+    )
+    print()
+    for row in result["rows"]:
+        entry = f"{row['entry']} -> {' -> '.join(row['hops'])}" if row["entry"] else "not reachable"
+        print(
+            f"  {row['path']}:{row['line']}  [{row['language']}]  {row['disposition']:14}"
+            f" conf={row['confidence']:<4} {row['rule'].split('.')[-1]}"
+        )
+        print(f"      path: {entry}   coverage={row['coverage']}")
+    print(f"\ntokens: in={summary['tokens_in']} out={summary['tokens_out']}")
+
+    if args.json:
+        import json
+
+        Path(args.json).write_text(json.dumps(result, indent=2, default=str))
+        print(f"wrote {args.json}")
+    return 0
+
+
 def cmd_build_javavfc(args: argparse.Namespace) -> int:
     """Materialise JavaVFC revision pairs (vuln/fixed) into a directory."""
     from .javavfc import build_pairs
@@ -573,6 +615,15 @@ def main(argv: list[str] | None = None) -> int:
     p_rep.add_argument("--no-thinking", action="store_true")
     p_rep.add_argument("--json", default="")
     p_rep.set_defaults(func=cmd_repeats)
+
+    p_rev = sub.add_parser("review", help="scan a directory and verify each candidate")
+    p_rev.add_argument("--path", required=True)
+    p_rev.add_argument("--backend", default="scripted", choices=["mock", "scripted", "local", "cloud"])
+    p_rev.add_argument("--verifier", default="llm", choices=["llm", "llm_ungated"])
+    p_rev.add_argument("--limit", type=int, default=0)
+    p_rev.add_argument("--no-thinking", action="store_true")
+    p_rev.add_argument("--json", default="")
+    p_rev.set_defaults(func=cmd_review)
 
     args = parser.parse_args(argv)
     return args.func(args)

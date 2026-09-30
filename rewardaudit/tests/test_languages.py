@@ -37,6 +37,16 @@ def test_coverage_report_marks_unchecked_languages(tmp_path):
     assert statuses["javascript"] == "unsupported"
 
 
+def test_coverage_ignores_non_code_files(tmp_path):
+    (tmp_path / "a.py").write_text("x = 1\n")
+    (tmp_path / "requirements.txt").write_text("flask==2.2.0\n")
+    (tmp_path / ".env").write_text("CMD=ls\n")
+    (tmp_path / "README.md").write_text("# hi\n")
+    report = languages.coverage_report(tmp_path)
+    assert report["files_total"] == 1
+    assert "unknown" not in report["by_status"]
+
+
 def test_rules_for_collects_present_languages(tmp_path):
     (tmp_path / "a.py").write_text("x = 1\n")
     (tmp_path / "B.java").write_text("class B {}\n")
