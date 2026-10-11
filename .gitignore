@@ -29,6 +29,13 @@ pinned/data/
 # Derived datasets (regenerable: `harness javavfc --offline`)
 rewardaudit/datasets/javavfc_pairs/
 
+# Cloned third-party repositories used for validation (not part of the project)
+vuln-repos/
+
+# Fetched OSV snapshots (regenerable: `harness threat-refresh` or scripts/refresh_osv.sh)
+rewardaudit/datasets/threat/osv-*.jsonl
+rewardaudit/datasets/threat/osv-*.jsonl.meta.json
+
 # Logs / artifacts
 *.log
 runs/

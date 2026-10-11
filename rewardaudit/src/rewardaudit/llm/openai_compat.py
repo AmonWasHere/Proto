@@ -35,6 +35,7 @@ class OpenAICompatibleBackend:
         retries: int = 10,
         backoff_base: float = 1.5,
         extra_body: dict | None = None,
+        json_mode_supported: bool = True,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.model = model
@@ -45,8 +46,24 @@ class OpenAICompatibleBackend:
         #: Extra top-level fields merged into every request body. Used to toggle
         #: provider features, e.g. DeepSeek's {"thinking": {"type": "disabled"}}.
         self.extra_body = dict(extra_body or {})
+        #: Some local servers (e.g. LM Studio) reject OpenAI's json_object mode.
+        #: When False, the JSON instruction in the prompt is the only signal.
+        self.json_mode_supported = json_mode_supported
         if name:
             self.name = name
+
+    def list_models(self) -> list[str]:
+        """GET {base_url}/models and return the available model ids (or [])."""
+        headers = {"User-Agent": "rewardaudit/0.0.1 (OpenAI-compatible client)"}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+        req = urllib.request.Request(f"{self.base_url}/models", headers=headers, method="GET")
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+                data = json.loads(resp.read().decode())
+        except Exception:  # noqa: BLE001 - discovery must never be fatal
+            return []
+        return [str(m["id"]) for m in data.get("data", []) if m.get("id")]
 
     @classmethod
     def from_env(cls, *, no_thinking: bool = False) -> "OpenAICompatibleBackend":
@@ -77,7 +94,7 @@ class OpenAICompatibleBackend:
         # Thinking-mode providers ignore temperature; harmless to send elsewhere.
         if not self.extra_body.get("thinking", {}).get("type") == "disabled":
             body["temperature"] = request.temperature
-        if request.json_mode:
+        if request.json_mode and self.json_mode_supported:
             body["response_format"] = {"type": "json_object"}
         body.update(self.extra_body)
         return body

@@ -71,13 +71,14 @@ Start with **[`docs/README.md`](docs/README.md)**. The essentials:
 
 ## Status
 
-Working and tested: **112 tests**. The app, the harness commands
+Working and tested: **142 tests**. The app, the harness commands
 (`controls`, `pairs`, `javavfc`, `e1`, `evade`, `adaptive`, `calibrate`,
 `threat`), the four verifier arms (LLM gated/ungated, tool, hybrid), the
 Whole-Codebase graph (interface edges, reachability, coverage), the cost
 optimizations (thinking-off, verdict cache), and the frontend are all in place.
-Language coverage is **Java (full)** and **Python (minimal rules)**; other
-languages are reported as *unchecked*, never silently clean.
+Language coverage: **Java (full rules)** and **Python + JavaScript/TypeScript
+(minimal rules)**; **C is grammar-only** (auditable and evidence-groundable, no
+ruleset); other languages are reported as *unchecked*, never silently clean.
 
 ## Reproduce offline
 
@@ -88,6 +89,23 @@ PYTHONPATH=src python3 -m rewardaudit.harness controls          # 12/18, 1/3
 PYTHONPATH=src python3 -m rewardaudit.harness pairs             # four-way
 PYTHONPATH=src python3 -m rewardaudit.harness javavfc --offline # build the corpus
 ```
+
+## Dependency advisories
+
+Match declared dependencies against a pinned OSV snapshot, and refresh it on demand:
+
+```bash
+cd rewardaudit
+PYTHONPATH=src python3 -m rewardaudit.harness threat \
+    --requirements ../examples/vulnerable-app/requirements.txt
+./scripts/refresh_osv.sh          # fetch a new dated snapshot from api.osv.dev
+PYTHONPATH=src python3 -m rewardaudit.harness threat \
+    --snapshot datasets/threat/osv-<date>.jsonl \
+    --requirements ../examples/vulnerable-app/requirements.txt
+```
+
+Snapshots are immutable and dated (ADR-0003): refreshing writes a new file, so any
+run can name the exact snapshot it used.
 
 ## License
 

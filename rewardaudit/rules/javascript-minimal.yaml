@@ -1,0 +1,134 @@
+rules:
+  - id: ra-js-eval
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: eval() on dynamic input enables code execution
+    metadata:
+      cwe: "CWE-95"
+    pattern: eval(...)
+
+  - id: ra-js-function-constructor
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: Function constructor builds code from a string
+    metadata:
+      cwe: "CWE-95"
+    pattern: new Function(...)
+
+  - id: ra-js-child-process-exec
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: child_process exec spawns a shell command
+    metadata:
+      cwe: "CWE-78"
+    pattern-either:
+      - pattern: execSync(...)
+      - pattern: child_process.exec(...)
+      - pattern: require('child_process').exec(...)
+
+  - id: ra-js-innerhtml
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: HTML written from a dynamic value (cross-site scripting)
+    metadata:
+      cwe: "CWE-79"
+    pattern-either:
+      - pattern: $X.innerHTML = $Y
+      - pattern: $X.outerHTML = $Y
+      - pattern: document.write(...)
+
+  - id: ra-js-sql-string
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: SQL query built by string concatenation
+    metadata:
+      cwe: "CWE-89"
+    pattern: $DB.query($A + $B)
+
+  - id: ra-js-weak-crypto
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: weak hash algorithm (md5 or sha1)
+    metadata:
+      cwe: "CWE-327"
+    pattern-either:
+      - pattern: createHash("md5")
+      - pattern: createHash("sha1")
+      - pattern: createHash('md5')
+      - pattern: createHash('sha1')
+
+  - id: ra-js-unserialize
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: insecure deserialization of an untrusted string
+    metadata:
+      cwe: "CWE-502"
+    pattern: unserialize(...)
+
+  - id: ra-js-ssrf
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: outbound HTTP request (possible SSRF if the URL is attacker-controlled)
+    metadata:
+      cwe: "CWE-918"
+    pattern-either:
+      - pattern: fetch($X)
+      - pattern: axios.get($X)
+      - pattern: axios.post($X, ...)
+      - pattern: http.get($X, ...)
+      - pattern: https.get($X, ...)
+
+  - id: ra-js-path-traversal
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: filesystem path built from a dynamic value (possible path traversal)
+    metadata:
+      cwe: "CWE-22"
+    pattern-either:
+      - pattern: fs.readFile($P, ...)
+      - pattern: fs.readFileSync($P, ...)
+      - pattern: fs.createReadStream($P, ...)
+      - pattern: path.join($BASE, $USER)
+
+  - id: ra-js-open-redirect
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: redirect to a URL that may be attacker-controlled
+    metadata:
+      cwe: "CWE-601"
+    pattern: res.redirect($X)
+
+  - id: ra-js-code-exec-timer
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: timer evaluates a string as code
+    metadata:
+      cwe: "CWE-95"
+    pattern-either:
+      - pattern: setTimeout("...", ...)
+      - pattern: setInterval("...", ...)
+
+  - id: ra-js-nosql-injection
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: database query built directly from request data (possible NoSQL injection)
+    metadata:
+      cwe: "CWE-943"
+    pattern-either:
+      - pattern: $M.find(req.body)
+      - pattern: $M.find(req.query)
+      - pattern: $M.findOne(req.body)
+      - pattern: $M.updateOne(req.body, ...)
+
+  - id: ra-js-hardcoded-secret
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: hardcoded credential or secret in source
+    metadata:
+      cwe: "CWE-798"
+    patterns:
+      - pattern: $VAR = "..."
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: (?i).*(password|passwd|secret|token|apikey|api_key).*
+

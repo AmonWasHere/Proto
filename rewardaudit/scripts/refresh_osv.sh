@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Produce a NEW dated OSV snapshot (never edit an existing one — ADR-0003).
+# Produce a NEW dated OSV snapshot for declared dependencies (never edits an
+# existing snapshot — ADR-0003).
 #
-#   ./scripts/refresh_osv.sh [output_dir]
+#   ./scripts/refresh_osv.sh [requirements.txt] [ecosystem]
 #
-# Requires network. Real OSV bulk data: https://osv.dev/docs/#tag/api
-# Easiest offline-friendly route is the OSV database export or `osv-scanner`'s
-# cached DB; this script uses the public GCS export of per-ecosystem zips.
+# Defaults to the example app's requirements and the PyPI ecosystem. Requires
+# network access to https://api.osv.dev.
 set -euo pipefail
-out_dir="${1:-datasets/threat}"
-date_str="$(date +%F)"
-out="${out_dir}/osv-${date_str}.jsonl"
-echo "Refreshing OSV snapshot -> ${out}"
-echo "This is a documented placeholder: wire the OSV bulk export here,"
-echo "then write ${out}.meta.json with {\"date\": \"${date_str}\", \"source\": \"osv.dev\"}."
-exit 1
+cd "$(dirname "$0")/.."
+
+req="${1:-${REWARDAUDIT_REQUIREMENTS:-../examples/vulnerable-app/requirements.txt}}"
+eco="${2:-PyPI}"
+
+PYTHONPATH=src python3 -m rewardaudit.harness threat-refresh \
+    --requirements "$req" --ecosystem "$eco"

@@ -11,11 +11,13 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from . import config
+from .analyzers.opengrep import Opengrep
 from .calibration import analyze
 from .cpg import Cpg
 from .datasets import load_pairs
 from .decomposition import Cell
-from .e1 import collect_calibration, four_way_llm
+from .e1 import collect_calibration, four_way_hybrid, four_way_llm, four_way_tool
 from .llm import build_backend
 from .stats import compare_models, mean_ci
 from .verifiers.base import VerificationContext
@@ -33,17 +35,41 @@ def _context(root: Path, model: str, no_thinking: bool):
     return backend, VerificationContext(root.resolve(), Cpg(root), backend)
 
 
-def run_experiment(name: str, root: Path, model: str, *, k: int, no_thinking: bool = False) -> dict:
-    """Run `name` k times for one model; return per-run metrics."""
+def _tool_findings(root: Path, pairs) -> list:
+    """Deterministic analyzer findings over a revision-pair directory."""
+    is_java = any(p.vuln.endswith(".java") for p in pairs)
+    rules = config.JAVA_RULES if is_java else config.PYTHON_RULES
+    return Opengrep(config.OPENGREP_BIN, rules).scan(root).findings
+
+
+def run_experiment(
+    name: str,
+    root: Path,
+    model: str,
+    *,
+    k: int,
+    no_thinking: bool = False,
+    verifier: str = "llm",
+    gate: bool = True,
+) -> dict:
+    """Run `name` k times for one model and one verifier arm; return per-run metrics.
+
+    `verifier` selects the arm: `llm` (V1g, evidence-gated), `ungated` (V1,
+    gate disabled), `hybrid` (V5, LLM AND tool), or `tool` (V2, deterministic).
+    """
     root = Path(root)
     pairs = load_pairs(root / "manifest.json")
     runs: list[dict] = []
     for _ in range(k):
         _, ctx = _context(root, model, no_thinking)
-        judge = LLMJudge()
+        judge = LLMJudge(gate_evidence=gate)
         if name == "e1":
-            result = four_way_llm(pairs, ctx, judge)
-            report = result.report
+            if verifier == "tool":
+                report = four_way_tool(pairs, _tool_findings(root, pairs))
+            elif verifier == "hybrid":
+                report = four_way_hybrid(pairs, ctx, _tool_findings(root, pairs), judge).report
+            else:  # "llm" (gated) or "ungated"
+                report = four_way_llm(pairs, ctx, judge).report
             runs.append(
                 {
                     "flip_rate": report.flip_rate,

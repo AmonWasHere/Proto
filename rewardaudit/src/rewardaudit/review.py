@@ -16,6 +16,25 @@ from .verifiers.base import VerificationContext
 from .verifiers.llm_judge import LLMJudge
 
 
+def is_groundable(path: str) -> bool:
+    """True only for files whose language has a grammar, so evidence can resolve.
+
+    Analyzer rulesets also match CI/config files (e.g. `.github/*.yml`,
+    dependabot). Those have no grammar, so the code slice is empty and the
+    verifier can only abstain; they are not code and must not be adjudicated.
+    """
+    lang = languages.language_of(path)
+    return bool(lang and languages.registry()[lang].grammar)
+
+
+def partition_code_findings(findings: list) -> tuple[list, list]:
+    """Split findings into (code, noncode) by whether the file is groundable."""
+    kept, skipped = [], []
+    for finding in findings:
+        (kept if is_groundable(finding.location.path) else skipped).append(finding)
+    return kept, skipped
+
+
 def run_review(
     path: str | Path,
     *,
@@ -42,7 +61,8 @@ def run_review(
         raise AnalyzerError(f"opengrep not available at {config.OPENGREP_BIN}")
     scan = analyzer.scan(root)
 
-    findings = scan.findings[: limit or None]
+    code, noncode = partition_code_findings(scan.findings)
+    findings = code[: limit or None]
     paths = {row["finding"]: row for row in graph.path_candidates(root, findings)}
 
     backend = build_backend(backend_kind, no_thinking=no_thinking)
@@ -76,6 +96,8 @@ def run_review(
         "analyzer_version": scan.version,
         "rulesets": [Path(r).name for r in rulesets],
         "candidates": len(findings),
+        "skipped_noncode": len(noncode),
+        "skipped_paths": sorted({f.location.path for f in noncode})[:10],
         "true_positive": sum(r["disposition"] == "true_positive" for r in rows),
         "false_positive": sum(r["disposition"] == "false_positive" for r in rows),
         "unknown_risk": sum(r["disposition"] == "unknown_risk" for r in rows),

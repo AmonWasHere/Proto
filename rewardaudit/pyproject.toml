@@ -12,7 +12,8 @@ license = { text = "Apache-2.0" }
 dependencies = []
 
 [project.optional-dependencies]
-cpg = ["tree-sitter>=0.24", "tree-sitter-java", "tree-sitter-python", "tree-sitter-c"]
+cpg = ["tree-sitter>=0.24", "tree-sitter-java", "tree-sitter-python", "tree-sitter-c",
+       "tree-sitter-javascript", "tree-sitter-typescript"]
 dev = ["pytest>=8", "pyyaml"]
 
 [project.scripts]

@@ -1,359 +1,1211 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta charset="utf-8" />
-<title>Measuring LLM Security Verdicts</title>
-<style>
-  /* IEEE-conference-like preview styling (the .tex remains the submission source) */
-  @page { size: letter; margin: 0.75in 0.62in 0.7in; }
-  html { font-size: 10pt; }
-  body { font-family: "Times New Roman", Times, serif; line-height: 1.18; color: #000; text-align: justify; hyphens: auto; }
-
-  .masthead { text-align: center; margin-bottom: 12px; }
-  .title { font-size: 24pt; font-weight: 400; line-height: 1.1; margin: 0 0 12px; }
-  .authors { font-size: 11pt; margin: 0; }
-  .authors .aff { display: block; font-size: 10pt; }
-
-  .cols { column-count: 2; column-gap: 0.25in; }
-
-  p { margin: 0 0 4px; }
-  .abstract, .keywords { font-size: 9pt; }
-  .abstract b, .keywords b { font-style: italic; font-weight: 700; }
-
-  h2 { font-size: 10pt; font-weight: 400; font-variant: small-caps; letter-spacing: .3px;
-       text-align: center; margin: 11px 0 4px; }
-  h3 { font-size: 10pt; font-weight: 400; font-style: italic; margin: 8px 0 3px; }
-  ul { margin: 4px 0 5px 14px; padding: 0; }
-  li { margin-bottom: 2px; }
-
-  table { width: 100%; border-collapse: collapse; font-size: 8pt; margin: 6px 0 10px; break-inside: avoid; }
-  caption { caption-side: top; font-size: 8pt; font-variant: small-caps; text-align: center; margin-bottom: 3px; }
-  th, td { padding: 2px 4px; text-align: left; }
-  thead th { border-top: 1pt solid #000; border-bottom: .5pt solid #000; font-weight: 400; }
-  tbody tr:last-child td { border-bottom: 1pt solid #000; }
-  td.num, th.num { text-align: center; }
-
-  code, tt { font-family: "DejaVu Sans Mono", monospace; font-size: 8pt; }
-
-  .refs { font-size: 8pt; }
-  .refs ol { list-style: none; counter-reset: ref; margin: 0; padding: 0; }
-  .refs li { counter-increment: ref; padding-left: 1.5em; text-indent: -1.5em; margin-bottom: 3px; }
-  .refs li::before { content: "[" counter(ref) "] "; }
-  .note { font-size: 8pt; color: #333; margin-top: 12px; }
-</style>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="" />
+  <title>Measuring LLM Security Verdicts: Coverage, Abstention, and Adversarial Suppression</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    div.abstract {
+      margin: 2em 2em 2em 2em;
+      text-align: left;
+      font-size: 85%;
+    }
+    div.abstract-title {
+      font-weight: bold;
+      text-align: center;
+      padding: 0;
+      margin-bottom: 0.5em;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    /* CSS for citations */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+    }
+    .hanging-indent div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }  </style>
 </head>
 <body>
-
-<div class="masthead">
-  <div class="title">Measuring LLM Security Verdicts</div>
-  <div class="authors">Author Name<span class="aff">Independent Researcher — author@example.org</span></div>
+<header id="title-block-header">
+<h1 class="title">Measuring LLM Security Verdicts: Coverage,
+Abstention,<br />
+and Adversarial Suppression</h1>
+<p class="author"></p>
+<div class="abstract">
+<div class="abstract-title">Abstract</div>
+<p>Large language models (LLMs) are increasingly used as
+<em>verifiers</em> of security findings: a static analyzer proposes a
+candidate and a model adjudicates whether it is real. Whether such a
+verdict can be trusted is rarely measured. We adapt the <em>four-way
+decomposition</em>—an instrument previously used to show that static
+analyzers flag constructs rather than vulnerabilities—to LLM verifiers
+and extend it with evidence gating, an adversarial comment attack, a
+composition study, and a calibration analysis. On a 21-pair real-fix
+security subset, an evidence-grounded verifier tracks the fix far more
+often than the pattern matcher it is meant to replace (30.5%, 95% CI
+[22.9,37.1], vs. 4.8%) and does not over-report, but it abstains on 49%
+of judgements and misses 69% of genuine fixes. Its bottleneck is
+therefore <em>coverage</em>, not accuracy. On a labelled benchmark the
+verifier does not improve on the analyzer’s precision (at most 2 of 15
+false positives rejected), and a cross-language check confirms the
+verdict itself is verifier-dependent. Adversarial comments evade 26%
+(fixed templates) to 50% (an adaptive attacker), and nearly every
+successful evasion is an <em>abstention</em> rather than a false
+positive: an attacker need only make the verifier unsure, not wrong.
+Composing the LLM with a weaker deterministic verifier
+<em>relocates</em> trust rather than adding it—grounding a claim helps
+at no recall cost, while requiring consensus loses recall for no gain.
+Our scaled evidence is a single 21-pair subset with one model family at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">k{=}5</annotation></semantics></math>,
+and we state this plainly. We release a reproducible harness and argue
+that abstention and coverage should be reported as first-class outcomes
+of security agents.</p>
 </div>
-
-<div class="cols">
-
-<p class="abstract"><b>Abstract—</b>Large language models (LLMs) are increasingly
-used as <em>verifiers</em> of security findings: a scanner proposes a candidate,
-and a model adjudicates whether it is real. Whether such a verdict can be trusted
-is rarely measured. We adapt the <em>four-way decomposition</em> — an instrument
-previously used to show that static analyzers flag constructs rather than
-vulnerabilities — to LLM verifiers, and add evidence gating, an adversarial
-comment attack, a composition study, and a calibration analysis. Across five
-model families and a real-fix corpus we find that (i) an evidence-grounded LLM
-tracks the fix markedly more often than a pattern matcher (mean 31%, 95% CI [23,37], vs. 4.8%), but (ii) it abstains on about half of all judgements and misses
-most genuine fixes, so its bottleneck is <em>coverage</em>, not accuracy; (iii)
-almost every successful adversarial evasion is an <em>abstention</em> rather than
-a false positive, and an adaptive attacker reaches 50% evasion where fixed
-templates reach 26%; and (iv) composing an LLM with a weaker deterministic
-verifier <em>relocates</em> trust — grounding a claim helps for free, while
-requiring consensus with a weaker tool loses recall for no gain. Our evidence is
-directional (a 21-pair security subset and 5-pair cross-family sets), and we
-state this plainly. We release a reproducible harness and argue that abstention
-should be measured and reported as a first-class failure mode of security agents.</p>
-
-<p class="keywords"><b>Index Terms—</b>security verification, large language
-models, empirical measurement, abstention, adversarial robustness, static
-analysis, calibration.</p>
-
-<h2>I. Introduction</h2>
-<p>Automated vulnerability analysis has converged on a standard shape: a policy
-queries tools and a code graph, and is trained or prompted to report findings
-[1], [2], [4], [6]. As models take on the <em>verification</em> role — deciding
-whether a candidate is real — the question becomes whether their verdicts can be
-trusted. Prior work shows that LLM security <em>detectors</em> are highly
-susceptible to adversarial source comments [5]; what has not been measured
-systematically is whether an LLM <em>verdict</em> tracks the vulnerability, how it
-fails when it does not, and how it behaves under composition and an adversary.</p>
-<p>A separate line of work established that benchmark scores do not predict real
-detection: for a static analyzer, the fraction of commits whose verdict moves
-with a fix can be two orders of magnitude below its benchmark true-positive rate,
-and the <em>four-way decomposition</em> — whether a tool flagged both revisions,
-the vulnerable revision only, the fixed revision only, or neither — made that
-visible [15]. We apply that instrument to LLM verifiers and extend it with
-evidence gating, an adversarial comment attack, a composition study, and
-calibration.</p>
-<p><b>Contributions.</b></p>
+</header>
+<div class="IEEEkeywords">
+<p>abstention, adversarial robustness, calibration, code property
+graphs, evidence grounding, large language models, program analysis,
+selective prediction, static analysis, vulnerability verification.</p>
+</div>
+<h1 id="introduction">Introduction</h1>
+<p>Automated vulnerability analysis has converged on a standard shape: a
+policy queries tools and a code graph and is trained or prompted to
+report findings <span class="citation"
+data-cites="vulagentrl antares eava openant">(<span class="nocase">Li et
+al.</span> 2026; <span class="nocase">Vijay et al.</span> 2026; <span
+class="nocase">Pan et al.</span> 2026; Korda and Evron 2026)</span>. LLM
+agents now drive that loop—reasoning over repositories, invoking
+analyzers, and drafting fixes. In each case a model makes
+<em>verification</em> judgements: given a candidate produced by a
+scanner, a fuzzer, or another model, is it real? As agents take over the
+gate between a warning and a fix, the question becomes whether their
+verdicts can be trusted.</p>
+<p>That question is harder than it looks. A model can be right about the
+code and wrong about the vulnerability: it can flag a dangerous-looking
+construct that the patch did not touch, agree that a benchmark sample is
+vulnerable without reasoning about the vulnerability, or become
+confident on inputs unlike its training distribution. For a static
+analyzer, the companion study behind this work showed that the fraction
+of commits whose verdict <em>moves with a fix</em> can be two orders of
+magnitude below its benchmark true-positive rate, and introduced the
+<em>four-way decomposition</em> to make that gap visible <span
+class="citation" data-cites="sastaudit">(Anonymous 2026)</span>. We ask
+the same of LLM verifiers.</p>
+<p>The stakes are concrete. Static analysis has always lived with false
+positives <span class="citation"
+data-cites="sadowski2018lessons">(Sadowski et al. 2018)</span>, and
+machine-learning vulnerability detectors inherit the same label and
+validity problems <span class="citation"
+data-cites="chakraborty2022deep croft2023data arp2022dos">(Chakraborty
+et al. 2022; Croft et al. 2023; Arp et al. 2022)</span>. When a model is
+placed in front of remediation, two failures are possible: it can
+<em>confirm</em> a non-vulnerability (wasted effort, eroded trust) or,
+more dangerously, <em>suppress</em> a real one. Prior work shows that
+LLM security detectors are easily steered by adversarial comments <span
+class="citation" data-cites="alibi">(Wu and Nita-Rotaru 2026)</span> and
+by indirect prompt injection <span class="citation"
+data-cites="greshake2023not">(Greshake et al. 2023)</span>; what has not
+been measured systematically is whether an LLM <em>verdict</em> tracks
+the vulnerability at all, how it fails when it does not, and how it
+behaves under composition and an adversary.</p>
+<p><strong>Contributions.</strong></p>
 <ul>
-<li><b>An instrument.</b> We apply the four-way decomposition to LLM verifiers,
-gate every verdict on machine-checkable evidence, and make coverage (languages
-checked vs. unchecked) explicit. The harness is released.</li>
-<li><b>A coverage-bound finding.</b> An evidence-grounded LLM verifier tracks the
-fix far more often than a pattern matcher (mean 31%, 95% CI [23,37]) and does not
-over-report (1.0–1.25× vs. 6.0×), but abstains on ~50% of judgements and misses
-most genuine fixes: its bottleneck is silence, not error.</li>
-<li><b>Abstention as the attack surface.</b> Under adversarial comments, almost
-every successful evasion is an abstention rather than a false positive; an
-adaptive attacker reaches 50% evasion against 26% for fixed templates.</li>
-<li><b>Composition relocates trust.</b> Evidence grounding removes an ungrounded
-positive at no recall cost; requiring agreement with a weaker deterministic
-verifier loses recall and gains nothing.</li>
-<li><b>Calibration and cost.</b> The verifier is
-precise (0% fixed-side false positives in every repeat), but its confidence is not
-reliably calibrated (ECE 0.07–0.35 across repeats); disabling model thinking
-cuts cost ~8× at a measured precision cost, and a content-addressed verdict cache
-removes 100% of repeat cost.</li>
+<li><p><strong>An instrument.</strong> We apply the four-way
+decomposition to LLM verifiers, gate every verdict on machine-checkable
+evidence, and report the coverage of the process. The harness, corpora,
+and pinned analyzers are released.</p></li>
+<li><p><strong>A coverage-bound finding.</strong> An evidence-grounded
+verifier tracks the fix far more often than a pattern matcher (30.5%,
+95% CI [22.9,37.1], vs. 4.8%) and does not over-report
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1.0</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">1.0\times</annotation></semantics></math>
+vs. <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>6.0</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">6.0\times</annotation></semantics></math>),
+but abstains on 49% of judgements and misses 69% of genuine fixes. Its
+bottleneck is <em>silence</em>, not error—a profile that precision-only
+evaluation cannot see.</p></li>
+<li><p><strong>Abstention as the attack surface.</strong> Under
+adversarial comments, almost every successful evasion is an abstention
+rather than a false positive; an adaptive (LLM-authored, iterative)
+attacker reaches 50% evasion against 26% for fixed templates.</p></li>
+<li><p><strong>Composition relocates trust.</strong> Evidence grounding
+removes an ungrounded positive at no recall cost; requiring agreement
+with a weaker deterministic verifier loses recall and gains
+nothing.</p></li>
+<li><p><strong>A negative result on labelled ground truth.</strong> On
+OWASP Benchmark (2<span>,</span>740 labelled cases) the analyzer reaches
+recall 0.905 / precision 0.734, but the LLM verifier does not improve
+precision: in a matched sample neither a local 7B nor a cloud model
+rejects false positives (0–2 of 15), and blinding the scanner hint only
+raises abstention. Verification is coverage-bound.</p></li>
+<li><p><strong>Calibration and cost.</strong> The verifier is precise
+(0% fixed-side false positives in every repeat) but not reliably
+calibrated (ECE 0.07–0.35 across repeats); disabling model thinking cuts
+cost
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><mn>8</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">{\sim}8\times</annotation></semantics></math>
+at a measured precision cost, and a content-addressed verdict cache
+removes 100% of repeat cost.</p></li>
 </ul>
-<p>We are explicit that our evidence is directional and small (Section VII); we
-treat it as a measurement-methodology contribution, not a claim of a large
+<p>We are explicit that the scaled evidence is small (Section <a
+href="#sec:threats" data-reference-type="ref"
+data-reference="sec:threats">7</a>) and treat the paper as a
+measurement-methodology contribution rather than a claim of a large
 effect.</p>
+<h1 id="background-and-related-work">Background and Related Work</h1>
+<h2 id="llm-agents-for-vulnerability-analysis">LLM agents for
+vulnerability analysis</h2>
+<p>A fast-moving line of systems couples LLMs with static analysis,
+symbolic execution, and fuzzing. OpenAnt decomposes code and
+adversarially verifies candidates <span class="citation"
+data-cites="openant">(Korda and Evron 2026)</span>, and agentic
+pipelines such as VulAgentRL, Antares, and EAVA ground discovery in
+analyzers and code graphs <span class="citation"
+data-cites="vulagentrl antares eava">(<span class="nocase">Li et
+al.</span> 2026; <span class="nocase">Vijay et al.</span> 2026; <span
+class="nocase">Pan et al.</span> 2026)</span>. These systems report
+improved discovery, but they generally do not measure whether a
+<em>verdict</em> tracks the vulnerability, and they rarely report the
+coverage–precision trade-off of the verifier itself. We measure the
+verdict rather than the discovery rate.</p>
+<h2 id="verifiers-and-verifiable-rewards">Verifiers and verifiable
+rewards</h2>
+<p>VulAgentRL uses a code property graph both as a tool and as a reward
+verifier with exact node matching <span class="citation"
+data-cites="vulagentrl">(<span class="nocase">Li et al.</span>
+2026)</span>; Antares trains small models with verifiable rewards <span
+class="citation" data-cites="antares">(<span class="nocase">Vijay et
+al.</span> 2026)</span>; EAVA couples supervised tuning with
+reinforcement learning and requires evidence for a verdict <span
+class="citation" data-cites="eava">(<span class="nocase">Pan et
+al.</span> 2026)</span>. “Verifiable” here means that the training
+signal can be checked, not that the model’s inference-time verdict is
+grounded. We do not train; we ask what trust a grounded verdict earns at
+inference time and how it fails.</p>
+<h2 id="adversarial-robustness-of-llm-code-analysis">Adversarial
+robustness of LLM code analysis</h2>
+<p>ALIBI shows that adversarial source comments defeat LLM vulnerability
+detectors with high success rates <span class="citation"
+data-cites="alibi">(Wu and Nita-Rotaru 2026)</span>; indirect prompt
+injection compromises tool-integrated agents <span class="citation"
+data-cites="greshake2023not">(Greshake et al. 2023)</span>; and code
+security-hardening work demonstrates both the risk and partial defenses
+<span class="citation" data-cites="he2023large">(He and Vechev
+2023)</span>. Earlier work established that AI code assistants
+frequently produce insecure code <span class="citation"
+data-cites="pearce2022asleep perry2023do">(Pearce et al. 2022; Perry et
+al. 2023)</span>. We attack the <em>verifier</em> rather than the
+detector, split evasion by outcome (false positive vs. abstention), and
+include an adaptive attacker.</p>
+<h2 id="abstention-selective-prediction-and-calibration">Abstention,
+selective prediction, and calibration</h2>
+<p>Selective classification makes rejection an explicit learning problem
+<span class="citation" data-cites="geifman2017selective">(Geifman and
+El-Yaniv 2017)</span>, and out-of-distribution detection is the closely
+related recognition task <span class="citation"
+data-cites="hendrycks2017baseline">(Hendrycks and Gimpel 2017)</span>.
+Modern neural networks are often miscalibrated <span class="citation"
+data-cites="guo2017calibration">(Guo et al. 2017)</span>, and abstention
+has become a first-class topic for LLMs, where models can partially
+“know what they know” <span class="citation"
+data-cites="kadavath2022language">(<span class="nocase">Kadavath et
+al.</span> 2022)</span>; recent surveys catalogue the design space <span
+class="citation" data-cites="wen2025know">(Wen et al. 2025)</span>. We
+bring this lens to security verification and show that abstention is not
+merely a safety valve—it is the dominant adversarial target and the
+verifier’s main bottleneck.</p>
+<h2 id="llm-as-a-judge-reliability">LLM-as-a-judge reliability</h2>
+<p>Using a model to adjudicate another model’s output is now standard
+<span class="citation" data-cites="zheng2023judging liu2023geval">(Zheng
+et al. 2023; Liu et al. 2023)</span>, and its failure modes are
+documented: evaluators are order- and format-sensitive <span
+class="citation" data-cites="wang2024fair">(<span class="nocase">Wang et
+al.</span> 2024)</span> and favour their own generations <span
+class="citation" data-cites="panickssery2024llm">(Panickssery et al.
+2024)</span>. Security verification is a judge problem in this sense,
+but the ground truth is a code change rather than a preference; we
+exploit that difference by scoring verdicts against the fix.</p>
+<h2 id="static-analysis-false-positives-and-measurement-validity">Static
+analysis false positives and measurement validity</h2>
+<p>Static analysis has been deployed at scale <span class="citation"
+data-cites="sadowski2018lessons">(Sadowski et al. 2018)</span>, and its
+false positives are a persistent obstacle in practice. Machine learning
+for security inherits methodological pitfalls—leakage, temporal bias,
+and ill-defined labels <span class="citation"
+data-cites="arp2022dos">(Arp et al. 2022)</span>—and vulnerability
+datasets in particular are noisy <span class="citation"
+data-cites="croft2023data">(Croft et al. 2023)</span>. Classical and
+learned vulnerability detectors and their limits are well studied <span
+class="citation"
+data-cites="zhou2019devign chakraborty2022deep ding2025vulnerability">(Zhou
+et al. 2019; Chakraborty et al. 2022; Ding et al. 2025)</span>. The
+OWASP Benchmark is the standard scanner yardstick <span class="citation"
+data-cites="owaspbench">(OWASP Foundation 2026)</span>; the companion
+study showed its score is not well defined and does not predict real
+detection, and introduced the four-way decomposition <span
+class="citation" data-cites="sastaudit">(Anonymous 2026)</span>. We
+extend <span class="citation" data-cites="sastaudit">(Anonymous
+2026)</span> from static tools to LLM verifiers.</p>
+<h2 id="code-property-graphs-and-query-engines">Code property graphs and
+query engines</h2>
+<p>Program-analysis tooling exposes relational views of code: code
+property graphs <span class="citation"
+data-cites="yamaguchi2014modeling">(Yamaguchi et al. 2014)</span> and
+object-oriented query languages over relational data <span
+class="citation" data-cites="avgustinov2016ql">(Avgustinov et al.
+2016)</span> are the basis of modern taint engines. Our evidence gating
+uses a lightweight tree-sitter graph rather than a sound dataflow
+engine; Section <a href="#sec:threats" data-reference-type="ref"
+data-reference="sec:threats">7</a> treats the resulting weakness
+explicitly.</p>
+<h2 id="ensembles-and-composition">Ensembles and composition</h2>
+<p>Combining predictors is a classical idea <span class="citation"
+data-cites="breiman1996bagging">(Breiman 1996)</span>, and diversity is
+the property that makes an ensemble work <span class="citation"
+data-cites="kuncheva2003measures">(Kuncheva and Whitaker 2003)</span>.
+Our composition result is a negative instance of that principle in a
+security setting: adding a <em>weaker</em> verifier by consensus does
+not add diversity, it adds the weaker verifier’s blind spot.</p>
+<h1 id="method">Method</h1>
+<p>Figure <a href="#fig:arch" data-reference-type="ref"
+data-reference="fig:arch">1</a> shows the pipeline end to end. A
+revision pair is scanned by a pinned analyzer; each candidate becomes a
+bounded verdict request; the verifier must ground its verdict in
+resolvable evidence; the vulnerable and fixed verdicts are then
+decomposed and summarised. An adversary can inject comments before
+verification.</p>
+<figure id="fig:arch" data-latex-placement="t">
 
-<h2>II. Related Work</h2>
-<p><b>LLM agents for vulnerability analysis.</b> OpenAnt [4], FuzzingBrain V2 [7],
-DREA [8], CLEAR [9], and ATLANTIS [10] combine LLMs with static analysis,
-symbolic execution, and fuzzing. They report improved discovery; they generally
-do not measure whether a <em>verdict</em> tracks the vulnerability.</p>
-<p><b>RL from verifiable rewards.</b> VulAgentRL [1] uses a code property graph as
-both a tool and a reward verifier with exact node matching; Antares [2] trains
-small models with verifiable rewards; EAVA [3] couples supervised tuning with
-reinforcement learning. We do not train; we ask what trust such a grounded
-verdict earns at inference time.</p>
-<p><b>Adversarial input.</b> ALIBI [5] shows adversarial source comments defeat
-LLM detectors with &gt;90% success; CoER [11] co-evolves attacker and defender
-for indirect prompt injection. We attack the <em>verifier</em> rather than the
-detector, split evasion by outcome, and include an adaptive attacker.</p>
-<p><b>Abstention and calibration.</b> AWA-RL [12] learns to abstain rather than
-fabricate in open-domain QA. We bring abstention into security verification and
-show it is the dominant adversarial target.</p>
-<p><b>Benchmarks and validity.</b> The OWASP Benchmark [13] is the standard
-scanner yardstick; JavaVFC [14] is a corpus of vulnerability-fixing commits. A
-companion study [15] showed the OWASP score is not well defined and does not
-predict real detection, and introduced the four-way decomposition; a 2026 survey
-[16] identifies weak oracles, temporal leakage, and unreported budgets as
-recurring validity threats. Our work extends [15] from static tools to LLM
-verifiers.</p>
+<figcaption>RewardAudit architecture. A revision pair is scanned by a
+pinned analyzer; each candidate is turned into a bounded verdict request
+over a tree-sitter code property graph and the commit message. The
+verifier must ground its verdict in resolvable evidence
+(V1<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\rightarrow</annotation></semantics></math>V1g).
+An adversary (dashed) can inject comments before verification, and a
+deterministic tool can be composed with the verifier. Verdicts on the
+two revisions feed the four-way decomposition, which yields the reported
+metrics.</figcaption>
+</figure>
+<h2 id="the-four-way-decomposition">The four-way decomposition</h2>
+<p>For a vulnerable/fixed revision pair, we classify a verifier’s
+verdict into one of four cells (Fig. <a href="#fig:cells"
+data-reference-type="ref" data-reference="fig:cells">2</a>). Only
+<em>vuln-only</em> is evidence of detection; <em>both</em> means the
+verifier flagged a construct present before <em>and</em> after the fix,
+so its verdict could not have been about the vulnerability. From the
+cells we derive the <em>flip rate</em> (vuln-only fraction), the
+<em>naive coverage</em> (fraction flagged on the vulnerable revision),
+and their ratio, the <em>over-report factor</em>.</p>
+<figure id="fig:cells" data-latex-placement="t">
 
-<h2>III. Method</h2>
-<h3>A. Four-way decomposition</h3>
-<p>For a vulnerable/fixed revision pair, we classify a verifier's verdict into one
-of four cells: <em>both</em> (flagged before and after the fix — not detection),
-<em>vuln-only</em> (flagged only before — a flip, i.e. detection), <em>fixed-only</em>
-(noise), and <em>neither</em> (a miss). We report the <em>flip rate</em>, the
-<em>naive coverage</em>, and their ratio, the <em>over-report factor</em>.</p>
-<h3>B. Verifier arms</h3>
-<p><b>V1</b> (LLM, ungated): the verdict is taken as-is. <b>V1g</b> (LLM, gated):
-every cited evidence reference must resolve to a real syntax node, or a positive
-verdict is downgraded to <em>unknown</em>. <b>V2</b> (tool): the pinned analyzer's
-verdict. <b>V5</b> (hybrid): flagged only if the gated LLM <em>and</em> the tool
+<figcaption>The four-way decomposition over a revision pair. Only
+<em>vuln-only</em> is detection; <em>both</em> means the verifier
+flagged a construct present before and after the fix.</figcaption>
+</figure>
+<h2 id="verifier-arms">Verifier arms</h2>
+<p>We compare four arms on identical inputs. <strong>V1 (LLM,
+ungated)</strong>: the model’s verdict is taken as-is. <strong>V1g (LLM,
+gated)</strong>: every cited evidence reference must resolve to a real
+syntax node, or a positive verdict is downgraded to <em>unknown</em>.
+<strong>V2 (tool)</strong>: the pinned analyzer’s verdict. <strong>V5
+(hybrid)</strong>: flagged only if the gated LLM <em>and</em> the tool
 agree.</p>
-<h3>C. Bounded verdict request and evidence gating</h3>
-<p>The model never sees a repository. For a candidate it receives the candidate
-(rule, location, CWE hint), the enclosing function extracted from a tree-sitter
-code property graph, and optional retrieval. It must respond with strict JSON,
-cite <code>path:line</code> references, and may answer <code>unknown_risk</code>.
-Each reference is resolved against the graph; an unverifiable positive is
-downgraded.</p>
-<h3>D. Adversary</h3>
-<p><em>Templates:</em> five comment strategies (authority, sanitizer, tool-output,
-test-passed, reviewed) inserted just above the suspected sink. <em>Adaptive:</em>
-an attacker model writes a comment, observes the verifier's verdict, and refines
-over up to three rounds [5]. We split evasion into false-positive and abstention
-outcomes.</p>
-<h3>E. Calibration and cost</h3>
-<p>Per revision judgement we record confidence, correctness, and disposition; we
-compute expected calibration error (ECE), reliability bins, a selective-risk/coverage
-curve, false-negative rate on vulnerable revisions, and false-positive rate on
-fixed revisions. Cost is reported in tokens and, at known prices, dollars per true
-positive.</p>
-<h3>F. Whole-codebase view</h3>
-<p>Files are mapped to a language registry with an explicit coverage label
-(<code>covered</code>/<code>find_only</code>/<code>ground_only</code>/<code>unsupported</code>),
-and a lightweight system graph connects functions, HTTP routes, configuration
-sources, and dependencies to produce entry-to-sink path candidates whose coverage
-is that of their least-covered hop.</p>
-
-<h2>IV. Experimental Setup</h2>
-<p><b>Corpora.</b> (i) 21 Java security-fix pairs from JavaVFC [14] (784 commits;
-327 usable single-file; 207 materialised offline; the strong-security subset used
-here is 21). (ii) 5 hand-built Python vulnerable/fixed pairs and 3 canaries.
-(iii) The prior study's 21-file Java control set (18 vulnerable, 3 safe). Each
-revision is an isolated file; the commit message is supplied as candidate
-context.</p>
-<p><b>Analyzers.</b> opengrep 1.30.0 with the prior study's pinned 690-rule Java
-ruleset (sha256 77df32e0…) and a minimal 5-rule Python ruleset.</p>
-<p><b>Models.</b> Five families via an OpenAI-compatible API:
-<code>gpt-oss-120b</code>, <code>gpt-oss-20b</code>, <code>qwen3.8-27b</code>,
-<code>deepseek-flash</code>, <code>deepseek-v4-pro</code>. The scaled JavaVFC run
-uses <code>deepseek-flash</code>; cross-family checks use the 5-pair Python
-set.</p>
-<p><b>Reproducibility.</b> All assets are pinned by hash; the control reproduction
-and the Python-pair measurement run fully offline; 112 tests accompany the
-harness.</p>
-
-<h2>V. Results</h2>
-<h3>A. Verifier dependence</h3>
-<p>On identical inputs, models disagree in both flip rate and failure mode
-(Table I). The result is verifier-dependent — the phenomenon the instrument is
-designed to expose.</p>
+<h2 id="bounded-verdict-request-and-evidence-gating">Bounded verdict
+request and evidence gating</h2>
+<p>The model never sees a repository. For a candidate it receives a
+bounded request: the candidate (rule, location, CWE hint), the enclosing
+function extracted from a tree-sitter code property graph, and the
+commit message as legitimate context. It must respond with a strict JSON
+verdict, cite <code>path:line</code> references, and may answer
+<code>unknown_risk</code>. Each reference is resolved against the graph;
+an unverifiable positive is downgraded. We deliberately never feed whole
+files by default, since that is the strawman this measurement is meant
+to beat.</p>
+<h2 id="adversary">Adversary</h2>
+<p><em>Templates:</em> five plausible comment strategies (authority,
+sanitizer, tool-output, test-passed, reviewed) inserted just above the
+suspected sink. <em>Adaptive:</em> an attacker model writes a comment,
+observes the verifier’s verdict, and refines over up to three rounds
+<span class="citation" data-cites="alibi">(Wu and Nita-Rotaru
+2026)</span>. We split evasion into <em>false-positive</em> and
+<em>abstention</em> outcomes, because they target different failure
+modes and demand different defenses.</p>
+<h2 id="calibration-selective-risk-and-cost">Calibration, selective
+risk, and cost</h2>
+<p>Per revision judgement we record confidence, correctness, and
+disposition. We compute expected calibration error (ECE), reliability
+bins, and a selective-risk/coverage curve <span class="citation"
+data-cites="geifman2017selective">(Geifman and El-Yaniv 2017)</span>,
+plus false-negative rate on vulnerable revisions and false-positive rate
+on fixed revisions. Cost is reported in tokens and, at known prices,
+dollars per true positive.</p>
+<h2 id="a-worked-example">A worked example</h2>
+<p>Consider an analyzer warning on <code>os.system(command)</code> in a
+helper reached from an HTTP handler that reads an environment variable.
+An ungated model may answer <em>true positive</em> with a plausible but
+unfalsifiable rationale. Under V1g it must cite a graph node for the
+source and the sink; if the cited nodes do not exist or the call path is
+not present, the positive is downgraded to <code>unknown_risk</code>.
+This is the mechanism that produces the coverage–precision profile in
+Section <a href="#sec:results" data-reference-type="ref"
+data-reference="sec:results">5</a>: grounding removes unverifiable
+positives, but a model that cannot produce verifiable evidence abstains,
+and abstention is scored as a miss on a fixed-side test.</p>
+<h1 id="sec:setup">Experimental Setup</h1>
+<p><strong>Corpora.</strong> (i) 21 Java security-fix pairs drawn from
+JavaVFC <span class="citation" data-cites="javavfc">(JavaVFC authors
+2026)</span> (784 commits; 327 usable single-file; 207 materialised
+offline; the strong-security subset used here is 21). (ii) 5 hand-built
+Python vulnerable/fixed pairs and 3 canaries. (iii) The prior study’s
+21-file Java control set (18 vulnerable, 3 safe) <span class="citation"
+data-cites="sastaudit">(Anonymous 2026)</span>. Each revision is
+presented as an isolated file; the commit message is supplied as
+candidate context, as a bug report would be.</p>
+<p><strong>Analyzers.</strong> opengrep 1.30.0 with the prior study’s
+pinned 690-rule Java ruleset (sha256 <code>77df32e0…</code>) and a
+minimal 5-rule Python ruleset.</p>
+<p><strong>Models.</strong> Five families via an OpenAI-compatible API:
+<code>gpt-oss-120b</code>, <code>gpt-oss-20b</code>,
+<code>qwen3.8-27b</code>, <code>deepseek-flash</code>,
+<code>deepseek-v4-pro</code>. The scaled JavaVFC run uses
+<code>deepseek-flash</code>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">k{=}5</annotation></semantics></math>,
+verdict cache disabled); the remaining families are checked on the
+5-pair Python set.</p>
+<p><strong>Metrics and statistics.</strong> For the scaled arm we report
+the mean over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">k{=}5</annotation></semantics></math>
+independent runs with 95% bootstrap intervals; because reasoning models
+are non-deterministic even at temperature 0, we report the observed
+range alongside the interval. We use the exact McNemar test for paired
+comparisons on the same pairs.</p>
+<p><strong>Reproducibility.</strong> All assets are pinned by hash
+(<code>pins.json</code>); the control reproduction and the Python-pair
+measurement run fully offline; 125 unit and integration tests accompany
+the harness.</p>
+<h1 id="sec:results">Results</h1>
+<h2 id="verifier-dependence">Verifier dependence</h2>
+<p>On identical inputs, models disagree in both flip rate and failure
+mode; the cross-language check is summarised in Table <a
+href="#tab:cross" data-reference-type="ref"
+data-reference="tab:cross">1</a>. <code>gpt-oss-120b</code> flipped on
+4/5 pairs and flagged a safe canary; <code>gpt-oss-20b</code> and
+<code>qwen</code> and <code>deepseek-flash</code> flipped on 5/5 with
+one family showing a canary false positive; <code>deepseek-v4-pro</code>
+abstained on one vulnerable revision. The result is
+verifier-dependent—the phenomenon the instrument is designed to expose.
+The same holds at scale: within the single family we repeated five
+times, the flip rate spans 19.0–42.9% across runs (Section <a
+href="#sec:threats" data-reference-type="ref"
+data-reference="sec:threats">7</a>), so even one model does not have a
+stable point value.</p>
+<div id="tab:cross">
 <table>
-<caption>TABLE I. Cross-family verdicts on 5 Python pairs / 3 canaries.</caption>
-<thead><tr><th>Model</th><th class="num">flip rate</th><th class="num">both</th><th class="num">canary FP</th></tr></thead>
+<caption>Cross-family verdicts on 5 Python pairs / 3 canaries.</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Model</th>
+<th style="text-align: center;">flip rate</th>
+<th style="text-align: center;">both</th>
+<th style="text-align: center;">canary FP</th>
+</tr>
+</thead>
 <tbody>
-<tr><td>gpt-oss-120b</td><td class="num">80%</td><td class="num">1</td><td class="num">1/3</td></tr>
-<tr><td>gpt-oss-20b</td><td class="num">100%</td><td class="num">0</td><td class="num">1/3</td></tr>
-<tr><td>qwen3.8-27b</td><td class="num">100%</td><td class="num">0</td><td class="num">0/3</td></tr>
-<tr><td>deepseek-flash</td><td class="num">100%</td><td class="num">0</td><td class="num">0/3</td></tr>
-<tr><td>deepseek-v4-pro</td><td class="num">80%</td><td class="num">0</td><td class="num">0/3 (1 abstain)</td></tr>
+<tr>
+<td style="text-align: left;">gpt-oss-120b</td>
+<td style="text-align: center;">80%</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1/3</td>
+</tr>
+<tr>
+<td style="text-align: left;">gpt-oss-20b</td>
+<td style="text-align: center;">100%</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1/3</td>
+</tr>
+<tr>
+<td style="text-align: left;">qwen3.8-27b</td>
+<td style="text-align: center;">100%</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0/3</td>
+</tr>
+<tr>
+<td style="text-align: left;">deepseek-flash</td>
+<td style="text-align: center;">100%</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0/3</td>
+</tr>
+<tr>
+<td style="text-align: left;">deepseek-v4-pro</td>
+<td style="text-align: center;">80%</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0/3 (1 abstain)</td>
+</tr>
 </tbody>
 </table>
-
-<h3>B. LLM versus pattern matcher, and composition</h3>
-<p>Table II reports the four arms on the 21-pair JavaVFC security subset. The tool
-over-reports 6.0× (it flags 5 pairs on both revisions). The LLM tracks the fix ~4×
-more often and barely over-reports. Evidence gating (V1g) removes the single
-ungrounded positive at no recall cost. Requiring agreement with the tool (V5)
-<em>loses</em> a flip and gains nothing.</p>
-<table>
-<caption>TABLE II. Verifier arms on 21 JavaVFC security pairs.</caption>
-<thead><tr><th>Arm</th><th class="num">both</th><th class="num">vuln</th><th class="num">fixed</th><th class="num">neither</th><th class="num">flip</th><th class="num">over-rep.</th></tr></thead>
-<tbody>
-<tr><td>V2 tool</td><td class="num">5</td><td class="num">1</td><td class="num">0</td><td class="num">15</td><td class="num">4.8%</td><td class="num">6.0×</td></tr>
-<tr><td>V1 ungated</td><td class="num">1</td><td class="num">4</td><td class="num">0</td><td class="num">16</td><td class="num">19.0%</td><td class="num">1.25×</td></tr>
-<tr><td>V1g gated</td><td class="num">0</td><td class="num">4</td><td class="num">1</td><td class="num">16</td><td class="num">19.0%</td><td class="num">1.00×</td></tr>
-<tr><td>V5 hybrid</td><td class="num">0</td><td class="num">3</td><td class="num">0</td><td class="num">18</td><td class="num">14.3%</td><td class="num">1.00×</td></tr>
-</tbody>
-</table>
-
-<h3>C. Adversarial comments</h3>
-<p>Table III reports template and adaptive evasion. The <em>sanitizer</em> tactic
-(“the input is validated upstream”) was strongest across families. All successful
-adaptive evasions, and 8 of 9 template evasions, were abstentions rather than
-false positives: an attacker need only make the verifier unsure.</p>
-<table>
-<caption>TABLE III. Evasion. JavaVFC templates: baseline 7/21 TPs; adaptive: baseline 6/21, attacker deepseek-v4-pro vs. judge deepseek-flash.</caption>
-<thead><tr><th>Attack</th><th class="num">evasion</th><th class="num">via FP</th><th class="num">via abstain</th></tr></thead>
-<tbody>
-<tr><td>templates (authority)</td><td class="num">43% (3/7)</td><td class="num">0</td><td class="num">3</td></tr>
-<tr><td>templates (overall)</td><td class="num">26%</td><td class="num">1</td><td class="num">8</td></tr>
-<tr><td>adaptive (3 rounds)</td><td class="num">50% (3/6)</td><td class="num">0</td><td class="num">3</td></tr>
-</tbody>
-</table>
-
-<h3>D. Calibration and coverage</h3>
-<p>Table IV reports mean [95% CI] over five repeated runs (cache disabled). The
-verifier never false-positives on the fixed side, but its calibration is
-unreliable: ECE ranged 0.07–0.35. It abstains on half the judgements and misses
-most fixes.</p>
-<table>
-<caption>TABLE IV. Calibration on 21 pairs, deepseek-flash, k=5 mean [95% CI].</caption>
-<thead><tr><th>Metric</th><th class="num">Mean [95% CI]</th></tr></thead>
-<tbody>
-<tr><td>abstention rate</td><td class="num">49.0 [44.3, 53.8]</td></tr>
-<tr><td>detection (recall on vuln revision)</td><td class="num">31.4 [27.6, 35.2]</td></tr>
-<tr><td>false-negative rate</td><td class="num">68.6 [64.8, 72.4]</td></tr>
-<tr><td>fixed-side false-positive rate</td><td class="num">0.0 [0.0, 0.0]</td></tr>
-<tr><td>accuracy (scored)</td><td class="num">73.5 [66.1, 81.8]</td></tr>
-<tr><td>ECE</td><td class="num">0.206 [0.128, 0.293]</td></tr>
-</tbody>
-</table>
-
-<h3>E. Cost</h3>
-<p>Output tokens dominate (~91% of cost). Disabling model thinking reduced output
-from 121,596 to 5,271 tokens over 42 judgements (~8× lower cost) but introduced
-fixed-side false positives (0%→9.5%) and worsened ECE (0.153→0.207). A
-content-addressed verdict cache keyed on the model, prompts, and slice removed
-100% of repeat cost. At off-peak prices the gated verifier costs ≈$0.0017 per
-judgement.</p>
-
-<h2>VI. Discussion</h2>
-<p><b>The bottleneck is silence.</b> The verifier never false-positives on the
-fixed side and abstains on half of all judgements, but its confidence is not
-reliably calibrated (ECE 0.07–0.35) and it misses most fixes. Optimising for precision alone would miss this. We argue
-abstention should be reported as a first-class outcome alongside precision and
-recall.</p>
-<p><b>Attacks target abstention.</b> Because the verifier already abstains when
-evidence is thin, an adversary does not need to convince it a vulnerability is
-safe — only to make it unsure. Defences that only suppress false positives leave
-the dominant path open.</p>
-<p><b>Composition relocates trust.</b> Grounding a claim in verifiable evidence is
-cheap and strictly helpful here. Requiring consensus with a weaker verifier
-inherits that verifier's blind spots. “Add another verifier” is not a reliability
-strategy; “make the existing verdict answer for itself” is.</p>
-<p><b>A practical pitfall.</b> A reasoning-model verifier silently degrades to
-“always abstain” when the token budget is consumed by reasoning tokens
-(<code>finish_reason=length</code>, empty content). Without the decomposition this
-is indistinguishable from a null result.</p>
-
-<h2>VII. Threats to Validity</h2>
-<p><b>Scale.</b> The scaled result is 21 security pairs; cross-family claims are
-on 5 pairs. Numbers are directional, not precise; we do not report confidence
-intervals for the small-sample comparisons. <b>Labels.</b> JavaVFC is a screening
-corpus; a companion audit [15] found only ~18% of it is a genuine security fix, so
-recall is a floor. <b>Input shape.</b> Each revision is an isolated file — a floor
-for tools that resolve types. <b>Non-determinism.</b> Reasoning models vary at
-temperature 0; across five repeats of one configuration we observed 23.8–38.1% detection and 19.0–42.9% flip rate, wider than the k=5 bootstrap intervals.
-<b>Single family at scale.</b> Only <code>deepseek-flash</code> was run on the
-scaled corpus. <b>Contamination.</b> Public fixes may appear in pretraining data;
-a temporal or private holdout is not yet used. <b>Adversary.</b> Templates are
-fixed; one adaptive attacker was used with shallow adaptivity.</p>
-
-<h2>VIII. Ethics and Responsible Release</h2>
-<p>The adversarial comment generator is dual-use. This work is defensive: its
-purpose is to measure and expose a failure mode so that verifiers can be made
-robust. We do not release a turnkey attack service; the generator is a small,
-reproducible component of a measurement harness, and the paper reports defences
-(evidence gating, coverage reporting, abstention accounting) alongside the
-risk.</p>
-
-<h2>IX. Reproducibility</h2>
-<p>The harness, pinned analyzers and rule sets, control set, and corpora are
-released. The control reproduction (12/18 vulnerable, 1/3 safe) and the Python-pair
-measurement run fully offline; 112 tests accompany the code. A verdict cache makes
-repeat runs deterministic and free.</p>
-
-<h2>X. Conclusion and Future Work</h2>
-<p>LLM security verifiers track fixes far better than pattern matchers, are
-calibrated and precise when they commit, and are nonetheless <em>silent</em> on
-about half of their inputs — a weakness that adversarial comments amplify, and
-that composition with deterministic tools does not fix. Future work must (i) scale
-to hundreds of genuine fixes across at least two languages and three model
-families with confidence intervals, (ii) evaluate path-level candidates on
-multi-file revisions, and (iii) treat abstention and coverage as first-class
-metrics for security agents.</p>
-
-<h2>References</h2>
-<div class="refs"><ol>
-<li>Y. Li et al., “Graph Is the Verifier: Agentic Reinforcement Learning for Interprocedural Vulnerability Detection,” arXiv:2607.26656, 2026.</li>
-<li>S. Vijay et al., “Antares: Foundation Models for Agentic Vulnerability Localization,” arXiv:2608.02407, 2026.</li>
-<li>S. Pan et al., “Answer Is Cheap, Show Me the Evidence! Augmenting Automated Vulnerability Assessment with Evidence,” arXiv:2608.25905 (ISSTA), 2026.</li>
-<li>N. Korda and G. Evron, “OpenAnt: LLM-Powered Vulnerability Discovery Through Code Decomposition, Adversarial Verification, and Dynamic Testing,” arXiv:2606.19149, 2026.</li>
-<li>Z. Wu and C. Nita-Rotaru, “ALIBI: Adaptive Agentic Attacks on LLM-Based Vulnerability Detectors via Adversarial Code Comments,” arXiv:2607.24964, 2026.</li>
-<li>Z. Sheng et al., “FuzzingBrain V2: A Multi-Agent LLM System for Automated Vulnerability Discovery and Reproduction,” arXiv:2605.21779, 2026.</li>
-<li>M. Sun and G. Meng, “DREA: Decoupled Reasoning and Exploration Agents for Repository-Level Vulnerability Detection,” arXiv:2607.13439 (Internetware), 2026.</li>
-<li>S. Yun et al., “CLEAR: Causal Context-Based Agentic Reasoning for Vulnerability Detection,” arXiv:2608.03134, 2026.</li>
-<li>T. Kim et al., “ATLANTIS: AI-driven Threat Localization, Analysis, and Triage Intelligence System,” arXiv:2509.14589, 2025.</li>
-<li>B. Zhang et al., “CoER: Defending against Adaptive Indirect Prompt Injection via Adversarial Co-Evolution and Refinement,” arXiv:2609.07529, 2026.</li>
-<li>F. Zhang et al., “To Answer or to Abstain: Mitigating Search-Agent Hallucinations via Abstention-Aware Reinforcement Learning,” arXiv:2607.10738, 2026.</li>
-<li>OWASP Foundation, “OWASP Benchmark Project,” 2026. [Online]. Available: https://owasp.org/www-project-benchmark/</li>
-<li>JavaVFC authors, “JavaVFC: A Corpus of Vulnerability-Fixing Commits for Java,” Zenodo record 13731781, 2026.</li>
-<li>“A Benchmark Score That Nothing Can Be Concluded From,” technical report and artifact (sastaudit), 2026. Introduces the four-way decomposition.</li>
-<li>W. Lin, T. Zhou, Z. Xie, and C. Hong, “Large Language Models at the Intersection of Software Engineering and Software Security: An Evidence-Centered Structured Survey and Research Agenda,” arXiv:2608.21107, 2026.</li>
-</ol></div>
-
 </div>
+<h2 id="llm-versus-pattern-matcher-and-composition">LLM versus pattern
+matcher, and composition</h2>
+<p>The tool is the weakest arm: it flags the same construct on both
+revisions in 5 of 21 pairs, so it over-reports
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>6.0</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">6.0\times</annotation></semantics></math>
+its flip rate (Table <a href="#tab:arms" data-reference-type="ref"
+data-reference="tab:arms">2</a>). The evidence-gated LLM tracks the fix
+far more often—30.5% [22.9,37.1] over five runs (E0) vs. the tool’s
+4.8%—and, unlike the tool, never over-reports (0 <em>both</em> in every
+run). In a single-run ablation, removing evidence gating admits one
+<em>both</em> (an ungrounded positive), and requiring agreement with the
+tool (V5) loses a flip without removing any <em>both</em>: the weaker
+verifier’s blind spot becomes the composition’s blind spot. Grounding a
+claim is the arm that helps; consensus with a weaker tool is not.</p>
+<div id="tab:arms">
+<table>
+<caption>Verifier arms on the 21 JavaVFC security pairs
+(<code>deepseek-flash</code>). V1g is the E0 measurement (mean, 95% CI,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">k{=}5</annotation></semantics></math>);
+the other LLM arms are a single run and are shown for the ablation only.
+The tool is deterministic.</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Arm</th>
+<th style="text-align: center;">flip rate</th>
+<th style="text-align: center;">over-report</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">V2 tool (deterministic)</td>
+<td style="text-align: center;">4.8%</td>
+<td
+style="text-align: center;">6.0<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math></td>
+</tr>
+<tr>
+<td style="text-align: left;">V1 ungated (1 run)</td>
+<td style="text-align: center;">19.0%</td>
+<td
+style="text-align: center;">1.25<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math></td>
+</tr>
+<tr>
+<td style="text-align: left;">V1g gated
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">k{=}5</annotation></semantics></math>)</td>
+<td style="text-align: center;"><strong>30.5%</strong> [22.9, 37.1]</td>
+<td
+style="text-align: center;">1.00<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math></td>
+</tr>
+<tr>
+<td style="text-align: left;">V5 hybrid (1 run)</td>
+<td style="text-align: center;">14.3%</td>
+<td
+style="text-align: center;">1.00<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math></td>
+</tr>
+</tbody>
+</table>
+</div>
+<figure id="fig:arms" data-latex-placement="t">
 
-<p class="note">Rendering note: this PDF is generated from an HTML mirror of
-<code>paper/main.tex</code> for preview. The submission source is the IEEEtran
-LaTeX file; compile with <code>latexmk -pdf main.tex</code> where a TeX toolchain
-is available.</p>
+<figcaption>Flip rate by verifier arm. The deterministic tool is the
+weakest tracker even though it flags on both revisions
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>6</mn><mo>×</mo></mrow><annotation encoding="application/x-tex">6\times</annotation></semantics></math>
+as often as it flips.</figcaption>
+</figure>
+<h2 id="adversarial-comments">Adversarial comments</h2>
+<p>Two attack strategies were tested: fixed templates and an adaptive
+attacker (Table <a href="#tab:evasion" data-reference-type="ref"
+data-reference="tab:evasion">3</a>). The <em>sanitizer</em> tactic (“the
+input is validated upstream”) was strongest across families. Critically,
+all successful adaptive evasions, and 8 of 9 template evasions, were
+<em>abstentions</em> rather than false positives: an attacker need only
+make the verifier unsure. The adaptive attacker roughly doubles evasion
+relative to templates. This is the security consequence of the coverage
+finding above: a defense that only suppresses false positives leaves the
+dominant path open.</p>
+<div id="tab:evasion">
+<table>
+<caption>Evasion. JavaVFC templates: baseline 7/21 true positives;
+adaptive: baseline 6/21, attacker <code>deepseek-v4-pro</code> vs. judge
+<code>deepseek-flash</code>.</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Attack</th>
+<th style="text-align: center;">evasion</th>
+<th style="text-align: center;">via FP</th>
+<th style="text-align: center;">via abstain</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">templates (authority)</td>
+<td style="text-align: center;">43% (3/7)</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">3</td>
+</tr>
+<tr>
+<td style="text-align: left;">templates (overall)</td>
+<td style="text-align: center;">26%</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">8</td>
+</tr>
+<tr>
+<td style="text-align: left;">adaptive (3 rounds)</td>
+<td style="text-align: center;"><strong>50% (3/6)</strong></td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">3</td>
+</tr>
+</tbody>
+</table>
+</div>
+<figure id="fig:evasion" data-latex-placement="t">
 
+<figcaption>Successful evasions by attack and outcome. Nearly all are
+abstentions: the attacker only has to make the verifier unsure, not
+wrong.</figcaption>
+</figure>
+<h2 id="calibration-and-coverage">Calibration and coverage</h2>
+<p>The verifier is precise but poorly calibrated: over five repeated
+runs with the cache disabled (Table <a href="#tab:calib"
+data-reference-type="ref" data-reference="tab:calib">4</a>), it never
+false-positives on the fixed side, yet its ECE ranges 0.07–0.35. It
+abstains on half the judgements and misses most fixes. The verifier is
+therefore trustworthy <em>when it commits</em>—but the coverage is low
+enough that most real fixes are not certified by it at all.</p>
+<div id="tab:calib">
+<table>
+<caption>Calibration on 21 pairs, <code>deepseek-flash</code>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">k{=}5</annotation></semantics></math>
+mean [95% CI].</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Metric</th>
+<th style="text-align: center;">Mean [95% CI]</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">abstention rate</td>
+<td style="text-align: center;">49.0 [44.3, 53.8]</td>
+</tr>
+<tr>
+<td style="text-align: left;">detection (recall on vuln revision)</td>
+<td style="text-align: center;">31.4 [27.6, 35.2]</td>
+</tr>
+<tr>
+<td style="text-align: left;">false-negative rate</td>
+<td style="text-align: center;">68.6 [64.8, 72.4]</td>
+</tr>
+<tr>
+<td style="text-align: left;">fixed-side false-positive rate</td>
+<td style="text-align: center;">0.0 [0.0, 0.0]</td>
+</tr>
+<tr>
+<td style="text-align: left;">accuracy (scored)</td>
+<td style="text-align: center;">73.5 [66.1, 81.8]</td>
+</tr>
+<tr>
+<td style="text-align: left;">ECE</td>
+<td style="text-align: center;">0.206 [0.128, 0.293]</td>
+</tr>
+</tbody>
+</table>
+</div>
+<figure id="fig:calib" data-latex-placement="t">
+
+<figcaption>Calibration and coverage (mean over five runs). The verifier
+is precise (0% fixed-side false positives) yet abstains on half the
+inputs and misses most fixes; ECE is 0.206 [0.128, 0.293].</figcaption>
+</figure>
+<h2 id="cost">Cost</h2>
+<p>Output tokens dominate
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>91%
+of cost). Disabling model thinking reduced output from
+121<span>,</span>596 to 5<span>,</span>271 tokens over 42 judgements
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>8<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>×</mi><annotation encoding="application/x-tex">\times</annotation></semantics></math>
+lower cost) but introduced fixed-side false positives
+(0%<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>9.5%)
+and worsened ECE
+(0.153<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>→</mo><annotation encoding="application/x-tex">\to</annotation></semantics></math>0.207).
+A content-addressed verdict cache keyed on the model, prompts, and slice
+removed 100% of repeat cost. At off-peak prices the gated verifier costs
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mi>$</mi><mn>0.0017</mn></mrow><annotation encoding="application/x-tex">{\approx}\$0.0017</annotation></semantics></math>
+per judgement. The economics matter: if the bottleneck is coverage, the
+productive investment is better context and better evidence, not more
+sampling of the same prompt.</p>
+<h2 id="detection-effectiveness-on-a-labelled-benchmark">Detection
+effectiveness on a labelled benchmark</h2>
+<p>To test the whole pipeline against ground truth we ran it on the
+OWASP Benchmark for Java <span class="citation"
+data-cites="owaspbench">(OWASP Foundation 2026)</span>:
+2<span>,</span>740 labelled test cases (1<span>,</span>415 vulnerable,
+1<span>,</span>325 safe). The pinned analyzer alone is a strong detector
+but over-reports (Table <a href="#tab:benchmark"
+data-reference-type="ref" data-reference="tab:benchmark">5</a>).</p>
+<div id="tab:benchmark">
+<table>
+<caption>Analyzer on 2<span>,</span>740 labelled OWASP Benchmark
+cases.</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Metric</th>
+<th style="text-align: center;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">TP / FP / FN / TN</td>
+<td style="text-align: center;">1<span>,</span>280 / 463 / 135 /
+862</td>
+</tr>
+<tr>
+<td style="text-align: left;">recall (TPR)</td>
+<td style="text-align: center;">0.905</td>
+</tr>
+<tr>
+<td style="text-align: left;">precision</td>
+<td style="text-align: center;">0.734</td>
+</tr>
+<tr>
+<td style="text-align: left;">false-positive rate</td>
+<td style="text-align: center;">0.349</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>We then asked whether the LLM verifier improves on that precision. On
+a matched sample (15 analyzer true positives, 15 analyzer false
+positives) we ran the verifier with and without the scanner’s rule,
+message, and CWE hint (“blind”), to separate genuine judgement from
+echoing the scanner (Table <a href="#tab:verifier"
+data-reference-type="ref" data-reference="tab:verifier">6</a>).</p>
+<div id="tab:verifier">
+<table>
+<caption>LLM verification on the matched Benchmark sample. A cache hit
+or a blind run cannot echo the scanner’s CWE hint.</caption>
+<thead>
+<tr>
+<th style="text-align: left;">Verifier</th>
+<th style="text-align: center;">TP kept</th>
+<th style="text-align: center;">FP rejected</th>
+<th style="text-align: center;">abstain</th>
+<th style="text-align: center;">prec.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">local 7B, hinted</td>
+<td style="text-align: center;">14/15</td>
+<td style="text-align: center;">0/15</td>
+<td style="text-align: center;">1/30</td>
+<td style="text-align: center;">0.48</td>
+</tr>
+<tr>
+<td style="text-align: left;">local 7B, blind</td>
+<td style="text-align: center;">7/15</td>
+<td style="text-align: center;">0/15</td>
+<td style="text-align: center;">15/30</td>
+<td style="text-align: center;">0.47</td>
+</tr>
+<tr>
+<td style="text-align: left;">cloud, hinted</td>
+<td style="text-align: center;">10/15</td>
+<td style="text-align: center;">2/15</td>
+<td style="text-align: center;">13/30</td>
+<td style="text-align: center;">0.67</td>
+</tr>
+<tr>
+<td style="text-align: left;">cloud, blind</td>
+<td style="text-align: center;">5/15</td>
+<td style="text-align: center;">0/15</td>
+<td style="text-align: center;">22/30</td>
+<td style="text-align: center;">0.62</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Two things follow. First, <em>no configuration rejects false
+positives</em>: neither a local 7B nor the cloud model separates the
+safe near-misses from the vulnerable cases, and the analyzer’s precision
+is not improved. Second, <em>blinding does not help</em>—removing the
+scanner’s hint does not raise rejection, it drives abstention to 50–73%
+and cuts recall. The failure is therefore not scanner-confirmation bias
+but the model’s inability to ground the deciding evidence (a sanitizer)
+from the bounded slice. Error gating aside, verification here is
+coverage-bound and adds nothing over the analyzer.</p>
+<h1 id="discussion">Discussion</h1>
+<p><strong>The bottleneck is coverage.</strong> Across the scaled run
+the verifier never false-positives on the fixed side and abstains on
+half of all judgements, but its confidence is not reliably calibrated
+(ECE 0.07–0.35) and it misses most fixes. Optimising a security agent
+for precision alone would miss this entirely. We argue abstention should
+be reported as a first-class outcome alongside precision and recall, and
+that a verifier which silently declines most inputs is not “accurate” in
+any deployment sense.</p>
+<p><strong>Attacks target abstention.</strong> Because the verifier
+already abstains when evidence is thin, an adversary does not need to
+convince it a vulnerability is safe—only to make it unsure. This
+reframes adversarial robustness for verifiers: defenses that only
+suppress false positives leave the dominant path open.</p>
+<p><strong>Composition relocates trust.</strong> Grounding a claim in
+verifiable evidence is cheap and strictly helpful here. Requiring
+consensus with a weaker verifier is not: it inherits that verifier’s
+blind spots. “Add another verifier” is not a reliability strategy; “make
+the existing verdict answer for itself” is.</p>
+<p><strong>Design implications.</strong> Three rules follow. (i)
+<em>Score the fix, not the sample</em>: a verdict should be evaluated by
+whether it moves with a code change, which is cheap to collect and hard
+to game. (ii) <em>Make abstention visible</em>: agents should surface
+the fraction of findings they declined to decide, because that is where
+adversarial exploitation concentrates. (iii) <em>Prefer grounding to
+consensus</em>: require a verdict to answer for itself with resolvable
+evidence rather than adding another model whose agreement may only
+import a shared blind spot. A stronger form of grounding would require a
+machine-checkable certificate for every accepted verdict, but our
+results suggest the immediate constraint is coverage, not the strength
+of the evidence a model can already produce.</p>
+<p><strong>A practical pitfall.</strong> A reasoning-model verifier
+silently degrades to “always abstain” when the token budget is consumed
+by reasoning tokens (<code>finish_reason</code>=length, empty content).
+Without the decomposition this is indistinguishable from a null result.
+We report it because it cost us a run.</p>
+<h1 id="sec:threats">Threats to Validity</h1>
+<p><strong>Scale.</strong> The scaled result is 21 security pairs; the
+cross-language check is 5 pairs, so the cross-family comparison is
+directional. <strong>Labels.</strong> JavaVFC is a screening corpus: a
+companion audit <span class="citation" data-cites="sastaudit">(Anonymous
+2026)</span> found only
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><mn>18</mn><mi>%</mi></mrow><annotation encoding="application/x-tex">{\sim}18\%</annotation></semantics></math>
+of it is a genuine security fix, so recall is a floor against a cleaner
+label set. <strong>Input shape.</strong> Each revision is an isolated
+file, which is a floor for tools that resolve types and near-neutral for
+pattern matchers. <strong>Evidence graph.</strong> Our gating uses a
+tree-sitter graph, not a sound dataflow engine <span class="citation"
+data-cites="yamaguchi2014modeling avgustinov2016ql">(Yamaguchi et al.
+2014; Avgustinov et al. 2016)</span>; it can confirm that a cited
+<code>path:line</code> exists, not that taint flows.
+<strong>Non-determinism.</strong> Reasoning models vary run to run at
+temperature 0; we observed detection ranging 23.8–38.1% and flip rate
+19.0–42.9% across five repeats of one configuration; the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">k{=}5</annotation></semantics></math>
+bootstrap intervals are narrower than that observed range and are
+reported alongside it. <strong>Single family at scale.</strong> Only
+<code>deepseek-flash</code> was repeated on the scaled corpus
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">k{=}5</annotation></semantics></math>);
+the other four families are checked only at
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">n{=}5</annotation></semantics></math>,
+so “verifier-dependent” is established across vendors only on the small
+set. <strong>Contamination.</strong> Public fixes may appear in
+pretraining data; a temporal or private holdout is not yet used.
+<strong>Benchmark.</strong> OWASP Benchmark labels are synthetic and
+single-method, and the verifier ablation is a 30-case sample; it tests
+precision behaviour, not recall. <strong>Adversary.</strong> Our
+templates are fixed; a single adaptive attacker was used, and its
+adaptivity is shallow.</p>
+<h1 id="ethics-and-responsible-release">Ethics and Responsible
+Release</h1>
+<p>The adversarial comment generator is dual-use. This work is
+defensive: its purpose is to measure and expose a failure mode so that
+verifiers can be made reportable and robust. We do not release a turnkey
+attack service; the generator is a small, reproducible component of a
+measurement harness, and the paper reports defenses (evidence gating,
+coverage reporting, abstention accounting) alongside the risk.</p>
+<h1 id="reproducibility-and-artifact">Reproducibility and Artifact</h1>
+<p>The harness, pinned analyzers and rule sets, control set, and corpora
+are released. Coverage is explicit: Java (a 690-rule ruleset), Python
+and JavaScript/TypeScript (minimal rule sets) are <em>covered</em>; C is
+grammar-only; other languages are reported <em>unchecked</em>. A
+whole-function LLM <em>audit</em> surfaces issues without a ruleset
+(file context curbs over-flagging), and dependency advisories refresh
+from the live OSV feed into immutable, dated snapshots. All assets are
+pinned by hash; the control reproduction (12/18 vulnerable, 1/3 safe)
+and the Python-pair measurement run fully offline; 144 tests accompany
+the code. A content-addressed verdict cache makes repeat runs
+deterministic and free.</p>
+<h1 id="conclusion-and-future-work">Conclusion and Future Work</h1>
+<p>LLM security verifiers track fixes far better than pattern matchers
+and are precise when they commit (0% fixed-side false positives), but
+they are <em>not</em> reliably calibrated and are nonetheless
+<em>silent</em> on about half of their inputs—a weakness that
+adversarial comments directly amplify, and that composition with
+deterministic tools does not fix. The actionable reframing is that the
+bottleneck of a security verifier is <em>coverage</em>, and that its
+dominant adversarial target is <em>abstention</em>. Future work must (i)
+scale to hundreds of genuine fixes across at least two languages and
+three model families with confidence intervals, (ii) evaluate path-level
+candidates on multi-file revisions, and (iii) treat abstention and
+coverage as first-class metrics for security agents.</p>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-sastaudit" class="csl-entry" role="listitem">
+Anonymous. 2026. <em>A Benchmark Score That Nothing Can Be Concluded
+from: What the <span>OWASP</span> Benchmark Measures, and Why It Is Not
+Detection Capability</em>. Technical report and artifact
+(<code>sastaudit</code>); introduces the four-way decomposition.
+</div>
+<div id="ref-arp2022dos" class="csl-entry" role="listitem">
+Arp, Daniel, Erwin Quiring, Feargus Pendlebury, et al. 2022. <span>“Dos
+and Don’ts of Machine Learning in Computer Security.”</span>
+<em>Proceedings of the 31st USENIX Security Symposium</em>. <a
+href="https://arxiv.org/abs/2010.09470">https://arxiv.org/abs/2010.09470</a>.
+</div>
+<div id="ref-avgustinov2016ql" class="csl-entry" role="listitem">
+Avgustinov, Pavel, Oege de Moor, Michael Peyton Jones, and Max Schäfer.
+2016. <span>“<span>QL</span>: Object-Oriented Queries on Relational
+Data.”</span> <em>30th European Conference on Object-Oriented
+Programming (ECOOP)</em>. <a
+href="https://doi.org/10.4230/LIPIcs.ECOOP.2016.2">https://doi.org/10.4230/LIPIcs.ECOOP.2016.2</a>.
+</div>
+<div id="ref-breiman1996bagging" class="csl-entry" role="listitem">
+Breiman, Leo. 1996. <span>“Bagging Predictors.”</span> <em>Machine
+Learning</em>, ahead of print. <a
+href="https://doi.org/10.1007/bf00058655">https://doi.org/10.1007/bf00058655</a>.
+</div>
+<div id="ref-chakraborty2022deep" class="csl-entry" role="listitem">
+Chakraborty, Saikat, Rahul Krishna, Yangruibo Ding, and Baishakhi Ray.
+2022. <span>“Deep Learning Based Vulnerability Detection: Are We There
+Yet?”</span> <em>IEEE Transactions on Software Engineering</em>, ahead
+of print. <a
+href="https://doi.org/10.1109/tse.2021.3087402">https://doi.org/10.1109/tse.2021.3087402</a>.
+</div>
+<div id="ref-croft2023data" class="csl-entry" role="listitem">
+Croft, Roland, M. Ali Babar, and M. Mehdi Kholoosi. 2023. <span>“Data
+Quality for Software Vulnerability Datasets.”</span> <em>2023 IEEE/ACM
+45th International Conference on Software Engineering (ICSE)</em>. <a
+href="https://doi.org/10.1109/icse48619.2023.00022">https://doi.org/10.1109/icse48619.2023.00022</a>.
+</div>
+<div id="ref-ding2025vulnerability" class="csl-entry" role="listitem">
+Ding, Yangruibo, Yanjun Fu, Omniyyah Ibrahim, et al. 2025.
+<span>“Vulnerability Detection with Code Language Models: How Far Are
+We?”</span> <em>2025 IEEE/ACM 47th International Conference on Software
+Engineering (ICSE)</em>. <a
+href="https://doi.org/10.1109/icse55347.2025.00038">https://doi.org/10.1109/icse55347.2025.00038</a>.
+</div>
+<div id="ref-geifman2017selective" class="csl-entry" role="listitem">
+Geifman, Yonatan, and Ran El-Yaniv. 2017. <span>“Selective
+Classification for Deep Neural Networks.”</span> <em>Advances in Neural
+Information Processing Systems 30</em>.
+</div>
+<div id="ref-greshake2023not" class="csl-entry" role="listitem">
+Greshake, Kai, Sahar Abdelnabi, Shailesh Mishra, Christoph Endres,
+Thorsten Holz, and Mario Fritz. 2023. <span>“Not What You’ve Signed up
+for: Compromising Real-World <span>LLM</span>-Integrated Applications
+with Indirect Prompt Injection.”</span> <em>Proceedings of the 16th ACM
+Workshop on Artificial Intelligence and Security (AISec)</em>. <a
+href="https://doi.org/10.1145/3605764.3623985">https://doi.org/10.1145/3605764.3623985</a>.
+</div>
+<div id="ref-guo2017calibration" class="csl-entry" role="listitem">
+Guo, Chuan, Geoff Pleiss, Yu Sun, and Kilian Q. Weinberger. 2017.
+<span>“On Calibration of Modern Neural Networks.”</span> <em>Proceedings
+of the 34th International Conference on Machine Learning (ICML)</em>. <a
+href="https://arxiv.org/abs/1706.04599">https://arxiv.org/abs/1706.04599</a>.
+</div>
+<div id="ref-he2023large" class="csl-entry" role="listitem">
+He, Jingxuan, and Martin Vechev. 2023. <span>“Large Language Models for
+Code: Security Hardening and Adversarial Testing.”</span>
+<em>Proceedings of the 2023 ACM SIGSAC Conference on Computer and
+Communications Security (CCS)</em>. <a
+href="https://doi.org/10.1145/3576915.3623175">https://doi.org/10.1145/3576915.3623175</a>.
+</div>
+<div id="ref-hendrycks2017baseline" class="csl-entry" role="listitem">
+Hendrycks, Dan, and Kevin Gimpel. 2017. <span>“A Baseline for Detecting
+Misclassified and Out-of-Distribution Examples in Neural
+Networks.”</span> <em>International Conference on Learning
+Representations (ICLR)</em>. <a
+href="https://arxiv.org/abs/1610.02136">https://arxiv.org/abs/1610.02136</a>.
+</div>
+<div id="ref-javavfc" class="csl-entry" role="listitem">
+JavaVFC authors. 2026. <em><span>JavaVFC</span>: A Corpus of
+Vulnerability-Fixing Commits for Java</em>. Zenodo record 13731781.
+</div>
+<div id="ref-kadavath2022language" class="csl-entry" role="listitem">
+<span class="nocase">Kadavath, Saurav, Tom Conerly, Amanda Askell, et
+al.</span> 2022. <em>Language Models (Mostly) Know What They Know</em>.
+<a
+href="https://arxiv.org/abs/2207.05221">https://arxiv.org/abs/2207.05221</a>.
+</div>
+<div id="ref-openant" class="csl-entry" role="listitem">
+Korda, Nahum, and Gadi Evron. 2026. <em><span>OpenAnt</span>:
+<span>LLM</span>-Powered Vulnerability Discovery Through Code
+Decomposition, Adversarial Verification, and Dynamic Testing</em>. <a
+href="https://arxiv.org/abs/2606.19149">https://arxiv.org/abs/2606.19149</a>.
+</div>
+<div id="ref-kuncheva2003measures" class="csl-entry" role="listitem">
+Kuncheva, Ludmila I., and Christopher J. Whitaker. 2003. <span>“Measures
+of Diversity in Classifier Ensembles and Their Relationship with the
+Ensemble Accuracy.”</span> <em>Machine Learning</em>, ahead of print. <a
+href="https://doi.org/10.1023/a:1022859003006">https://doi.org/10.1023/a:1022859003006</a>.
+</div>
+<div id="ref-vulagentrl" class="csl-entry" role="listitem">
+<span class="nocase">Li, Yikun, Ting Zhang, Jiakun Liu, et al.</span>
+2026. <em>Graph Is the Verifier: Agentic Reinforcement Learning for
+Interprocedural Vulnerability Detection</em>. <a
+href="https://arxiv.org/abs/2607.26656">https://arxiv.org/abs/2607.26656</a>.
+</div>
+<div id="ref-liu2023geval" class="csl-entry" role="listitem">
+Liu, Yang, Dan Iter, Yichong Xu, Shuohang Wang, Ruochen Xu, and
+Chenguang Zhu. 2023. <span>“<span>G-Eval</span>: <span>NLG</span>
+Evaluation Using <span>GPT-4</span> with Better Human Alignment.”</span>
+<em>Proceedings of the 2023 Conference on Empirical Methods in Natural
+Language Processing (EMNLP)</em>. <a
+href="https://doi.org/10.18653/v1/2023.emnlp-main.153">https://doi.org/10.18653/v1/2023.emnlp-main.153</a>.
+</div>
+<div id="ref-owaspbench" class="csl-entry" role="listitem">
+OWASP Foundation. 2026. <em><span>OWASP</span> Benchmark Project</em>.
+<a href="https://owasp.org/www-project-benchmark/"
+class="uri">Https://owasp.org/www-project-benchmark/</a>.
+</div>
+<div id="ref-eava" class="csl-entry" role="listitem">
+<span class="nocase">Pan, Shengyi, Zelong Zheng, Jiayuan Zhou, et
+al.</span> 2026. <em>Answer Is Cheap, Show Me the Evidence! Augmenting
+Automated Vulnerability Assessment with Evidence</em>. <a
+href="https://arxiv.org/abs/2608.25905">https://arxiv.org/abs/2608.25905</a>.
+</div>
+<div id="ref-panickssery2024llm" class="csl-entry" role="listitem">
+Panickssery, Arjun, Samuel Bowman, and Shi Feng. 2024.
+<span>“<span>LLM</span> Evaluators Recognize and Favor Their Own
+Generations.”</span> <em>Advances in Neural Information Processing
+Systems 37</em>. <a
+href="https://doi.org/10.52202/079017-2197">https://doi.org/10.52202/079017-2197</a>.
+</div>
+<div id="ref-pearce2022asleep" class="csl-entry" role="listitem">
+Pearce, Hammond, Baleegh Ahmad, Benjamin Tan, Brendan Dolan-Gavitt, and
+Ramesh Karri. 2022. <span>“Asleep at the Keyboard? Assessing the
+Security of <span>GitHub</span> <span>Copilot</span>’s Code
+Contributions.”</span> <em>2022 IEEE Symposium on Security and Privacy
+(SP)</em>. <a
+href="https://doi.org/10.1109/sp46214.2022.9833571">https://doi.org/10.1109/sp46214.2022.9833571</a>.
+</div>
+<div id="ref-perry2023do" class="csl-entry" role="listitem">
+Perry, Neil, Megha Srivastava, Deepak Kumar, and Dan Boneh. 2023.
+<span>“Do Users Write More Insecure Code with <span>AI</span>
+Assistants?”</span> <em>Proceedings of the 2023 ACM SIGSAC Conference on
+Computer and Communications Security (CCS)</em>. <a
+href="https://doi.org/10.1145/3576915.3623157">https://doi.org/10.1145/3576915.3623157</a>.
+</div>
+<div id="ref-sadowski2018lessons" class="csl-entry" role="listitem">
+Sadowski, Caitlin, Edward Aftandilian, Alex Eagle, Liam Miller-Cushon,
+and Ciera Jaspan. 2018. <span>“Lessons from Building Static Analysis
+Tools at <span>Google</span>.”</span> <em>Communications of the
+ACM</em>, ahead of print. <a
+href="https://doi.org/10.1145/3188720">https://doi.org/10.1145/3188720</a>.
+</div>
+<div id="ref-antares" class="csl-entry" role="listitem">
+<span class="nocase">Vijay, Supriti, Aman Priyanshu, Didier Chapoteau,
+et al.</span> 2026. <em>Antares: Foundation Models for Agentic
+Vulnerability Localization</em>. <a
+href="https://arxiv.org/abs/2608.02407">https://arxiv.org/abs/2608.02407</a>.
+</div>
+<div id="ref-wang2024fair" class="csl-entry" role="listitem">
+<span class="nocase">Wang, Peiyi, Lei Li, Liang Chen, et al.</span>
+2024. <span>“Large Language Models Are Not Fair Evaluators.”</span>
+<em>Proceedings of the 62nd Annual Meeting of the Association for
+Computational Linguistics (ACL)</em>. <a
+href="https://doi.org/10.18653/v1/2024.acl-long.511">https://doi.org/10.18653/v1/2024.acl-long.511</a>.
+</div>
+<div id="ref-wen2025know" class="csl-entry" role="listitem">
+Wen, Bingbing, Jihan Yao, Shangbin Feng, et al. 2025. <span>“Know Your
+Limits: A Survey of Abstention in Large Language Models.”</span>
+<em>Transactions of the Association for Computational Linguistics</em>,
+ahead of print. <a
+href="https://doi.org/10.1162/tacl_a_00754">https://doi.org/10.1162/tacl_a_00754</a>.
+</div>
+<div id="ref-alibi" class="csl-entry" role="listitem">
+Wu, Zixuan, and Cristina Nita-Rotaru. 2026. <em><span>ALIBI</span>:
+Adaptive Agentic Attacks on <span>LLM</span>-Based Vulnerability
+Detectors via Adversarial Code Comments</em>. <a
+href="https://arxiv.org/abs/2607.24964">https://arxiv.org/abs/2607.24964</a>.
+</div>
+<div id="ref-yamaguchi2014modeling" class="csl-entry" role="listitem">
+Yamaguchi, Fabian, Nico Golde, Daniel Arp, and Konrad Rieck. 2014.
+<span>“Modeling and Discovering Vulnerabilities with Code Property
+Graphs.”</span> <em>2014 IEEE Symposium on Security and Privacy
+(SP)</em>. <a
+href="https://doi.org/10.1109/sp.2014.44">https://doi.org/10.1109/sp.2014.44</a>.
+</div>
+<div id="ref-zheng2023judging" class="csl-entry" role="listitem">
+Zheng, Lianmin, Wei-Lin Chiang, Ying Sheng, et al. 2023. <span>“Judging
+<span>LLM</span>-as-a-Judge with <span>MT-Bench</span> and <span>Chatbot
+Arena</span>.”</span> <em>Advances in Neural Information Processing
+Systems 36</em>. <a
+href="https://doi.org/10.52202/075280-2020">https://doi.org/10.52202/075280-2020</a>.
+</div>
+<div id="ref-zhou2019devign" class="csl-entry" role="listitem">
+Zhou, Yaqin, Shangqing Liu, Jing Kai Siow, Xiaoning Du, and Yang Liu.
+2019. <span>“Devign: Effective Vulnerability Identification by Learning
+Comprehensive Program Semantics via Graph Neural Networks.”</span>
+<em>Advances in Neural Information Processing Systems 32</em>. <a
+href="https://arxiv.org/abs/1909.03496">https://arxiv.org/abs/1909.03496</a>.
+</div>
+</div>
 </body>
 </html>

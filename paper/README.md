@@ -8,14 +8,13 @@ IEEE-format manuscript for the RewardAudit measurement study.
 ## Compile
 
 ```bash
-./build.sh          # picks LaTeX if present, else WeasyPrint, else LibreOffice
+./build.sh          # picks LaTeX/tectonic if present, else WeasyPrint, else LibreOffice
 # or: make paper   (from the repository root)
 ```
 
-`main.pdf` is committed so the paper is readable without a toolchain. It was
-produced with WeasyPrint from `main.html` (a faithful HTML mirror of `main.tex`),
-because no LaTeX toolchain was available on the build machine. Where TeX exists,
-`build.sh` uses `main.tex` and produces the true IEEEtran two-column PDF.
+`tectonic` (a self-contained LaTeX engine) is installed at `~/.local/bin/tectonic`,
+so `build.sh` now compiles `main.tex` directly to the true IEEEtran two-column PDF.
+`main.html` is a legacy HTML mirror and is no longer the render path.
 
 ### Sources
 

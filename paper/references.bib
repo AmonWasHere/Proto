@@ -1,3 +1,6 @@
+% =====================================================================
+% Instrument, corpus, benchmark
+% =====================================================================
 @misc{sastaudit,
   title        = {A Benchmark Score That Nothing Can Be Concluded From: What the {OWASP} Benchmark Measures, and Why It Is Not Detection Capability},
   author       = {{Anonymous}},
@@ -6,6 +9,24 @@
   note         = {Companion study; source of the instrument adapted here}
 }
 
+@misc{owaspbench,
+  title        = {{OWASP} Benchmark Project},
+  author       = {{OWASP Foundation}},
+  year         = {2026},
+  howpublished = {\url{https://owasp.org/www-project-benchmark/}}
+}
+
+@misc{javavfc,
+  title        = {{JavaVFC}: A Corpus of Vulnerability-Fixing Commits for Java},
+  author       = {{JavaVFC authors}},
+  year         = {2026},
+  howpublished = {Zenodo record 13731781},
+  note         = {784 records; screening corpus. A companion audit found ${\sim}18\%$ are genuine security fixes}
+}
+
+% =====================================================================
+% LLM agents for vulnerability analysis / verifiable rewards
+% =====================================================================
 @misc{vulagentrl,
   title         = {Graph Is the Verifier: Agentic Reinforcement Learning for Interprocedural Vulnerability Detection},
   author        = {Li, Yikun and Zhang, Ting and Liu, Jiakun and others},
@@ -43,6 +64,9 @@
   primaryClass  = {cs.CR}
 }
 
+% =====================================================================
+% Adversarial robustness of LLM code analysis
+% =====================================================================
 @misc{alibi,
   title         = {{ALIBI}: Adaptive Agentic Attacks on {LLM}-Based Vulnerability Detectors via Adversarial Code Comments},
   author        = {Wu, Zixuan and Nita-Rotaru, Cristina},
@@ -52,82 +76,202 @@
   primaryClass  = {cs.CR}
 }
 
-@misc{fuzzingbrain,
-  title         = {{FuzzingBrain} {V2}: A Multi-Agent {LLM} System for Automated Vulnerability Discovery and Reproduction},
-  author        = {Sheng, Ze and Chen, Zhicheng and Xu, Qingxiao and others},
-  year          = {2026},
-  eprint        = {2605.21779},
+@inproceedings{greshake2023not,
+  author    = {Greshake, Kai and Abdelnabi, Sahar and Mishra, Shailesh and Endres, Christoph and Holz, Thorsten and Fritz, Mario},
+  title     = {Not What You've Signed Up For: Compromising Real-World {LLM}-Integrated Applications with Indirect Prompt Injection},
+  booktitle = {Proceedings of the 16th ACM Workshop on Artificial Intelligence and Security (AISec)},
+  year      = {2023},
+  doi       = {10.1145/3605764.3623985}
+}
+
+@inproceedings{he2023large,
+  author    = {He, Jingxuan and Vechev, Martin},
+  title     = {Large Language Models for Code: Security Hardening and Adversarial Testing},
+  booktitle = {Proceedings of the 2023 ACM SIGSAC Conference on Computer and Communications Security (CCS)},
+  year      = {2023},
+  doi       = {10.1145/3576915.3623175}
+}
+
+@inproceedings{pearce2022asleep,
+  author    = {Pearce, Hammond and Ahmad, Baleegh and Tan, Benjamin and Dolan-Gavitt, Brendan and Karri, Ramesh},
+  title     = {Asleep at the Keyboard? Assessing the Security of {GitHub} {Copilot}'s Code Contributions},
+  booktitle = {2022 IEEE Symposium on Security and Privacy (SP)},
+  year      = {2022},
+  doi       = {10.1109/sp46214.2022.9833571}
+}
+
+@inproceedings{perry2023do,
+  author    = {Perry, Neil and Srivastava, Megha and Kumar, Deepak and Boneh, Dan},
+  title     = {Do Users Write More Insecure Code with {AI} Assistants?},
+  booktitle = {Proceedings of the 2023 ACM SIGSAC Conference on Computer and Communications Security (CCS)},
+  year      = {2023},
+  doi       = {10.1145/3576915.3623157}
+}
+
+% =====================================================================
+% Abstention, selective prediction, calibration
+% =====================================================================
+@inproceedings{guo2017calibration,
+  author        = {Guo, Chuan and Pleiss, Geoff and Sun, Yu and Weinberger, Kilian Q.},
+  title         = {On Calibration of Modern Neural Networks},
+  booktitle     = {Proceedings of the 34th International Conference on Machine Learning (ICML)},
+  year          = {2017},
+  eprint        = {1706.04599},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{geifman2017selective,
+  author    = {Geifman, Yonatan and El-Yaniv, Ran},
+  title     = {Selective Classification for Deep Neural Networks},
+  booktitle = {Advances in Neural Information Processing Systems 30},
+  year      = {2017}
+}
+
+@inproceedings{hendrycks2017baseline,
+  author        = {Hendrycks, Dan and Gimpel, Kevin},
+  title         = {A Baseline for Detecting Misclassified and Out-of-Distribution Examples in Neural Networks},
+  booktitle     = {International Conference on Learning Representations (ICLR)},
+  year          = {2017},
+  eprint        = {1610.02136},
+  archivePrefix = {arXiv}
+}
+
+@misc{kadavath2022language,
+  author        = {Kadavath, Saurav and Conerly, Tom and Askell, Amanda and others},
+  title         = {Language Models (Mostly) Know What They Know},
+  year          = {2022},
+  eprint        = {2207.05221},
   archivePrefix = {arXiv},
-  primaryClass  = {cs.CR}
+  primaryClass  = {cs.CL}
 }
 
-@misc{drea,
-  title         = {{DREA}: Decoupled Reasoning and Exploration Agents for Repository-Level Vulnerability Detection},
-  author        = {Sun, Mingyang and Meng, Guozhu},
-  year          = {2026},
-  eprint        = {2607.13439},
-  archivePrefix = {arXiv},
-  primaryClass  = {cs.CR},
-  note          = {Internetware 2026}
+@article{wen2025know,
+  author  = {Wen, Bingbing and Yao, Jihan and Feng, Shangbin and Xu, Chenjun and Tsvetkov, Yulia and Howe, Bill and Wang, Lucy Lu},
+  title   = {Know Your Limits: A Survey of Abstention in Large Language Models},
+  journal = {Transactions of the Association for Computational Linguistics},
+  year    = {2025},
+  doi     = {10.1162/tacl_a_00754}
 }
 
-@misc{clear,
-  title         = {{CLEAR}: Causal Context-Based Agentic Reasoning for Vulnerability Detection},
-  author        = {Yun, Sungju and Hwang, Sijune and Lee, Yeonjoon and others},
-  year          = {2026},
-  eprint        = {2608.03134},
-  archivePrefix = {arXiv},
-  primaryClass  = {cs.CR}
+% =====================================================================
+% LLM-as-a-judge reliability
+% =====================================================================
+@inproceedings{zheng2023judging,
+  author    = {Zheng, Lianmin and Chiang, Wei-Lin and Sheng, Ying and Zhuang, Siyuan and Wu, Zhanghao and Zhuang, Yonghao and Lin, Zi and Li, Zhuohan and Li, Dacheng and Xing, Eric and Zhang, Hao and Gonzalez, Joseph and Stoica, Ion},
+  title     = {Judging {LLM}-as-a-Judge with {MT-Bench} and {Chatbot Arena}},
+  booktitle = {Advances in Neural Information Processing Systems 36},
+  year      = {2023},
+  doi       = {10.52202/075280-2020}
 }
 
-@misc{atlantis,
-  title         = {{ATLANTIS}: {AI}-driven Threat Localization, Analysis, and Triage Intelligence System},
-  author        = {Kim, Taesoo and Han, HyungSeok and Park, Soyeon and others},
-  year          = {2025},
-  eprint        = {2509.14589},
-  archivePrefix = {arXiv},
-  primaryClass  = {cs.CR},
-  note          = {Winner, DARPA AI Cyber Challenge (AIxCC) Final, 2025}
+@inproceedings{liu2023geval,
+  author    = {Liu, Yang and Iter, Dan and Xu, Yichong and Wang, Shuohang and Xu, Ruochen and Zhu, Chenguang},
+  title     = {{G-Eval}: {NLG} Evaluation using {GPT-4} with Better Human Alignment},
+  booktitle = {Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP)},
+  year      = {2023},
+  doi       = {10.18653/v1/2023.emnlp-main.153}
 }
 
-@misc{coer,
-  title         = {{CoER}: Defending against Adaptive Indirect Prompt Injection via Adversarial Co-Evolution and Refinement},
-  author        = {Zhang, Boyang and Xiao, Qingxin and Dang, Lingwei and Wu, Qingyao},
-  year          = {2026},
-  eprint        = {2609.07529},
-  archivePrefix = {arXiv},
-  primaryClass  = {cs.LG}
+@inproceedings{panickssery2024llm,
+  author    = {Panickssery, Arjun and Bowman, Samuel and Feng, Shi},
+  title     = {{LLM} Evaluators Recognize and Favor Their Own Generations},
+  booktitle = {Advances in Neural Information Processing Systems 37},
+  year      = {2024},
+  doi       = {10.52202/079017-2197}
 }
 
-@misc{awarl,
-  title         = {To Answer or to Abstain: Mitigating Search-Agent Hallucinations via Abstention-Aware Reinforcement Learning},
-  author        = {Zhang, Fengji and Fan, Tianyu and Zheng, Yuxiang and others},
-  year          = {2026},
-  eprint        = {2607.10738},
-  archivePrefix = {arXiv},
-  primaryClass  = {cs.LG}
+@inproceedings{wang2024fair,
+  author    = {Wang, Peiyi and Li, Lei and Chen, Liang and Cai, Zefan and Sun, Dawei and Wang, Yubo and others},
+  title     = {Large Language Models are not Fair Evaluators},
+  booktitle = {Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (ACL)},
+  year      = {2024},
+  doi       = {10.18653/v1/2024.acl-long.511}
 }
 
-@misc{survey,
-  title         = {Large Language Models at the Intersection of Software Engineering and Software Security: An Evidence-Centered Structured Survey and Research Agenda},
-  author        = {Lin, Wei and Zhou, Tao and Xie, Zhaofei and Hong, Changgui},
-  year          = {2026},
-  eprint        = {2608.21107},
-  archivePrefix = {arXiv},
-  primaryClass  = {cs.AI}
+% =====================================================================
+% Machine-learning vulnerability detection and data quality
+% =====================================================================
+@inproceedings{zhou2019devign,
+  author        = {Zhou, Yaqin and Liu, Shangqing and Siow, Jing Kai and Du, Xiaoning and Liu, Yang},
+  title         = {Devign: Effective Vulnerability Identification by Learning Comprehensive Program Semantics via Graph Neural Networks},
+  booktitle     = {Advances in Neural Information Processing Systems 32},
+  year          = {2019},
+  eprint        = {1909.03496},
+  archivePrefix = {arXiv}
 }
 
-@misc{owaspbench,
-  title        = {{OWASP} Benchmark Project},
-  author       = {{OWASP Foundation}},
-  year         = {2026},
-  howpublished = {\url{https://owasp.org/www-project-benchmark/}}
+@article{chakraborty2022deep,
+  author  = {Chakraborty, Saikat and Krishna, Rahul and Ding, Yangruibo and Ray, Baishakhi},
+  title   = {Deep Learning Based Vulnerability Detection: Are We There Yet?},
+  journal = {IEEE Transactions on Software Engineering},
+  year    = {2022},
+  doi     = {10.1109/tse.2021.3087402}
 }
 
-@misc{javavfc,
-  title        = {{JavaVFC}: A Corpus of Vulnerability-Fixing Commits for Java},
-  author       = {{JavaVFC authors}},
-  year         = {2026},
-  howpublished = {Zenodo record 13731781},
-  note         = {784 records; screening corpus. A companion audit found ${\sim}18\%$ are genuine security fixes}
+@inproceedings{ding2025vulnerability,
+  author    = {Ding, Yangruibo and Fu, Yanjun and Ibrahim, Omniyyah and Sitawarin, Chawin and Chen, Xinyun and Alomair, Basel and Wagner, David and Ray, Baishakhi and Chen, Yizheng},
+  title     = {Vulnerability Detection with Code Language Models: How Far are We?},
+  booktitle = {2025 IEEE/ACM 47th International Conference on Software Engineering (ICSE)},
+  year      = {2025},
+  doi       = {10.1109/icse55347.2025.00038}
+}
+
+@inproceedings{croft2023data,
+  author    = {Croft, Roland and Babar, M. Ali and Kholoosi, M. Mehdi},
+  title     = {Data Quality for Software Vulnerability Datasets},
+  booktitle = {2023 IEEE/ACM 45th International Conference on Software Engineering (ICSE)},
+  year      = {2023},
+  doi       = {10.1109/icse48619.2023.00022}
+}
+
+@inproceedings{arp2022dos,
+  author        = {Arp, Daniel and Quiring, Erwin and Pendlebury, Feargus and Warnecke, Alexander and Pierazzi, Fabio and Wressnegger, Christian and Cavallaro, Lorenzo and Rieck, Konrad},
+  title         = {Dos and Don'ts of Machine Learning in Computer Security},
+  booktitle     = {Proceedings of the 31st USENIX Security Symposium},
+  year          = {2022},
+  eprint        = {2010.09470},
+  archivePrefix = {arXiv}
+}
+
+% =====================================================================
+% Static analysis in practice; program analysis; ensembles
+% =====================================================================
+@article{sadowski2018lessons,
+  author  = {Sadowski, Caitlin and Aftandilian, Edward and Eagle, Alex and Miller-Cushon, Liam and Jaspan, Ciera},
+  title   = {Lessons from Building Static Analysis Tools at {Google}},
+  journal = {Communications of the ACM},
+  year    = {2018},
+  doi     = {10.1145/3188720}
+}
+
+@inproceedings{yamaguchi2014modeling,
+  author    = {Yamaguchi, Fabian and Golde, Nico and Arp, Daniel and Rieck, Konrad},
+  title     = {Modeling and Discovering Vulnerabilities with Code Property Graphs},
+  booktitle = {2014 IEEE Symposium on Security and Privacy (SP)},
+  year      = {2014},
+  doi       = {10.1109/sp.2014.44}
+}
+
+@inproceedings{avgustinov2016ql,
+  author    = {Avgustinov, Pavel and de Moor, Oege and Peyton Jones, Michael and Sch\"afer, Max},
+  title     = {{QL}: Object-oriented Queries on Relational Data},
+  booktitle = {30th European Conference on Object-Oriented Programming (ECOOP)},
+  year      = {2016},
+  doi       = {10.4230/LIPIcs.ECOOP.2016.2}
+}
+
+@article{breiman1996bagging,
+  author  = {Breiman, Leo},
+  title   = {Bagging Predictors},
+  journal = {Machine Learning},
+  year    = {1996},
+  doi     = {10.1007/bf00058655}
+}
+
+@article{kuncheva2003measures,
+  author  = {Kuncheva, Ludmila I. and Whitaker, Christopher J.},
+  title   = {Measures of Diversity in Classifier Ensembles and Their Relationship with the Ensemble Accuracy},
+  journal = {Machine Learning},
+  year    = {2003},
+  doi     = {10.1023/a:1022859003006}
 }

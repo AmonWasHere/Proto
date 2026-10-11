@@ -88,6 +88,7 @@ class LLMJudge:
         temperature: float = 0.0,
         require_decision: bool = False,
         gate_evidence: bool = True,
+        blind: bool = False,
     ) -> None:
         self.max_tokens = max_tokens
         self.temperature = temperature
@@ -95,6 +96,9 @@ class LLMJudge:
         #: When False, the judge is taken at its word (no evidence verification).
         #: This is the "LLM alone" arm of the composition test.
         self.gate_evidence = gate_evidence
+        #: When True, hide the scanner's rule name, message, and CWE hint so the
+        #: verdict cannot just echo the scanner (tests confirmation bias).
+        self.blind = blind
         #: Usage accounting for cost-per-true-positive (P5).
         self.calls = 0
         self.tokens_in = 0
@@ -108,15 +112,23 @@ class LLMJudge:
             except (FileNotFoundError, ValueError):
                 slice_text = ""
         cwe_hint = ", ".join(finding.cwes) if finding.cwes else "none"
-        user = (
-            f"CANDIDATE FINDING\n"
-            f"- rule: {finding.rule}\n"
-            f"- location: {finding.location.ref()}\n"
-            f"- scanner message: {finding.message}\n"
-            f"- scanner CWE hint: {cwe_hint}\n\n"
-            f"CODE SLICE ({finding.location.path})\n"
-            f"```\n{slice_text}\n```\n"
-        )
+        if self.blind:
+            user = (
+                f"CANDIDATE FINDING\n"
+                f"- location: {finding.location.ref()}\n\n"
+                f"CODE SLICE ({finding.location.path})\n"
+                f"```\n{slice_text}\n```\n"
+            )
+        else:
+            user = (
+                f"CANDIDATE FINDING\n"
+                f"- rule: {finding.rule}\n"
+                f"- location: {finding.location.ref()}\n"
+                f"- scanner message: {finding.message}\n"
+                f"- scanner CWE hint: {cwe_hint}\n\n"
+                f"CODE SLICE ({finding.location.path})\n"
+                f"```\n{slice_text}\n```\n"
+            )
         return LLMRequest(
             system=SYSTEM_FORCE_DECISION if self.require_decision else SYSTEM,
             user=user,

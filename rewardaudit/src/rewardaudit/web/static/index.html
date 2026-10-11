@@ -32,7 +32,7 @@
           <li class="step">
             <div class="step-head"><span class="dot">1</span><h3>Choose a folder</h3></div>
             <div class="row">
-              <input id="review-path" type="text" placeholder="Select your project folder" readonly />
+              <input id="review-path" type="text" placeholder="Type a path, or use Browse…" />
               <button class="btn" id="browse-btn">Browse…</button>
             </div>
             <div id="inspect" class="inspect muted">Pick a folder to see which languages will be checked.</div>
@@ -58,8 +58,11 @@
 
           <li class="step">
             <div class="step-head"><span class="dot">3</span><h3>Run</h3></div>
-            <button class="btn primary" id="review-run" disabled>Scan &amp; verify</button>
-            <span class="hint" id="run-hint">Choose a folder first.</span>
+            <div class="row wrap">
+              <button class="btn primary" id="review-run" disabled>Scan &amp; verify</button>
+              <button class="btn" id="audit-run" disabled>Audit functions (LLM)</button>
+            </div>
+            <span class="hint" id="run-hint">Scan &amp; verify checks analyzer candidates; Audit reads whole functions for any mistakes.</span>
           </li>
         </ol>
       </div>
@@ -105,6 +108,30 @@
           </ul>
         </details>
       </div>
+
+      <div class="card">
+        <div class="step-head"><span class="dot">ƒ</span><h3>Selective function audit</h3></div>
+        <p class="hint">Send specific functions to the LLM (cloud/DeepSeek). Pick a folder above, list its functions, then tick the ones to audit.</p>
+        <div class="row wrap">
+          <button class="btn" id="fn-list" disabled>List functions</button>
+          <input id="fn-filter" type="search" placeholder="Filter by file or name…" />
+          <span class="hint" id="fn-status"></span>
+        </div>
+        <div id="fn-box" style="max-height:260px;overflow:auto;margin:8px 0;padding:6px;border:1px solid rgba(128,128,128,.35);border-radius:6px"></div>
+        <div class="row">
+          <button class="btn primary" id="fn-audit" disabled>Audit selected</button>
+          <label class="hint"><input type="checkbox" id="fn-all" /> select all shown</label>
+        </div>
+      </div>
+
+      <div id="audit-results" class="card hidden">
+        <div id="audit-summary" class="stat-grid"></div>
+        <table id="audit-table">
+          <thead><tr><th>Finding</th><th>Severity</th><th>Kind</th><th>Conf.</th><th>Rationale</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="muted">Click a row to view the function's code.</div>
+      </div>
     </section>
 
     <!-- ── Measure ──────────────────────────────────────────────────── -->
@@ -132,13 +159,15 @@
         <button data-backend="cloud">Cloud</button>
       </div>
       <label class="field"><span>Base URL</span><input id="set-base-url" placeholder="https://api.deepseek.com/v1" /></label>
-      <label class="field"><span>Model</span><input id="set-model" placeholder="deepseek-flash" /></label>
+      <label class="field"><span>Model <em>local auto-detects</em></span><input id="set-model" list="local-models" placeholder="auto" /></label>
+      <datalist id="local-models"></datalist>
       <label class="field"><span>API key <em>stored locally, never shown again</em></span><input id="set-api-key" type="password" placeholder="leave blank to keep current" /></label>
       <label class="check"><input id="set-no-thinking" type="checkbox" /> Disable thinking mode (cheaper, less precise)</label>
       <label class="check"><input id="set-cache" type="checkbox" /> Reuse cached verdicts</label>
       <div class="row">
         <button class="btn primary" id="set-save">Save</button>
         <button class="btn" id="set-test">Test connection</button>
+        <button class="btn ghost" id="set-detect">Detect local models</button>
       </div>
       <div id="set-status" class="inspect"></div>
     </div>
@@ -152,8 +181,10 @@
         <button class="btn ghost" id="close-browser">Close</button>
       </div>
       <div class="browser-path" id="browser-path"></div>
+      <div class="hint">Single-click to select · double-click to open a folder.</div>
       <ul class="browser-list" id="browser-list"></ul>
       <div class="row">
+        <button class="btn" id="browser-home">⌂ Home</button>
         <button class="btn" id="browser-up">↑ Up</button>
         <div class="spacer"></div>
         <button class="btn primary" id="browser-choose">Use this folder</button>

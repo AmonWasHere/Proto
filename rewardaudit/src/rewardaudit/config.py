@@ -51,6 +51,12 @@ PYTHON_RULES = _first(
     env="REWARDAUDIT_PYTHON_RULES",
 )
 
+#: RewardAudit's own minimal, pinned JavaScript/TypeScript ruleset.
+JS_RULES = _first(
+    _PROJECT_ROOT / "rules/javascript-minimal.yaml",
+    env="REWARDAUDIT_JS_RULES",
+)
+
 #: Pinned Java control set (18 vulnerable / 3 safe).
 CONTROLS_DIR = _first(
     ASSETS / "controls",

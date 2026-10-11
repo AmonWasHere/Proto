@@ -29,6 +29,12 @@ EXT_LANG = {
     ".py": "python",
     ".c": "c",
     ".h": "c",
+    ".js": "javascript",
+    ".jsx": "javascript",
+    ".mjs": "javascript",
+    ".cjs": "javascript",
+    ".ts": "typescript",
+    ".tsx": "tsx",
 }
 
 #: Node types that denote a function-like scope, per language.
@@ -38,7 +44,40 @@ FUNCTION_TYPES = {
     "function_definition",
     "function_declaration",
     "function_declarator",
+    "method_definition",
+    "arrow_function",
+    "function_expression",
+    "generator_function_declaration",
 }
+
+#: Node types that introduce a *definition* (not a C declarator, which nests inside
+#: a function_definition and would double-count).
+FUNCTION_DEF_TYPES = {
+    "method_declaration",      # Java
+    "constructor_declaration",  # Java
+    "function_definition",     # Python / C
+    "function_declaration",    # C / JS
+    "method_definition",       # JS / TS class methods
+    "arrow_function",          # JS / TS (unnamed)
+    "generator_function_declaration",
+}
+
+
+@dataclass(frozen=True, slots=True)
+class FunctionUnit:
+    """A whole function, for the LLM code audit."""
+
+    name: str
+    start_line: int
+    end_line: int
+    text: str
+
+    def ref(self, path: str) -> str:
+        return f"{path}:{self.start_line}"
+
+    @property
+    def lines(self) -> int:
+        return self.end_line - self.start_line + 1
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,6 +110,16 @@ def _load_language(lang: str):
         import tree_sitter_python as mod
     elif lang == "c":
         import tree_sitter_c as mod
+    elif lang == "javascript":
+        import tree_sitter_javascript as mod
+    elif lang == "typescript":
+        import tree_sitter_typescript as mod
+
+        return _ts.Language(mod.language_typescript())
+    elif lang == "tsx":
+        import tree_sitter_typescript as mod
+
+        return _ts.Language(mod.language_tsx())
     else:  # pragma: no cover - guarded by caller
         raise ValueError(f"unsupported language: {lang}")
     return _ts.Language(mod.language())
@@ -168,3 +217,36 @@ class Cpg:
         if hits:
             return hits[-1].text[:max_chars]
         return ""
+
+    @staticmethod
+    def _node_name(node, src: bytes) -> str:
+        named = node.child_by_field_name("name")
+        if named is not None:
+            return src[named.start_byte : named.end_byte].decode("utf-8", "replace")
+        # C: the name lives inside the declarator chain.
+        declarator = node.child_by_field_name("declarator")
+        if declarator is not None:
+            return Cpg._node_name(declarator, src)
+        return node.type
+
+    def functions(self, path: str) -> list[FunctionUnit]:
+        """Every function definition in `path`, in source order (for the audit)."""
+        tree = self._tree(path)
+        src = self._source(path)
+        out: list[FunctionUnit] = []
+
+        def walk(node) -> None:
+            if node.type in FUNCTION_DEF_TYPES:
+                out.append(
+                    FunctionUnit(
+                        name=self._node_name(node, src),
+                        start_line=node.start_point[0] + 1,
+                        end_line=node.end_point[0] + 1,
+                        text=src[node.start_byte : node.end_byte].decode("utf-8", "replace"),
+                    )
+                )
+            for child in node.children:
+                walk(child)
+
+        walk(tree.root_node)
+        return out

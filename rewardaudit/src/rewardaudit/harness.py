@@ -348,6 +348,28 @@ def cmd_adaptive(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_threat_refresh(args: argparse.Namespace) -> int:
+    """Fetch OSV advisories for declared dependencies into a new dated snapshot."""
+    from datetime import date
+
+    from .osv import refresh
+    from .store import parse_requirements
+
+    req = Path(args.requirements)
+    if not req.is_file():
+        raise FileNotFoundError(f"requirements file not found: {req}")
+    deps = parse_requirements(req.read_text(), args.ecosystem)
+    if not deps:
+        print("no `name==version` dependencies found")
+        return 1
+    out = Path(args.out) if args.out else (config.DATASETS / "threat" / f"osv-{date.today().isoformat()}.jsonl")
+    print(f"querying OSV for {len(deps)} dependencies ({args.ecosystem})…")
+    meta = refresh(deps, out)
+    print(f"wrote {out}  ({meta['advisories']} advisories, {meta['packages']} packages)")
+    print(f"meta:  {out}.meta.json")
+    return 0
+
+
 def cmd_threat(args: argparse.Namespace) -> int:
     """Show the pinned advisory snapshot and match a requirements file against it."""
     from .store import KnowledgeStore, Snapshot, parse_requirements
@@ -434,8 +456,16 @@ def cmd_repeats(args: argparse.Namespace) -> int:
     raw: list[dict] = []
     for experiment in experiments:
         for model in models:
-            print(f"# {experiment} / {model}: {args.k} runs", flush=True)
-            result = run_experiment(experiment, root, model, k=args.k, no_thinking=args.no_thinking)
+            print(f"# {experiment} / {model} / {args.verifier}: {args.k} runs", flush=True)
+            result = run_experiment(
+                experiment,
+                root,
+                model,
+                k=args.k,
+                no_thinking=args.no_thinking,
+                verifier=args.verifier,
+                gate=not args.no_gate,
+            )
             for index, run in enumerate(result["runs"], start=1):
                 shown = {k: round(float(v), 3) for k, v in run.items() if k != "per_pair"}
                 print(f"    run {index}: {shown}", flush=True)
@@ -489,6 +519,9 @@ def cmd_review(args: argparse.Namespace) -> int:
         f"false positive {summary['false_positive']}  abstained {summary['unknown_risk']}  "
         f"|  reachable paths {summary['reachable']}"
     )
+    if summary.get("skipped_noncode"):
+        ex = ", ".join(summary.get("skipped_paths", [])[:3])
+        print(f"skipped:   {summary['skipped_noncode']} non-code finding(s), not adjudicated ({ex})")
     print()
     for row in result["rows"]:
         entry = f"{row['entry']} -> {' -> '.join(row['hops'])}" if row["entry"] else "not reachable"
@@ -504,6 +537,45 @@ def cmd_review(args: argparse.Namespace) -> int:
 
         Path(args.json).write_text(json.dumps(result, indent=2, default=str))
         print(f"wrote {args.json}")
+    return 0
+
+
+def cmd_audit(args: argparse.Namespace) -> int:
+    """LLM audit: pass whole functions to the model to find mistakes anywhere."""
+    from .audit import audit_codebase
+
+    root = Path(args.path)
+    backend = build_backend(args.backend, no_thinking=getattr(args, "no_thinking", False))
+
+    def progress(path: str, name: str, index: int) -> None:
+        print(f"  auditing {index:>4}  {path}::{name}", flush=True)
+
+    report = audit_codebase(
+        root,
+        backend,
+        max_functions=args.max_functions,
+        gate=not getattr(args, "no_gate", False),
+        only_languages=([l.strip() for l in args.languages.split(",") if l.strip()]
+                        if getattr(args, "languages", "") else None),
+        progress=progress,
+    )
+    s = report.summary()
+    print(f"\npath:      {s['root']}")
+    print(f"backend:   {getattr(backend, 'name', '?')} {getattr(backend, 'model', '')}".rstrip())
+    print(f"audited:   {s['files_audited']} files, {s['functions_audited']} functions")
+    if s["unchecked_languages"]:
+        print(f"UNCHECKED: {', '.join(s['unchecked_languages'])}  (no grammar; not audited)")
+    print(f"findings:  {s['findings']}  (verified refs {s['verified']}, parse failures {s['parse_failures']})")
+    print(f"severity:  {s['by_severity']}")
+    print(f"kinds:     {s['by_kind']}")
+    print()
+    for res in report.results:
+        for f in res.findings:
+            mark = "ok " if f.verified else "?? "
+            print(f"  {mark}{f.path}:{f.line}  [{f.severity}/{f.kind}] conf={f.confidence}  {f.rationale[:100]}")
+    if args.json:
+        Path(args.json).write_text(json.dumps(report.to_dict(), indent=2, default=str))
+        print(f"\nwrote {args.json}")
     return 0
 
 
@@ -579,6 +651,12 @@ def main(argv: list[str] | None = None) -> int:
     p_threat.add_argument("--requirements", default="")
     p_threat.set_defaults(func=cmd_threat)
 
+    p_tref = sub.add_parser("threat-refresh", help="fetch OSV advisories for deps into a new snapshot")
+    p_tref.add_argument("--requirements", required=True)
+    p_tref.add_argument("--ecosystem", default="PyPI")
+    p_tref.add_argument("--out", default="")
+    p_tref.set_defaults(func=cmd_threat_refresh)
+
     p_ad = sub.add_parser("adaptive", help="LLM-authored iterative adversarial comments")
     p_ad.add_argument("--dir", default=str(config.PYTHON_PAIRS))
     p_ad.add_argument("--backend", default="mock", choices=["mock", "scripted", "local", "cloud"])
@@ -612,6 +690,8 @@ def main(argv: list[str] | None = None) -> int:
     p_rep.add_argument("--experiments", default="e1")
     p_rep.add_argument("--models", default="")
     p_rep.add_argument("--k", type=int, default=3)
+    p_rep.add_argument("--verifier", default="llm", choices=["llm", "ungated", "hybrid", "tool"])
+    p_rep.add_argument("--no-gate", action="store_true")
     p_rep.add_argument("--no-thinking", action="store_true")
     p_rep.add_argument("--json", default="")
     p_rep.set_defaults(func=cmd_repeats)
@@ -624,6 +704,16 @@ def main(argv: list[str] | None = None) -> int:
     p_rev.add_argument("--no-thinking", action="store_true")
     p_rev.add_argument("--json", default="")
     p_rev.set_defaults(func=cmd_review)
+
+    p_audit = sub.add_parser("audit", help="LLM audit of whole functions for mistakes anywhere")
+    p_audit.add_argument("--path", required=True)
+    p_audit.add_argument("--backend", default="scripted", choices=["mock", "scripted", "local", "cloud"])
+    p_audit.add_argument("--max-functions", type=int, default=0)
+    p_audit.add_argument("--languages", default="", help="comma list, e.g. python,java")
+    p_audit.add_argument("--no-gate", action="store_true")
+    p_audit.add_argument("--no-thinking", action="store_true")
+    p_audit.add_argument("--json", default="")
+    p_audit.set_defaults(func=cmd_audit)
 
     args = parser.parse_args(argv)
     return args.func(args)

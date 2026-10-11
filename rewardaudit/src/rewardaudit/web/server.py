@@ -31,6 +31,7 @@ from ..datasets import load_pairs
 from ..decomposition import decompose
 from ..e1 import collect_calibration, four_way_llm
 from ..llm import build_backend
+from ..review import partition_code_findings
 from ..schema import Disposition
 from ..verifiers.base import VerificationContext
 from ..verifiers.llm_judge import LLMJudge
@@ -93,10 +94,33 @@ def apply_env() -> None:
         os.environ["REWARDAUDIT_LLM_BASE_URL"] = SETTINGS["base_url"]
     if SETTINGS["model"]:
         os.environ["REWARDAUDIT_LLM_MODEL"] = SETTINGS["model"]
+    if SETTINGS["backend"] == "local":
+        if SETTINGS["base_url"]:
+            os.environ["REWARDAUDIT_LOCAL_BASE_URL"] = SETTINGS["base_url"]
+        # "auto"/empty -> let the backend recognize the served model itself.
+        if SETTINGS["model"] and SETTINGS["model"].lower() not in ("auto", "offline"):
+            os.environ["REWARDAUDIT_LOCAL_MODEL"] = SETTINGS["model"]
+        else:
+            os.environ.pop("REWARDAUDIT_LOCAL_MODEL", None)
     os.environ["REWARDAUDIT_NO_THINKING"] = "1" if SETTINGS["no_thinking"] else "0"
     os.environ["REWARDAUDIT_LLM_CACHE"] = (
         str(config.RUNS_DIR / "llm_cache.jsonl") if SETTINGS["cache"] else "off"
     )
+
+
+def local_models() -> dict:
+    """Auto-recognize the models served by the configured local endpoint."""
+    apply_env()
+    try:
+        backend = build_backend("local", cache=False)
+        return {
+            "ok": True,
+            "base_url": getattr(backend, "base_url", ""),
+            "model": getattr(backend, "model", ""),
+            "models": backend.list_models(),
+        }
+    except Exception as exc:  # noqa: BLE001 - surfaced to the UI
+        return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
 
 
 def public_settings() -> dict:
@@ -138,6 +162,8 @@ def _run_job(job_id: str, kind: str, params: dict) -> None:
         apply_env()
         if kind == "review":
             result = _job_review(job_id, params)
+        elif kind == "audit":
+            result = _job_audit(job_id, params)
         elif kind == "measure":
             result = _job_measure(job_id, params)
         else:
@@ -148,14 +174,19 @@ def _run_job(job_id: str, kind: str, params: dict) -> None:
                 trace=traceback.format_exc()[-2000:])
 
 
-BROWSE_ROOT = Path(os.environ.get("REWARDAUDIT_BROWSE_ROOT", str(Path.home()))).expanduser()
+#: Root the folder picker may browse. Defaults to the whole filesystem so users can
+#: pick any project; set REWARDAUDIT_BROWSE_ROOT to confine it.
+_env_root = os.environ.get("REWARDAUDIT_BROWSE_ROOT", "").strip()
+BROWSE_ROOT = Path(_env_root).expanduser().resolve() if _env_root else Path("/").resolve()
 
 
 def _browse(raw_path: str | None) -> dict:
-    """List subdirectories for the folder picker, confined to BROWSE_ROOT."""
+    """List subdirectories for the folder picker (confined to BROWSE_ROOT)."""
     root = BROWSE_ROOT.resolve()
-    requested = Path(raw_path).expanduser().resolve() if raw_path else root
-    if root not in requested.parents and requested != root:
+    unrestricted = root == Path("/")
+    start = Path.home() if unrestricted else root
+    requested = Path(raw_path).expanduser().resolve() if raw_path else start.resolve()
+    if not unrestricted and root not in requested.parents and requested != root:
         requested = root
     entries = []
     try:
@@ -165,7 +196,40 @@ def _browse(raw_path: str | None) -> dict:
     except OSError as exc:
         return {"error": str(exc), "path": str(requested), "root": str(root), "entries": []}
     parent = str(requested.parent) if requested != root else None
-    return {"path": str(requested), "root": str(root), "parent": parent, "entries": entries}
+    return {
+        "path": str(requested),
+        "root": str(root),
+        "home": str(Path.home()),
+        "parent": parent,
+        "entries": entries,
+    }
+
+
+def _functions(raw_path: str | None) -> dict:
+    """List functions (for selective auditing) under a file or directory."""
+    if not raw_path:
+        return {"error": "no path"}
+    target = Path(raw_path).expanduser()
+    if not target.exists():
+        return {"error": f"not found: {target}"}
+    base = target if target.is_dir() else target.parent
+    cpg = Cpg(base)
+    if not cpg.available():
+        return {"error": "tree-sitter is not installed"}
+    out = []
+    for lang, files in languages.detect(base).items():
+        if not languages.registry()[lang].grammar:
+            continue
+        for p in sorted(files):
+            rel = str(p.relative_to(base))
+            try:
+                fns = cpg.functions(rel)
+            except Exception:  # noqa: BLE001 - unparseable file
+                continue
+            for fn in fns:
+                out.append({"path": rel, "name": fn.name, "start_line": fn.start_line,
+                            "end_line": fn.end_line, "lines": fn.lines})
+    return {"root": str(base), "functions": out, "count": len(out)}
 
 
 def _inspect(raw_path: str | None) -> dict:
@@ -196,6 +260,32 @@ def _test_connection() -> dict:
         return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
 
 
+def _job_audit(job_id: str, params: dict) -> dict:
+    """LLM audit: pass whole functions to the model to find mistakes anywhere."""
+    from ..audit import audit_codebase
+
+    root = Path(params["path"]).expanduser().resolve()
+    if not root.exists():
+        raise FileNotFoundError(f"path not found: {root}")
+    backend_kind = params.get("backend") or SETTINGS["backend"]
+    backend = build_backend(backend_kind, no_thinking=SETTINGS["no_thinking"])
+    max_functions = int(params.get("max_functions") or 0)
+    raw_sel = params.get("functions") or None
+    selections = None
+    if raw_sel:
+        selections = {(s["path"], int(s["start_line"])) for s in raw_sel}
+
+    def progress(path: str, name: str, index: int) -> None:
+        _update(job_id, message=f"audited {index}: {path}::{name}",
+                progress=min(0.95, 0.05 + index * 0.01))
+
+    _update(job_id, message="auditing functions", progress=0.05)
+    report = audit_codebase(
+        root, backend, max_functions=max_functions, selections=selections, gate=True, progress=progress
+    )
+    return report.to_dict()
+
+
 def _job_review(job_id: str, params: dict) -> dict:
     root = Path(params["path"]).expanduser().resolve()
     if not root.exists():
@@ -215,7 +305,8 @@ def _job_review(job_id: str, params: dict) -> dict:
     scan = analyzer.scan(root)
 
     limit = int(params.get("limit") or 0)
-    findings = scan.findings[: limit or None]
+    code, noncode = partition_code_findings(scan.findings)
+    findings = code[: limit or None]
 
     # Path candidates give each finding an entry -> ... -> sink traversal and a
     # per-path coverage label (its least-covered hop).
@@ -233,6 +324,10 @@ def _job_review(job_id: str, params: dict) -> dict:
         verdict = judge.verify(finding, ctx)
         path_row = paths.get(finding.id, {})
         hops = path_row.get("hops") or []
+        try:
+            snippet = ctx.cpg.context_slice(finding.location.path, finding.location.start_line, max_chars=1600)
+        except Exception:  # noqa: BLE001 - snippet is best-effort
+            snippet = ""
         rows.append(
             {
                 "path": finding.location.path,
@@ -248,6 +343,7 @@ def _job_review(job_id: str, params: dict) -> dict:
                 "hops": hops,
                 "reachable": bool(path_row.get("reachable")),
                 "coverage": path_row.get("coverage", "unknown"),
+                "snippet": snippet,
             }
         )
         _update(job_id, message=f"verified {index}/{len(findings)}", progress=0.15 + 0.85 * index / total)
@@ -257,6 +353,8 @@ def _job_review(job_id: str, params: dict) -> dict:
         "analyzer_version": scan.version,
         "rulesets": [Path(r).name for r in rules],
         "candidates": len(findings),
+        "skipped_noncode": len(noncode),
+        "skipped_paths": sorted({f.location.path for f in noncode})[:10],
         "true_positive": sum(r["disposition"] == "true_positive" for r in rows),
         "false_positive": sum(r["disposition"] == "false_positive" for r in rows),
         "unknown_risk": sum(r["disposition"] == "unknown_risk" for r in rows),
@@ -356,10 +454,14 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(200, public_settings())
         if path == "/api/backends":
             return self._json(200, {"backends": BACKENDS})
+        if path == "/api/local/models":
+            return self._json(200, local_models())
         if path == "/api/browse":
             return self._json(200, _browse((query.get("path") or [None])[0]))
         if path == "/api/inspect":
             return self._json(200, _inspect((query.get("path") or [None])[0]))
+        if path == "/api/functions":
+            return self._json(200, _functions((query.get("path") or [None])[0]))
         if path.startswith("/api/jobs/"):
             job_id = path.rsplit("/", 1)[-1]
             with _LOCK:

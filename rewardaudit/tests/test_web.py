@@ -95,11 +95,11 @@ def test_browse_is_confined_to_root(base, tmp_path, monkeypatch):
 
 def test_inspect_reports_coverage(base, tmp_path):
     (tmp_path / "a.py").write_text("x = 1\n")
-    (tmp_path / "b.js").write_text("const x = 1;\n")
+    (tmp_path / "b.go").write_text("package main\n")
     status, data = _getj(base + f"/api/inspect?path={tmp_path}")
     assert status == 200
     assert data["files_total"] == 2
-    assert "javascript" in data["unchecked_languages"]
+    assert "go" in data["unchecked_languages"]
 
 
 def test_inspect_missing_path(base):

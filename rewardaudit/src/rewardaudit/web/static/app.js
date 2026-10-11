@@ -53,11 +53,17 @@ function openSetup(open) {
   $("#setup-drawer").classList.toggle("open", open);
   $("#setup-drawer").setAttribute("aria-hidden", String(!open));
 }
-$("#open-setup").onclick = () => openSetup(true);
+const currentBackend = () => $("#backend-seg button.active")?.dataset.backend || "scripted";
+
+$("#open-setup").onclick = () => {
+  openSetup(true);
+  if (currentBackend() === "local") detectLocal();
+};
 $("#close-setup").onclick = () => openSetup(false);
 $$("#backend-seg button").forEach((b) => b.onclick = () => {
   $$("#backend-seg button").forEach((x) => x.classList.remove("active"));
   b.classList.add("active");
+  if (b.dataset.backend === "local") detectLocal();
 });
 $("#set-save").onclick = async () => {
   const payload = {
@@ -85,6 +91,24 @@ $("#set-test").onclick = async () => {
   } catch (e) { $("#set-status").textContent = e.message; }
 };
 
+// Auto-recognize the models a local endpoint serves, so the user need not type one.
+async function detectLocal() {
+  const status = $("#set-status");
+  status.textContent = "Auto-recognizing local models…";
+  try {
+    const r = await api("/api/local/models");
+    if (!r.ok) { status.textContent = `Local detect failed — ${r.error}`; return; }
+    $("#local-models").innerHTML = (r.models || []).map((m) => `<option value="${esc(m)}"></option>`).join("");
+    const field = $("#set-model");
+    if (!field.value.trim() || field.value.trim().toLowerCase() === "auto") field.value = "auto";
+    const n = (r.models || []).length;
+    status.textContent = `Local endpoint ${r.base_url} — recognized: ${r.model || "none"}` +
+      (n ? ` (${n} model${n === 1 ? "" : "s"} available)` : "");
+    toast(`Local model recognized: ${r.model || "none"}`);
+  } catch (e) { status.textContent = `Local detect failed — ${e.message}`; }
+}
+$("#set-detect").onclick = detectLocal;
+
 // ── folder browser ──────────────────────────────────────────────────────
 let browse = { path: null, parent: null, selected: null };
 $("#browse-btn").onclick = async () => {
@@ -93,6 +117,7 @@ $("#browse-btn").onclick = async () => {
 };
 $("#close-browser").onclick = () => $("#browser-modal").classList.remove("open");
 $("#browser-up").onclick = () => browse.parent && loadBrowse(browse.parent);
+$("#browser-home").onclick = () => loadBrowse(browse.home || null);
 $("#browser-choose").onclick = () => {
   const chosen = browse.selected || browse.path;
   if (!chosen) return;
@@ -102,7 +127,7 @@ $("#browser-choose").onclick = () => {
 
 async function loadBrowse(path) {
   const data = await api(`/api/browse${path ? `?path=${encodeURIComponent(path)}` : ""}`);
-  browse = { path: data.path, parent: data.parent, selected: null };
+  browse = { path: data.path, parent: data.parent, home: data.home, selected: null };
   $("#browser-path").textContent = data.path || "";
   const list = $("#browser-list");
   list.innerHTML = (data.entries || []).map((e) => `<li data-path="${esc(e.path)}">📁 ${esc(e.name)}</li>`).join("")
@@ -123,6 +148,15 @@ async function chooseFolder(path) {
   await inspect(path);
 }
 
+// Allow typing a path directly (fallback when browsing is inconvenient).
+for (const evt of ["change", "keydown"]) {
+  $("#review-path").addEventListener(evt, (e) => {
+    if (evt === "keydown" && e.key !== "Enter") return;
+    const p = $("#review-path").value.trim();
+    if (p) inspect(p);
+  });
+}
+
 async function inspect(path) {
   const box = $("#inspect");
   box.textContent = "Inspecting…";
@@ -137,6 +171,11 @@ async function inspect(path) {
       ? `<div class="muted">Unchecked languages: ${report.unchecked_languages.map(esc).join(", ")}</div>` : "";
     box.innerHTML = `<div>${report.files_total} files · checked ${Math.round((report.checked_fraction || 0) * 100)}%</div>${langs}${unchecked}`;
     $("#review-run").disabled = false;
+    $("#audit-run").disabled = false;
+    $("#fn-list").disabled = false;
+    $("#fn-box").innerHTML = "";
+    $("#fn-status").textContent = "";
+    FUNCS = [];
   } catch (e) { box.textContent = `Could not inspect: ${e.message}`; }
 }
 
@@ -168,6 +207,140 @@ $("#review-run").onclick = async () => {
   } finally { button.disabled = false; }
 };
 
+$("#audit-run").onclick = async () => {
+  const path = $("#review-path").value.trim();
+  if (!path) return;
+  const button = $("#audit-run");
+  button.disabled = true;
+  $("#review-error").classList.add("hidden");
+  $("#audit-results").classList.add("hidden");
+  $("#audit-summary").innerHTML = "";
+  try {
+    const max_functions = Number($("#review-limit").value || 0);
+    const { id } = await api("/api/jobs", { kind: "audit", params: { path, max_functions } });
+    const result = await poll(id, "#review-progress");
+    renderAudit(result);
+    $("#audit-results").classList.remove("hidden");
+    toast(`Audit done — ${(result.summary || {}).findings || 0} findings`);
+  } catch (e) {
+    $("#review-error").textContent = e.message;
+    $("#review-error").classList.remove("hidden");
+  } finally { button.disabled = false; }
+};
+
+function renderAudit(result) {
+  const s = result.summary || {};
+  $("#audit-summary").innerHTML = [
+    stat("functions", s.functions_audited),
+    stat("findings", s.findings, s.findings ? "warn" : ""),
+    stat("verified refs", s.verified),
+    stat("files", s.files_audited),
+    stat("unchecked", (s.unchecked_languages || []).join(", ") || "0",
+         (s.unchecked_languages || []).length ? "warn" : ""),
+  ].join("");
+  const rows = [];
+  (result.results || []).forEach((r) => (r.findings || []).forEach((f) => rows.push({ f, r })));
+  const tbody = $("#audit-table tbody");
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="5" class="muted">No mistakes reported.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(({ f }, i) => `
+    <tr class="clickable" data-i="${i}" title="click to view the code">
+      <td><code>${esc(f.path)}:${esc(f.line)}</code>${f.verified ? "" : " <span class='muted'>(unverified)</span>"}</td>
+      <td>${esc(f.severity)}</td>
+      <td>${esc(f.kind)}${f.cwe ? `<div class="muted">${esc(f.cwe)}</div>` : ""}</td>
+      <td>${esc(f.confidence)}</td>
+      <td>${esc(f.rationale)}</td>
+    </tr>`).join("");
+  $$("#audit-table tbody tr.clickable").forEach((tr) => tr.onclick = () => {
+    const next = tr.nextElementSibling;
+    if (next && next.classList.contains("detailrow")) { next.remove(); return; }
+    const { f, r } = rows[Number(tr.dataset.i)];
+    const detail = document.createElement("tr");
+    detail.className = "detailrow";
+    detail.innerHTML = `<td class="detail" colspan="5">
+      <div><b>${esc(r.path)}::${esc(r.name)}</b> <span class="muted">(lines ${esc(r.start_line)}–${esc(r.end_line)})</span></div>
+      ${r.snippet ? `<pre class="snippet" style="max-height:280px;overflow:auto;margin:6px 0;padding:8px;background:rgba(128,128,128,.12);border-radius:6px">${esc(r.snippet)}</pre>` : ""}
+      <div class="muted">why: ${esc(f.rationale || "—")}</div>
+    </td>`;
+    tr.after(detail);
+  });
+}
+
+// ── selective function audit ────────────────────────────────────────────
+let FUNCS = [];
+const SEL = new Set();
+
+function updateFnStatus(extra = "") {
+  $("#fn-audit").disabled = SEL.size === 0;
+  $("#fn-status").textContent = extra || (SEL.size ? `${SEL.size} selected` : "");
+}
+
+function renderFunctions(extra = "") {
+  const filter = $("#fn-filter").value.trim().toLowerCase();
+  const shown = FUNCS.map((f, i) => ({ f, i }))
+    .filter(({ f }) => !filter || `${f.path} ${f.name}`.toLowerCase().includes(filter));
+  $("#fn-box").innerHTML = shown.map(({ f, i }) =>
+    `<label style="display:block;padding:2px 0"><input type="checkbox" data-i="${i}" ${SEL.has(i) ? "checked" : ""}/> ` +
+    `<code>${esc(f.path)}:${f.start_line}</code> <b>${esc(f.name)}</b> ` +
+    `<span class="muted">(${f.lines} lines)</span></label>`).join("")
+    || `<span class="muted">No functions. Pick a folder and click List functions.</span>`;
+  $$("#fn-box input[type=checkbox]").forEach((cb) => cb.onchange = () => {
+    const i = Number(cb.dataset.i);
+    if (cb.checked) SEL.add(i); else SEL.delete(i);
+    updateFnStatus();
+  });
+  updateFnStatus(extra);
+}
+
+$("#fn-list").onclick = async () => {
+  const path = $("#review-path").value.trim();
+  if (!path) return;
+  $("#fn-status").textContent = "Listing functions…";
+  try {
+    const r = await api(`/api/functions?path=${encodeURIComponent(path)}`);
+    if (r.error) { $("#fn-status").textContent = r.error; return; }
+    FUNCS = r.functions || [];
+    SEL.clear();
+    renderFunctions(`${FUNCS.length} functions in ${r.root}`);
+  } catch (e) { $("#fn-status").textContent = `Could not list: ${e.message}`; }
+};
+$("#fn-filter").oninput = () => renderFunctions($("#fn-status").textContent);
+$("#fn-all").onchange = () => {
+  const on = $("#fn-all").checked;
+  const filter = $("#fn-filter").value.trim().toLowerCase();
+  FUNCS.forEach((f, i) => {
+    if (!filter || `${f.path} ${f.name}`.toLowerCase().includes(filter)) {
+      if (on) SEL.add(i); else SEL.delete(i);
+    }
+  });
+  renderFunctions();
+};
+$("#fn-audit").onclick = async () => {
+  const path = $("#review-path").value.trim();
+  const chosen = [...SEL].map((i) => FUNCS[i]).filter(Boolean);
+  if (!path || !chosen.length) { toast("Select at least one function", true); return; }
+  const button = $("#fn-audit");
+  button.disabled = true;
+  $("#audit-results").classList.add("hidden");
+  $("#audit-summary").innerHTML = "";
+  $("#fn-status").textContent = `Auditing ${chosen.length} function(s) via cloud…`;
+  try {
+    const { id } = await api("/api/jobs", {
+      kind: "audit",
+      params: { path, backend: "cloud",
+                functions: chosen.map((f) => ({ path: f.path, start_line: f.start_line })) },
+    });
+    const result = await poll(id, "#review-progress");
+    renderAudit(result);
+    $("#audit-results").classList.remove("hidden");
+    $("#fn-status").textContent = `Done — ${(result.summary || {}).findings || 0} findings`;
+    toast("Selective audit done");
+  } catch (e) { $("#fn-status").textContent = e.message; toast(e.message, true); }
+  finally { button.disabled = false; }
+};
+
 function renderSummary() {
   const s = RESULTS.summary, cov = s.coverage || {};
   $("#review-summary").innerHTML = [
@@ -176,6 +349,7 @@ function renderSummary() {
     stat("false positive", s.false_positive, "bad"),
     stat("abstained", s.unknown_risk, "warn"),
     stat("reachable paths", s.reachable),
+    stat("skipped (non-code)", s.skipped_noncode || 0, (s.skipped_noncode || 0) ? "warn" : ""),
     stat("checked", `${Math.round((cov.checked_fraction || 0) * 100)}%`),
     stat("unchecked langs", (cov.unchecked_languages || []).length || "0", (cov.unchecked_languages || []).length ? "warn" : ""),
     stat("tokens", `${s.tokens_in || 0} / ${s.tokens_out || 0}`),
@@ -220,6 +394,7 @@ function toggleDetail(tr, r) {
   detail.className = "detailrow";
   detail.innerHTML = `<td class="detail" colspan="5">
       <div><b>Why:</b> ${esc(r.rationale || "—")}</div>
+      ${r.snippet ? `<pre class="snippet" style="max-height:240px;overflow:auto;margin:6px 0;padding:8px;background:rgba(128,128,128,.12);border-radius:6px">${esc(r.snippet)}</pre>` : ""}
       <div class="muted">language: ${esc(r.language || "?")} · evidence: ${(r.evidence || []).map(esc).join(", ") || "none"}</div>
       <div class="muted">entry: ${esc(r.entry || "—")} · hops: ${(r.hops || []).map(esc).join(" → ") || "—"} · coverage: ${esc(r.coverage || "—")}</div>
     </td>`;

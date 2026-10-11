@@ -24,17 +24,17 @@ def test_detect_skips_junk_dirs(tmp_path):
 def test_coverage_report_marks_unchecked_languages(tmp_path):
     (tmp_path / "a.py").write_text("x = 1\n")
     (tmp_path / "B.java").write_text("class B {}\n")
-    (tmp_path / "c.js").write_text("const x = 1;\n")
+    (tmp_path / "c.go").write_text("package main\n")
 
     report = languages.coverage_report(tmp_path)
     assert report["files_total"] == 3
-    # java + python are covered; javascript has no ruleset and no grammar
-    assert "javascript" in report["unchecked_languages"]
+    # java + python are covered; go has no ruleset and no grammar
+    assert "go" in report["unchecked_languages"]
     assert report["checked_fraction"] == 2 / 3
     statuses = {row["language"]: row["status"] for row in report["by_language"]}
     assert statuses["java"] == "covered"
     assert statuses["python"] == "covered"
-    assert statuses["javascript"] == "unsupported"
+    assert statuses["go"] == "unsupported"
 
 
 def test_coverage_ignores_non_code_files(tmp_path):
