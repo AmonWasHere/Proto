@@ -128,7 +128,7 @@ Here are four arms that take same input; and thus, v1 (LLM, Ungated): the decisi
 
 \subsection{Bounded verdict request and proof gating}
 
-Store is always hidden from the model. Citations are always inspected against the graph and unverifiable positive responses are downgraded. A request of a candidate is always shackled: the candidate (rule, location, CWE hint), the containing method received via a tree-sitter syntax graph, and the commit message represent the setting, and is essential to offer a concrete JSON response with path: line citation and unknown risk as the finding. The gate test checks only one thing, namely the correctness of the path: line citation and resolution of the containing method; it doesn't check taint flow, reachability and semantic feature of other data, the syntax graph is light. As well, it isn't a dataflow engine (see Section VI); in turn, there's a reason why we never provide a whole file to assess.
+Store is always hidden from the model. Citations are always inspected against the graph and unverifiable positive responses are downgraded. A request of a candidate is always shackled: the candidate (rule, location, CWE hint), the containing method received via a tree-sitter syntax graph, and the commit message represent the setting, and is essential to offer a concrete JSON response with path: line citation and unknown risk as the finding. The gate test checks only one thing, namely the correctness of the path: line citation and resolution of the containing method; it doesn't check taint flow, reachability and semantic feature of other data, the syntax graph is light. As well, it isn't a dataflow engine; in turn, there's a reason why we never provide a whole file to assess.
 
 \subsection{Adversary}
 
@@ -265,10 +265,6 @@ A matched sample of fifteen true and fifteen false positives was re-judged with 
 Two conclusions are following. Verification rejects almost no false positives - neither the local 7B nor the cloud model separates a close miss from a bug, so precision stays where the analyzer left it; blinding doesn't help either, namely without the hint, rejections don't rise, abstentions are growing and recall falls.
 
 The cloud verifier with the hint keeps 10 of 15 true positives and rejects 2 of 15 false positives, for precision 0.67; the local model is keeping 14 and rejects none, for 0.48; indeed, blinding hurts - dropping the rule, message and CWE hint halves kept true positives (14 to 7 locally, 10 to 5 in the cloud) and adds 14 and 9 abstentions out of 30. No arm is rejecting more than two of the fifteen, so none is separating a close miss from a bug; in fact, the hint is context the verifier needs, not a label it's repeating.
-
-\section{Threats to Validity}
-
-Scale. The scale of examination comprises 151 pairs of security problems in one corpus; in the cross-lingual experiment, five pairs of security problems were assessed, which made the cross-family investigation directional concerning the aim of the research. Labels. JavaVFC corpus served as the screening corpus: the previously ran audit revealed that only 18\% of the corpus really fixed. Input shape. Every revision is the individual record, which counts as the minimum of complexity for the methods employed to detect types of revisions and patterns. Evidence graph.
 
 \section{Conclusion and Future Work}
 
