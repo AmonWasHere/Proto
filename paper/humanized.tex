@@ -44,24 +44,6 @@ The process of automating vulnerability analysis adheres to a classic model: a p
 
 There are very real effects. Static analyzers have been plagued forever [6] by false positives. As well, they plague machine learning vulnerability detectors just as much [7], [8]. In the situation where the detector sits in front of remediation, there can be two ways that it goes wrong: it might corroborate something that isn’t a vulnerability (misapplication of effort, lowered trust). Only the same, even more worryingly, it might hide a real vulnerability. Prior research suggests that large language model security detectors are trivially worked by adversarial comments [9] and indirect prompting [10]; prior research has never looked into the whether an LLM detection actually follows through on a vulnerability, how that failure arises. But how it interacts with an opponent.
 
-\noindent\textbf{Contributions.}
-
-An instrument, like The four-way decomposition technique, explored earlier in the same paper in relation to static analyzers [5], is employed here for the first time in conjunction with LLM verifiers; this procedure makes possible us to support our claims with machine-verifiable proof; tell apart between false positives and abstentions in investigation; and report the coverage of the suggested method. The use, corpora and analyzers are publicly available.
-
-A coverage-bounded finding, namely The evidence-based verifier is shown to report a fix with a rate of 17.6\% (95\% CI [16.7, 18.5], k=5) when compared to 0.7\% for the pattern matcher (representing 10-times over-reporting) and 0\% for CodeQL; in fact, according to the McNemar test (p$<$10−7), this result is noticeable. And yet, about 51.5\% of the time is being abstained by the evidence-based verifier and stops working to detect 79.1\% of the fixes; that's why, the primary issue isn't lack of sensitivity, but rather of silence.
-
-Abstention defined as the attack surface. Any evasion can be hit thanks to abstention instead of making false positives in case of attacks; indeed, nobody can trick a classifier with comment-stripping mitigation.
-
-Quantifiable leakage. After blanking the commit message, the detection reduces from 31.4 to 13.3\% (-18.1 percentage points): the commit message includes true labeling information, and the code itself is around 19 times more powerful compared to this tool.
-
-Composition changing trust surface. the introduction of weak classifiers as a second filtering step is decreasing the recall without making any enhancement; indeed, evidence filtering doesn't rack up any recall cost (3:4, p=1.0).
-
-A mistake finding in incorrect reading on the prescribed ground truth. What's more, the use of the scanning hint doesn't increase the number of held back cases. The analyzer has a recall of 0.905 and a precision of 0.734 when employing the OWASP Benchmark dataset including 2,740 labeled instances; still, the CIS doesn't refine the precision of the assessment as no model, either local 7B or cloud, rejects any false positive. Particular coverage is being needed by the verification process.
-
-Precision and cost are, taken into the account. When n = 151, the cost of assessing roughly by eight times is being lessened by the disabling of the thinking; the verifier has good exactness (0.9\% constant-side false positives), but lacks stable calibration (ECE 0.116; [0.106, 0.131].
-
-The paper mainly explores the extent of the proof, and so we consider it a advancement to measuring would-be effects rather than claiming them.
-
 \section{Background and Related Work}
 
 \subsection{LLM agents for vulnerability analysis}
@@ -134,7 +116,7 @@ reported metrics.}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{humanized_figs/img02}
+\includegraphics[width=0.78\columnwidth]{humanized_figs/img02}
 \caption{Four way decomposition of a revision pair. Vuln-only is detection only. Both hints that the verifier flagged a build which existed pre-fix and post-fix.}
 \end{figure}
 
@@ -146,7 +128,7 @@ Here are four arms that take same input; and thus, v1 (LLM, Ungated): the decisi
 
 \subsection{Bounded verdict request and proof gating}
 
-Store is always hidden from the model. Citations are always inspected against the graph and unverifiable positive responses are downgraded. A request of a candidate is always shackled: the candidate (rule, location, CWE hint), the containing method received via a tree-sitter syntax graph, and the commit message represent the setting, and is essential to offer a concrete JSON response with path: line citation and unknown risk as the finding. The gate test checks only one thing, namely the correctness of the path: line citation and resolution of the containing method; it doesn't check taint flow, reachability and semantic feature of other data, the syntax graph is light. As well, it isn't a dataflow engine (see Section VII); in turn, there's a reason why we never provide a whole file to assess.
+Store is always hidden from the model. Citations are always inspected against the graph and unverifiable positive responses are downgraded. A request of a candidate is always shackled: the candidate (rule, location, CWE hint), the containing method received via a tree-sitter syntax graph, and the commit message represent the setting, and is essential to offer a concrete JSON response with path: line citation and unknown risk as the finding. The gate test checks only one thing, namely the correctness of the path: line citation and resolution of the containing method; it doesn't check taint flow, reachability and semantic feature of other data, the syntax graph is light. As well, it isn't a dataflow engine (see Section VI); in turn, there's a reason why we never provide a whole file to assess.
 
 \subsection{Adversary}
 
@@ -162,21 +144,19 @@ Models. The 151 pair stratum runs are ran with mimo-v2.6-flash (k=5, cache disab
 
 Metrics \& Statistics. Each in turn model we introduce mean findings over 5 runs with 95\% bootstrap confidence interval; in fact, as, reasoning models are stochastic even at temperature of 0, the gathered span is also offered along with the confidence interval. Pairwise majority verdicts are checked against exact Mcnemar test on 151 pairs. Overreport appointed as
 
-Reproducibility. Control reproduction and running of the test itself can (in practice) be ran completely offline; all assets protected by hash (pinning file).
-
 \section{Results}
 
 \subsection{Verifier dependence}
 
 \begin{table}[t]
 \centering
-\includegraphics[width=\columnwidth]{humanized_figs/img04}
+\includegraphics[width=0.88\columnwidth]{humanized_figs/img04}
 \caption{Cross-family verdicts on 5 Python pairs / 3 canaries.}
 \end{table}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{humanized_figs/img03}
+\includegraphics[width=0.78\columnwidth]{humanized_figs/img03}
 \caption{On the five-pair Python stratum with three canaries (k=5), flip rate by model family.}
 \end{figure}
 
@@ -188,13 +168,13 @@ The chart is giving Table I a shape; three families sit at 100\% and two at 80\%
 
 \begin{table}[t]
 \centering
-\includegraphics[width=\columnwidth]{humanized_figs/img05}
+\includegraphics[width=0.88\columnwidth]{humanized_figs/img05}
 \caption{Verifier arms on the 151-pair security stratum (mimo-v2.6-flash, mean over k=5, 95\% CI; deterministic arms are a single run).}
 \end{table}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{humanized_figs/img07}
+\includegraphics[width=0.78\columnwidth]{humanized_figs/img07}
 \caption{Coverage gap: the share of fixes an strategy never reports (100\% minus the flip rate of Table II); and thus, v1g is, after all, the gated verifier.}
 \end{figure}
 
@@ -212,19 +192,19 @@ The price of gating is appearing here. What's more, on top of that, the two mode
 
 \begin{table}[t]
 \centering
-\includegraphics[width=\columnwidth]{humanized_figs/img08}
+\includegraphics[width=0.88\columnwidth]{humanized_figs/img08}
 \caption{Clashing counts are currently pair-majorities where only one arm flips, so Exact McNemar on majority verdicts, same 151 pairs.}
 \end{table}
 
 \begin{table}[t]
 \centering
-\includegraphics[width=\columnwidth]{humanized_figs/img10}
+\includegraphics[width=0.88\columnwidth]{humanized_figs/img10}
 \caption{Replication and leakage ablations on the legacy 21-pair subset (k=5, mimo-v2.6-flash unless observed).}
 \end{table}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{humanized_figs/img09}
+\includegraphics[width=0.78\columnwidth]{humanized_figs/img09}
 \caption{Label leakage on the legacy 21-pair subset (k=5): message visible, two controls, and the same pairs with the message blinded.}
 \end{figure}
 
@@ -236,13 +216,13 @@ Blinding the commit message settles the question. The same pairs fall from 31.4\
 
 \begin{table}[t]
 \centering
-\includegraphics[width=\columnwidth]{humanized_figs/img11}
+\includegraphics[width=0.88\columnwidth]{humanized_figs/img11}
 \caption{Evasion on the original 21-pair study (JavaVFC): template and adaptive attacks, with evasions split into false positives and abstentions.}
 \end{table}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{humanized_figs/img12}
+\includegraphics[width=0.78\columnwidth]{humanized_figs/img12}
 \caption{No false positive emerged in either arm. Comment stripping doesn't lower steering, including sources steered with comments intact (3/25) and with every comment removed (6/30).}
 \end{figure}
 
@@ -258,61 +238,37 @@ Stripping made steering more typical, not less, namely 12.0\% with comments and 
 
 \begin{table}[t]
 \centering
-\includegraphics[width=\columnwidth]{humanized_figs/img14}
+\includegraphics[width=0.88\columnwidth]{humanized_figs/img14}
 \caption{Calibration on the 151-pair stratum, mimo-v2.6-flash, k=5 mean [95\% CI] (six shards merged).}
 \end{table}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{humanized_figs/img13}
+\includegraphics[width=0.78\columnwidth]{humanized_figs/img13}
 \caption{Projected calibration error by setup (lower is generally better); the first bar is, after all, the worst legacy measurement probably, the last is the 151-pair result of Table VI.}
 \end{figure}
 
 The verifier is correct and badly adjusted. Across five runs on the 151 pairs it wrongly certifies, under 1\% of fixed revisions. Its ECE is 0.116 [0.106, 0.131] (Table VI), well below the 0.35 seen on the 21-pair subset but far from usable probabilities; it sits out on 51.5\% of requests and misses 79.1\% of fixes, so consistent, and too quiet to certify most repairs.
 
-\subsection{Cost}
-
-Output tokens carry about 91\% of the cost. At the top price point a gated verdict costs roughly \$0.0017, and caching removes nearly all of it when model, prompt and slice repeat. Reasoning is dominating the bill, and the one saving that costs accuracy is the one that removes it.
-
-Switching the reasoning trace off makes the pipeline about eight times cheaper, 121,596 to 5,271 output tokens for 42 verifications, and moves ECE from 0.153 to 0.207. false positives rise from 0\% to 9.5\%, so better setting and better indication buy coverage; more sampling doesn't. No configuration here's adjusted tightly enough for thresholded automation, namely with 51.5\% abstention, a threshold read from these curves would discard most of the stratum.
-
 \subsection{Detection effectiveness on a labelled benchmark}
-
-\begin{table}[t]
-\centering
-\includegraphics[width=\columnwidth]{humanized_figs/img16}
-\caption{A cache hit or a blind run can't echo the scanner's CWE hint; indeed, LLM verification on the matched Benchmark sample.}
-\end{table}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{humanized_figs/img15}
+\includegraphics[width=0.78\columnwidth]{humanized_figs/img15}
 \caption{Verification on the matched OWASP sample: true positives kept (bars) and the fate of the fifteen false positives (table); local and cloud verifiers, with and without the scanner hint.}
 \end{figure}
 
 We also ran the pipeline where ground truth exists, including the OWASP Benchmark for Java [19], 2,740 cases, 1,415 vulnerable and 1,325 safe; indeed, the pinned analyzer is strong there (recall 0.905, precision 0.734) and still raises false positives.
 
-A matched sample of fifteen true and fifteen false positives was re-judged with and without the scanner's rule, message and CWE hint (Table VII).
+A matched sample of fifteen true and fifteen false positives was re-judged with and without the scanner's rule, message and CWE hint.
 
 Two conclusions are following. Verification rejects almost no false positives - neither the local 7B nor the cloud model separates a close miss from a bug, so precision stays where the analyzer left it; blinding doesn't help either, namely without the hint, rejections don't rise, abstentions are growing and recall falls.
 
 The cloud verifier with the hint keeps 10 of 15 true positives and rejects 2 of 15 false positives, for precision 0.67; the local model is keeping 14 and rejects none, for 0.48; indeed, blinding hurts - dropping the rule, message and CWE hint halves kept true positives (14 to 7 locally, 10 to 5 in the cloud) and adds 14 and 9 abstentions out of 30. No arm is rejecting more than two of the fifteen, so none is separating a close miss from a bug; in fact, the hint is context the verifier needs, not a label it's repeating.
 
-\section{Discussion}
-
-But still, the obstacle is lying in the coverage; indeed, in our scaled test, the verifier is making false positives on less than 1\% of the fixes. Sitting out on half of all judgements, but its calibration can't be taken as trustworthy (ECE = 0.116); in turn, as well, it's stopping working to detect 79.1\% of the fixes. Precision-focused speedup of security software wouldn't even catch such an issue; and thus, we argue that abstention should be treated as a metric equal to precision and recall.
-
-The goal of an attack is mainly inaction. As, when there's insufficient proof, the verifier is already inactive, the attacker only is needing to create uncertainty about a possibility of using the vulnerability; completely, the issue is turning from adversarial strength of verification into the defense mechanisms.
-
-The trust is translated among them by combining processes, and in this one, trusting a claim that has been confirmed is elementary and profitable, yet trusting verification based on agreement with a less consistent verifier is problematic, since it brings along its weaknesses. Adding more verifiers doesn't help solving this roadblock either.
-
-Design considerations. Three rules follow. (i) Score the fix, not the sample: evaluate a verdict by whether it moves with the code change. (ii) Make abstention visible: report the fraction of findings a verifier declined to decide, because that is where adversarial effort concentrates. (iii) Prefer grounding to consensus: require a verdict to answer for itself with resolvable evidence rather than adding another model whose agreement may only import a shared blind spot.
-
-A Real Issue. The reasoning model verifier degrades to "always abstain" as soon as a token count runs out (finish reason=length, empty content). If there's no breakdown, it will be impossible to distinguish this from the case of having no verdict at all; this model is included in our overview, because it's the only one on which we had a failed experiment.
-
 \section{Threats to Validity}
 
-Scale. The scale of examination comprises 151 pairs of security problems in one corpus; in the cross-lingual experiment, five pairs of security problems were assessed, which made the cross-family investigation directional concerning the aim of the research. Labels. JavaVFC corpus served as the screening corpus: the previously ran audit revealed that only 18\% of the corpus really fixed. Input shape. Every revision is the individual record, which counts as the minimum of complexity for the methods employed to detect types of revisions and patterns. Evidence graph. Gating is using tree-sitter graph instead of sound dataflow engine, and, therefore, it can prove only the existence of the mentioned path/line and not the existence of the taint flow. Non-determinism. k=5 bootstrap ranges are showed. Reasoning models differ between runs at zero temperature; the average flip rate for five repeats for the legacy subset ranged from 28.6\% to 38.1\%.
+Scale. The scale of examination comprises 151 pairs of security problems in one corpus; in the cross-lingual experiment, five pairs of security problems were assessed, which made the cross-family investigation directional concerning the aim of the research. Labels. JavaVFC corpus served as the screening corpus: the previously ran audit revealed that only 18\% of the corpus really fixed. Input shape. Every revision is the individual record, which counts as the minimum of complexity for the methods employed to detect types of revisions and patterns. Evidence graph.
 
 \section{Conclusion and Future Work}
 
@@ -320,7 +276,7 @@ LLM security verifiers are much better than pattern matching and CodeQL, when it
 
 
 \begin{thebibliography}{20}
-\footnotesize
+\scriptsize
 \setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}
 \bibitem{r1} Y. Li, T. Zhang, J. Liu et al., "Graph Is the Verifier: Agentic Reinforcement Learning for Interprocedural Vulnerability Detection," arXiv preprint arXiv:2607.26656, 2026.
 \bibitem{r2} S. Vijay, A. Priyanshu, D. Chapoteau et al., "Antares: Foundation Models for Agentic Vulnerability Localization," arXiv preprint arXiv:2608.02407, 2026.
