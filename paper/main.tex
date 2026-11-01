@@ -17,9 +17,42 @@
 
 \title{Measuring LLM Security Verdicts: Coverage, Abstention,\\ and Adversarial Suppression}
 
-\author{\IEEEauthorblockN{Author Name}
-\IEEEauthorblockA{Independent Researcher\\
-Email: author@example.org}}
+\author{%
+\IEEEauthorblockN{S.V.Divya}
+\IEEEauthorblockA{Department of CSE,\\
+K.P.R College of Engineering\\
+and Technology,\\
+Coimbatore-642109.\\
+divyasvvsb@gmail.com}
+\and
+\IEEEauthorblockN{R Harshan}
+\IEEEauthorblockA{Department of CSE,\\
+K.P.R College of Engineering\\
+and Technology,\\
+Coimbatore-642109.\\
+harshanr695@gmail.com}
+\and
+\IEEEauthorblockN{P.M Akhil Jeikar}
+\IEEEauthorblockA{Department of CSE,\\
+K.P.R College of Engineering\\
+and Technology,\\
+Coimbatore-642109.\\
+akhiljeikar06@gmail.com}
+\and
+\IEEEauthorblockN{T Ezhilperungo}
+\IEEEauthorblockA{Department of CSE,\\
+K.P.R College of Engineering\\
+and Technology,\\
+Coimbatore-642109.\\
+ezhilperungotamizhazhagan@gmail.com}
+\and
+\IEEEauthorblockN{M Gurunathan}
+\IEEEauthorblockA{Department of CSE,\\
+K.P.R College of Engineering\\
+and Technology,\\
+Coimbatore-642109.\\
+gurunathanmofficial@gmail.com}
+}
 
 \maketitle
 
@@ -30,25 +63,27 @@ is real. Whether such a verdict can be trusted is rarely measured. We adapt the
 \emph{four-way decomposition}---an instrument previously used to show that static
 analyzers flag constructs rather than vulnerabilities---to LLM verifiers and extend
 it with evidence gating, an adversarial comment attack, a composition study, and a
-calibration analysis. On a 21-pair real-fix security subset, an evidence-grounded
-verifier tracks the fix far more often than the pattern matcher it is meant to
-replace (30.5\%, 95\% CI [22.9,37.1], vs.\ 4.8\%) and does not over-report, but it
-abstains on 49\% of judgements and misses 69\% of genuine fixes. Its bottleneck is
-therefore \emph{coverage}, not accuracy. On a labelled benchmark the verifier does
-not improve on the analyzer's precision (at most 2 of 15 false positives rejected),
-and a cross-language check confirms the verdict itself is verifier-dependent. Adversarial comments evade 26\% (fixed
-templates) to 50\% (an adaptive attacker), and nearly every successful evasion is
-an \emph{abstention} rather than a false positive: an attacker need only make the
-verifier unsure, not wrong. Composing the LLM with a weaker deterministic verifier
-\emph{relocates} trust rather than adding it---grounding a claim helps at no recall
-cost, while requiring consensus loses recall for no gain. Our scaled evidence is a
-single 21-pair subset with one model family at $k{=}5$, and we state this plainly.
-We release a reproducible harness and argue that abstention and coverage should be
-reported as first-class outcomes of security agents.
+calibration analysis. On a 151-pair real-fix security stratum from JavaVFC, an
+evidence-grounded verifier tracks the fix on 17.6\% of pairs (95\% CI [16.7,18.5],
+$k{=}5$) against 0.7\% for the pattern matcher it is meant to replace and 0\% for
+CodeQL, with exact McNemar $p{<}10^{-7}$ against both---yet it abstains on 51.5\%
+of judgements and misses 79.1\% of genuine fixes, so its bottleneck is
+\emph{coverage}, not accuracy. Gating costs no recall (3:4, $p{=}1.0$) and removes
+ungrounded positives; a blinded-message ablation shows the commit message leaks
+$-18.1$ points of detection, an LLM still detects ${\sim}19\times$ the tool on
+code alone. Adversarial comments evade 12--20\%, every successful evasion is an
+\emph{abstention} rather than a false positive, and stripping comments does not
+help: an attacker need only make the verifier unsure, not wrong. Calibration at
+scale is mediocre (ECE 0.116) and accuracy on a labelled benchmark does not
+improve over the analyzer. Our scaled evidence spans one model family on the
+stratum plus a cross-family replication on the legacy subset, and we state the
+remaining limits plainly. We release a reproducible harness and argue that
+abstention and coverage should be reported as first-class outcomes of security
+agents.
 \end{abstract}
 
 \begin{IEEEkeywords}
-abstention, adversarial robustness, calibration, code property graphs,
+abstention, adversarial robustness, calibration, syntax graphs,
 evidence grounding, large language models, program analysis, selective
 prediction, static analysis, vulnerability verification.
 \end{IEEEkeywords}
@@ -66,7 +101,7 @@ That question is harder than it looks. A model can be right about the code and
 wrong about the vulnerability: it can flag a dangerous-looking construct that the
 patch did not touch, agree that a benchmark sample is vulnerable without reasoning
 about the vulnerability, or become confident on inputs unlike its training
-distribution. For a static analyzer, the companion study behind this work showed
+distribution. For a static analyzer, \emph{our companion study} showed
 that the fraction of commits whose verdict \emph{moves with a fix} can be two
 orders of magnitude below its benchmark true-positive rate, and introduced the
 \emph{four-way decomposition} to make that gap visible \cite{sastaudit}. We ask the
@@ -85,35 +120,43 @@ it fails when it does not, and how it behaves under composition and an adversary
 
 \noindent\textbf{Contributions.}
 \begin{itemize}
-\item \textbf{An instrument.} We apply the four-way decomposition to LLM verifiers,
-gate every verdict on machine-checkable evidence, and report the coverage of the
-process. The harness, corpora, and pinned analyzers are released.
+\item \textbf{An instrument.} We give the first systematic application of the
+four-way decomposition --- introduced in our companion study for static
+analyzers \cite{sastaudit} --- to LLM verifiers, gate every verdict on
+machine-checkable evidence, split adversarial evasion by outcome
+(false positive vs.\ abstention), and report the coverage of the process.
+The harness, corpora, and pinned analyzers are released.
 \item \textbf{A coverage-bound finding.} An evidence-grounded verifier tracks the
-fix far more often than a pattern matcher (30.5\%, 95\% CI [22.9,37.1], vs.\ 4.8\%)
-and does not over-report ($1.0\times$ vs.\ $6.0\times$), but abstains on 49\% of
-judgements and misses 69\% of genuine fixes. Its bottleneck is \emph{silence}, not
-error---a profile that precision-only evaluation cannot see.
-\item \textbf{Abstention as the attack surface.} Under adversarial comments, almost
-every successful evasion is an abstention rather than a false positive; an adaptive
-(LLM-authored, iterative) attacker reaches 50\% evasion against 26\% for fixed
-templates.
-\item \textbf{Composition relocates trust.} Evidence grounding removes an ungrounded
-positive at no recall cost; requiring agreement with a weaker deterministic verifier
-loses recall and gains nothing.
+fix 17.6\% of the time (95\% CI [16.7,18.5], $k{=}5$) against 0.7\% for the pattern
+matcher (which over-reports $10\times$) and 0\% for CodeQL---exact McNemar
+$p{<}10^{-7}$ against both---yet it abstains on 51.5\% of judgements and misses
+79.1\% of genuine fixes. Its bottleneck is \emph{silence}, not error---a profile
+that precision-only evaluation cannot see.
+\item \textbf{Abstention as the attack surface.} Under adversarial comments, every
+successful evasion is an abstention rather than a false positive; stripping
+comments as a mitigation does not reduce evasion. An attacker need only make the
+verifier unsure, not wrong.
+\item \textbf{Leakage is measurable.} Blanking the commit message drops detection
+on the same pairs from 31.4\% to 13.3\% ($-18.1$ points): the message is a real
+label channel, and code alone still detects ${\sim}19\times$ the tool.
+\item \textbf{Composition relocates trust.} Evidence gating costs no recall
+(3:4, $p{=}1.0$) and marginally removes ungrounded positives; requiring agreement
+with a weaker deterministic verifier loses recall and gains nothing.
 \item \textbf{A negative result on labelled ground truth.} On OWASP Benchmark
 (2{,}740 labelled cases) the analyzer reaches recall 0.905 / precision 0.734, but
 the LLM verifier does not improve precision: in a matched sample neither a local
 7B nor a cloud model rejects false positives (0--2 of 15), and blinding the
 scanner hint only raises abstention. Verification is coverage-bound.
-\item \textbf{Calibration and cost.} The verifier is precise (0\% fixed-side false
-positives in every repeat) but not reliably calibrated (ECE 0.07--0.35 across
-repeats); disabling model thinking cuts cost ${\sim}8\times$ at a measured precision
-cost, and a content-addressed verdict cache removes 100\% of repeat cost.
+\item \textbf{Calibration and cost.} At $n{=}151$ the verifier is nearly precise
+(0.9\% fixed-side false positives) but not reliably calibrated (ECE 0.116
+[0.106, 0.131]); disabling model thinking cuts cost ${\sim}8\times$ at a measured
+precision cost, and a content-addressed verdict cache removes 100\% of repeat
+cost.
 \end{itemize}
 
-We are explicit that the scaled evidence is small (Section~\ref{sec:threats}) and
-treat the paper as a measurement-methodology contribution rather than a claim of a
-large effect.
+We are explicit about what the scaled evidence does and does not cover
+(Section~\ref{sec:threats}) and treat the paper as a measurement-methodology
+contribution rather than a claim of a large effect.
 
 \section{Background and Related Work}
 \subsection{LLM agents for vulnerability analysis}
@@ -171,7 +214,7 @@ labels \cite{arp2022dos}---and vulnerability datasets in particular are noisy
 \cite{croft2023data}. Classical and learned vulnerability detectors and their
 limits are well studied \cite{zhou2019devign,chakraborty2022deep,
 ding2025vulnerability}. The OWASP Benchmark is the standard scanner yardstick
-\cite{owaspbench}; the companion study showed its score is not well defined and does
+\cite{owaspbench}; our companion study showed its score is not well defined and does
 not predict real detection, and introduced the four-way decomposition
 \cite{sastaudit}. We extend \cite{sastaudit} from static tools to LLM verifiers.
 
@@ -213,7 +256,7 @@ then decomposed and summarised. An adversary can inject comments before verifica
 ]
 \node[io]   (rev)   at (0,0)     {Revision pair\\ vulnerable $+$ fixed};
 \node[proc] (an)    at (0,-1.3)  {Analyzer (opengrep, pinned rules)};
-\node[proc] (req)   at (0,-2.6)  {Bounded verdict request\\ candidate $+$ CPG slice $+$ message};
+\node[proc] (req)   at (0,-2.6)  {Bounded verdict request\\ candidate $+$ syntax slice $+$ message};
 \node[ver]  (judge) at (0,-3.9)  {LLM verifier with evidence gating\\ V1 $\rightarrow$ V1g};
 \node[proc] (comp)  at (0,-5.2)  {Composition with deterministic tool\\ V5 $=$ V1g $\wedge$ V2};
 \node[proc] (dec)   at (0,-6.5)  {Four-way decomposition\\ both / vuln-only / fixed-only / neither};
@@ -232,8 +275,8 @@ then decomposed and summarised. An adversary can inject comments before verifica
 \draw[ar]  (tool.west)--(comp.east);
 \end{tikzpicture}
 \caption{RewardAudit architecture. A revision pair is scanned by a pinned analyzer;
-each candidate is turned into a bounded verdict request over a tree-sitter code
-property graph and the commit message. The verifier must ground its verdict in
+each candidate is turned into a bounded verdict request over a tree-sitter syntax
+graph and the commit message. The verifier must ground its verdict in
 resolvable evidence (V1$\rightarrow$V1g). An adversary (dashed) can inject comments
 before verification, and a deterministic tool can be composed with the verifier.
 Verdicts on the two revisions feed the four-way decomposition, which yields the
@@ -248,7 +291,13 @@ four cells (Fig.~\ref{fig:cells}). Only \emph{vuln-only} is evidence of detectio
 the fix, so its verdict could not have been about the vulnerability. From the cells
 we derive the \emph{flip rate} (vuln-only fraction), the \emph{naive coverage}
 (fraction flagged on the vulnerable revision), and their ratio, the \emph{over-report
-factor}.
+factor},
+\begin{equation}
+\text{over-report} = \frac{\text{naive coverage}}{\text{flip rate}}
+                    = \frac{\text{both} + \text{vuln-only}}{\text{vuln-only}},
+\end{equation}
+so ``over-reports $6\times$'' means six findings on the vulnerable side for
+every one that tracks the fix.
 
 \begin{figure}[t]
 \centering
@@ -287,11 +336,16 @@ syntax node, or a positive verdict is downgraded to \emph{unknown}.
 \subsection{Bounded verdict request and evidence gating}
 The model never sees a repository. For a candidate it receives a bounded request:
 the candidate (rule, location, CWE hint), the enclosing function extracted from a
-tree-sitter code property graph, and the commit message as legitimate context. It
+tree-sitter syntax graph, and the commit message as legitimate context. It
 must respond with a strict JSON verdict, cite \code{path:line} references, and may
 answer \code{unknown\_risk}. Each reference is resolved against the graph; an
-unverifiable positive is downgraded. We deliberately never feed whole files by
-default, since that is the strawman this measurement is meant to beat.
+unverifiable positive is downgraded. Gating checks exactly one thing: that the
+cited \code{path:line} exists and the enclosing function resolves. It does
+\emph{not} verify taint flow, reachability, or any semantic property of the
+data --- a lightweight syntax graph is not a dataflow engine, and we do not
+pretend otherwise (Section~\ref{sec:threats}). We deliberately never feed
+whole files by default, since that is the strawman this measurement is meant
+to beat.
 
 \subsection{Adversary}
 \emph{Templates:} five plausible comment strategies (authority, sanitizer,
@@ -321,28 +375,45 @@ miss on a fixed-side test.
 
 \section{Experimental Setup}
 \label{sec:setup}
-\textbf{Corpora.} (i) 21 Java security-fix pairs drawn from JavaVFC \cite{javavfc}
-(784 commits; 327 usable single-file; 207 materialised offline; the strong-security
-subset used here is 21). (ii) 5 hand-built Python vulnerable/fixed pairs and 3
-canaries. (iii) The prior study's 21-file Java control set (18 vulnerable, 3 safe)
-\cite{sastaudit}. Each revision is presented as an isolated file; the commit message
-is supplied as candidate context, as a bug report would be.
+\textbf{Corpora.} (i) JavaVFC \cite{javavfc} (784 commits; 327 usable
+single-file; 324 materialised offline) screened to a \emph{security stratum of
+151 revision pairs}: a security keyword in the commit \emph{subject} plus a
+second out-of-band match (screen version recorded in the manifest), built as a
+running-100 census plus a 51-pair extension. Every stratum result below uses
+these 151 pairs unless noted. The hand-picked strong-security subset of 21 pairs
+from our companion study \cite{sastaudit} is retained for cross-family
+replication and for comparison with the original $k{=}5$ measurement. (ii) 5
+hand-built Python vulnerable/fixed pairs and 3 canaries. (iii) The prior study's
+21-file Java control set (18 vulnerable, 3 safe) \cite{sastaudit}. Each revision
+is presented as an isolated file; the commit message is supplied as candidate
+context, as a bug report would be, and is removed only in the blinded-message
+ablation.
 
 \textbf{Analyzers.} opengrep 1.30.0 with the prior study's pinned 690-rule Java
 ruleset (sha256 \code{77df32e0\dots}) and a minimal 5-rule Python ruleset.
+CodeQL 2.27.0 with the \code{java-security-extended} suite runs per pair (both
+revisions in an isolated no-build database); a whole-directory database is
+inapplicable on this corpus---the javac extractor is OOM-killed at ${\sim}300$
+files---and we validated the per-pair adapter by reproducing the prior study's
+finding on a known pair.
 
 \textbf{Models.} Five families via an OpenAI-compatible API: \code{gpt-oss-120b},
-\code{gpt-oss-20b}, \code{qwen3.8-27b}, \code{deepseek-flash}, \code{deepseek-v4-pro}.
-The scaled JavaVFC run uses \code{deepseek-flash} ($k{=}5$, verdict cache disabled);
-the remaining families are checked on the 5-pair Python set.
+\code{gpt-oss-20b}, \code{qwen3.8-27b}, \code{deepseek-flash},
+\code{deepseek-v4-pro}. The 151-pair stratum runs use \code{mimo-v2.6-flash}
+($k{=}5$, verdict cache disabled); the legacy 21-pair subset is run with both
+\code{mimo-v2.6-flash} and \code{deepseek-flash} ($k{=}5$ each) for the
+cross-family replication; the remaining families are checked on the 5-pair
+Python set.
 
-\textbf{Metrics and statistics.} For the scaled arm we report the mean over $k{=}5$
+\textbf{Metrics and statistics.} For each arm we report the mean over $k{=}5$
 independent runs with 95\% bootstrap intervals; because reasoning models are
-non-deterministic even at temperature 0, we report the observed range alongside the
-interval. We use the exact McNemar test for paired comparisons on the same pairs.
+non-deterministic even at temperature 0, we report the observed range alongside
+the interval. Per-pair majority verdicts are compared with the exact McNemar
+test on the same 151 pairs. Over-report is
+$(\text{both}+\text{vuln\_only})/\text{vuln\_only}$.
 
 \textbf{Reproducibility.} All assets are pinned by hash (\code{pins.json}); the
-control reproduction and the Python-pair measurement run fully offline; 125 unit and
+control reproduction and the Python-pair measurement run fully offline; 158 unit and
 integration tests accompany the harness.
 
 \section{Results}
@@ -354,9 +425,10 @@ flipped on 4/5 pairs and flagged a safe canary; \code{gpt-oss-20b} and \code{qwe
 and \code{deepseek-flash} flipped on 5/5 with one family showing a canary false
 positive; \code{deepseek-v4-pro} abstained on one vulnerable revision. The result is
 verifier-dependent---the phenomenon the instrument is designed to expose. The same
-holds at scale: within the single family we repeated five times, the flip rate spans
-19.0--42.9\% across runs (Section~\ref{sec:threats}), so even one model does not have
-a stable point value.
+holds at scale: within one configuration repeated five times on the stratum, the
+flip rate's 95\% interval is [16.7, 18.5]\% while the legacy 21-pair subset spans
+28.6--38.1\% across runs (Section~\ref{sec:threats}), so even one model does not
+have a stable point value.
 
 \begin{table}[t]
 \centering
@@ -376,53 +448,124 @@ deepseek-v4-pro & 80\% & 0 & 0/3 (1 abstain) \\
 \end{tabular}
 \end{table}
 
-\subsection{LLM versus pattern matcher, and composition}
-The tool is the weakest arm: it flags the same construct on both revisions in 5 of
-21 pairs, so it over-reports $6.0\times$ its flip rate (Table~\ref{tab:arms}). The
-evidence-gated LLM tracks the fix far more often---30.5\% [22.9,37.1] over five runs
-(E0) vs.\ the tool's 4.8\%---and, unlike the tool, never over-reports (0 \emph{both}
-in every run). In a single-run ablation, removing evidence gating admits one
-\emph{both} (an ungrounded positive), and requiring agreement with the tool (V5)
-loses a flip without removing any \emph{both}: the weaker verifier's blind spot
-becomes the composition's blind spot. Grounding a claim is the arm that helps;
-consensus with a weaker tool is not.
+\subsection{LLM versus pattern matcher and CodeQL, and composition}
+The deterministic baselines barely track the fix at all. On the 151-pair stratum
+the pattern matcher flips on 0.7\% of pairs (1/151) while flagging both
+revisions on 9 more, so it over-reports $10\times$ its flip rate; CodeQL flips on
+\emph{none} (0/151). The evidence-gated LLM tracks the fix on 17.6\%
+[16.7,18.5] over five runs---$25\times$ the tool, where CodeQL is zero---and,
+unlike the tool, essentially never over-reports (1.02$\times$).
+Table~\ref{tab:arms} summarises the arms;
+Table~\ref{tab:mcnemar} gives the exact paired tests: both baselines are
+defeated at $p{<}10^{-7}$, and the ungated arm matches them
+too, so the finding is about the LLM, not the gate.
 
 \begin{table}[t]
 \centering
-\caption{Verifier arms on the 21 JavaVFC security pairs (\code{deepseek-flash}).
-V1g is the E0 measurement (mean, 95\% CI, $k{=}5$); the other LLM arms are a single
-run and are shown for the ablation only. The tool is deterministic.}
+\caption{Verifier arms on the 151-pair security stratum
+(\code{mimo-v2.6-flash}, mean over $k{=}5$, 95\% CI; deterministic arms are a
+single run). Over-report $=(\text{both}+\text{vuln\_only})/\text{vuln\_only}$.}
 \label{tab:arms}
-\small
-\begin{tabular}{@{}lcc@{}}
+\scriptsize
+\begin{tabular}{@{}lccc@{}}
 \toprule
-Arm & flip rate & over-report \\
+Arm & flip rate & coverage & over-report \\
 \midrule
-V2 tool (deterministic) & 4.8\% & 6.0$\times$ \\
-V1 ungated (1 run) & 19.0\% & 1.25$\times$ \\
-V1g gated ($k{=}5$) & \textbf{30.5\%} [22.9, 37.1] & 1.00$\times$ \\
-V5 hybrid (1 run) & 14.3\% & 1.00$\times$ \\
+V3 CodeQL & 0.0\% & 0.0\% & --- \\
+V2 tool & 0.7\% & 6.6\% & 10.0$\times$ \\
+V1 ungated & 18.3\% [16.8, 19.5] & 18.8\% & 1.03$\times$ \\
+V1g gated & \textbf{17.6\%} [16.7, 18.5] & 18.0\% & 1.02$\times$ \\\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Exact McNemar on majority verdicts, same 151 pairs. Discordant counts
+are pair-majorities where only one arm flips.}
+\label{tab:mcnemar}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Comparison & only A / only B & agree & $p$ \\
+\midrule
+V1g vs.\ V2 tool & 24 / 0 & 127 & $6\times10^{-8}$ \\
+V1g vs.\ V3 CodeQL & 25 / 0 & 126 & $6\times10^{-8}$ \\
+V1 vs.\ V2 tool & 25 / 0 & 126 & $6\times10^{-8}$ \\
+V1 vs.\ V3 CodeQL & 26 / 0 & 125 & $3\times10^{-8}$ \\
+V1g vs.\ V1 ungated & 3 / 4 & 144 & 1.0 \\
+V2 tool vs.\ V3 CodeQL & 1 / 0 & 150 & 1.0 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+Gating is an honest null: 3:4, $p{=}1.0$---it costs no recall and marginally
+reduces ungrounded positives (0.8$\to$0.6 per run). The gate's value is not
+accuracy but that every accepted verdict answers for itself. The composition
+ablation points the same way: on the legacy subset, requiring consensus with the
+tool (V5) loses a flip without removing any \emph{both}---the weaker verifier's
+blind spot becomes the composition's---while grounding a claim is free.
+
+\textbf{CodeQL as a baseline.} CodeQL is the reviewers' requested taint-analysis
+arm. A whole-directory no-build database is invalid on this corpus (the javac
+extractor is OOM-killed; retries yield a valid \emph{empty} SARIF---a silent
+clean), so we run the prior study's per-pair method, whose adapter we validated
+by reproducing its known finding (\code{java/sensitive-log}, CWE-532, on
+\code{efaa120ecc0d}). Across all 151 pairs CodeQL reports zero findings in the
+\emph{vulnerable} file of any pair (and 22 with findings only in the fixed
+file), against the prior study's independent 0/32---under no-build isolated-file
+conditions, deterministic taint analysis contributes no signal on this corpus
+that the LLM verifier can be gated against.
 
 \begin{figure}[t]
 \centering
 \begin{tikzpicture}[font=\scriptsize, x=1cm, y=1cm]
 \draw[-{Stealth[length=1.4mm]}] (0,0) -- (0,3.8);
 \draw (0,0) -- (6.4,0);
-\foreach \x/\v/\lab in {0.7/4.8/{tool}, 2.2/19.0/{ungated}, 4.0/30.5/{gated}, 5.4/14.3/{hybrid}} {
-  \pgfmathsetmacro{\hh}{\v*0.11}
+\foreach \x/\v/\lab in {0.7/0.7/{tool}, 2.2/18.3/{ungated}, 4.0/17.6/{gated}, 5.4/0.0/{codeql}} {
+  \pgfmathsetmacro{\hh}{max(\v*0.11,0.02)}
   \draw[fill=blue!22,draw] (\x,0) rectangle (\x+0.95,\hh);
   \node[above] at (\x+0.475,\hh) {\v};
   \node[align=center] at (\x+0.475,-0.2) {\lab};
 }
 \node[rotate=90,align=center] at (-0.55,1.9) {flip rate (\%)};
 \end{tikzpicture}
-\caption{Flip rate by verifier arm. The deterministic tool is the weakest tracker
-even though it flags on both revisions $6\times$ as often as it flips.}
+\caption{Flip rate by verifier arm on the 151-pair stratum. The deterministic
+arms barely move: the tool flips once (and over-reports $10\times$), CodeQL
+never.}
 \label{fig:arms}
 \end{figure}
+
+\subsection{Replication and label leakage}
+Two ablations separate \emph{sample}, \emph{family}, and \emph{leakage} effects
+on the legacy 21-pair subset (Table~\ref{tab:repl}). First, the same model on
+the same 21 hand-picked pairs flips at 31.4\% (range 28.6--38.1), against
+17.6\% on the 151-pair census: the drop is a \emph{sample} effect, not a model
+change. Second, \code{deepseek-flash} on those same 21 pairs flipped at 30.5\%
+[22.9,37.1] in the original measurement---two families agree to within one pair,
+so the family effect is small and the sample effect dominates. Third, blanking
+the commit message (the blinded-message ablation) drops the same pairs from
+31.4\% to 13.3\% (range 4.8--19.0): $-18.1$ points, or $-58\%$ relative. The
+commit message is a real label channel. Code-only detection (13.3\%) is still
+${\sim}19\times$ the pattern matcher's 0.7\%.
+
+\begin{table}[t]
+\centering
+\caption{Replication and leakage ablations on the legacy 21-pair subset
+($k{=}5$, \code{mimo-v2.6-flash} unless noted).}
+\label{tab:repl}
+\footnotesize
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Configuration & flip rate & range \\
+\midrule
+with commit message & 31.4\% & 28.6--38.1\% \\
+without message & 13.3\% & 4.8--19.0\% \\
+\code{deepseek-flash} (E0, same pairs) & 30.5\% & [22.9, 37.1] \\
+\midrule
+151-pair stratum (contrast) & 17.6\% & [16.7, 18.5] \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Adversarial comments}
 Two attack strategies were tested: fixed templates and an adaptive attacker
@@ -434,10 +577,24 @@ roughly doubles evasion relative to templates. This is the security consequence 
 the coverage finding above: a defense that only suppresses false positives leaves
 the dominant path open.
 
+\textbf{A mitigation that does not help.} As a defense against comment-based
+steering we strip all comments from the judged source (line-preserving,
+tree-sitter). On the stratum subset the strip did not reduce evasion---12\%
+(3/25) with comments present vs.\ 20\% (6/30) stripped---and every evasion in
+both arms was again an \emph{abstention} (false positives 0). We report this as
+a negative result with a stated confound: the two arms' baseline true-positive
+sets differed (5 vs.\ 6) because a temperature-0 reasoning model is
+self-inconsistent across runs on these pairs, so the comparison is not fully
+paired. The honest conclusion is that input sanitization of comments is not
+shown to defend against the abstention attack; the threat model
+(Section~\ref{sec:threatmodel}) treats abstention as the asset to protect.
+
 \begin{table}[t]
 \centering
-\caption{Evasion. JavaVFC templates: baseline 7/21 true positives; adaptive:
-baseline 6/21, attacker \code{deepseek-v4-pro} vs.\ judge \code{deepseek-flash}.}
+\caption{Evasion on the original 21-pair study. JavaVFC templates: baseline 7/21
+true positives; adaptive: baseline 6/21, attacker \code{deepseek-v4-pro} vs.\
+judge \code{deepseek-flash}. Stratum-scale attack and mitigation results are
+discussed above.}
 \label{tab:evasion}
 \small
 \begin{tabular}{@{}lccc@{}}
@@ -479,27 +636,31 @@ attacker only has to make the verifier unsure, not wrong.}
 \end{figure}
 
 \subsection{Calibration and coverage}
-The verifier is precise but poorly calibrated: over five repeated runs with the
-cache disabled (Table~\ref{tab:calib}), it never false-positives on the fixed side,
-yet its ECE ranges 0.07--0.35. It abstains on half the judgements and misses most
-fixes. The verifier is therefore trustworthy \emph{when it commits}---but the
-coverage is low enough that most real fixes are not certified by it at all.
+The verifier is nearly precise but poorly calibrated: over five repeated runs on
+the 151-pair stratum (Table~\ref{tab:calib}), it false-positives on under 1\% of
+fixed revisions, yet its ECE is 0.116 [0.106, 0.131]---better than the
+worst values of the original 21-pair measurement (up to 0.35) but still far from
+a calibrated probability. It abstains on 51.5\% of the judgements and misses
+79.1\% of genuine fixes. The verifier is therefore trustworthy \emph{when it
+commits}---but the coverage is low enough that most real fixes are not
+certified by it at all.
 
 \begin{table}[t]
 \centering
-\caption{Calibration on 21 pairs, \code{deepseek-flash}, $k{=}5$ mean [95\% CI].}
+\caption{Calibration on the 151-pair stratum, \code{mimo-v2.6-flash},
+$k{=}5$ mean [95\% CI] (six shards merged).}
 \label{tab:calib}
 \small
 \begin{tabular}{@{}lc@{}}
 \toprule
 Metric & Mean [95\% CI] \\
 \midrule
-abstention rate & 49.0 [44.3, 53.8] \\
-detection (recall on vuln revision) & 31.4 [27.6, 35.2] \\
-false-negative rate & 68.6 [64.8, 72.4] \\
-fixed-side false-positive rate & 0.0 [0.0, 0.0] \\
-accuracy (scored) & 73.5 [66.1, 81.8] \\
-ECE & 0.206 [0.128, 0.293] \\
+abstention rate & 51.5 [48.5, 54.4] \\
+detection (recall on vuln revision) & 20.9 [19.1, 22.8] \\
+false-negative rate & 79.1 [77.2, 80.9] \\
+fixed-side false-positive rate & 0.9 [0.3, 1.6] \\
+accuracy (scored) & 73.9 [72.1, 76.4] \\
+ECE & 0.116 [0.106, 0.131] \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -511,11 +672,11 @@ ECE & 0.206 [0.128, 0.293] \\
 \draw (0,0) -- (7.3,0);
 % scale: 0.042 cm per percent
 \foreach \x/\v/\lab/\col in {%
-  0.5/49.0/{abstain}/orange!45,%
-  1.9/31.4/{detect}/green!35,%
-  3.3/68.6/{FN rate}/red!35,%
-  4.7/0.0/{fixed FP}/blue!25,%
-  6.1/73.5/{accuracy}/gray!35} {
+  0.5/51.5/{abstain}/orange!45,%
+  1.9/20.9/{detect}/green!35,%
+  3.3/79.1/{FN rate}/red!35,%
+  4.7/0.9/{fixed FP}/blue!25,%
+  6.1/73.9/{accuracy}/gray!35} {
   \pgfmathsetmacro{\hh}{\v*0.042}
   \draw[fill=\col,draw] (\x,0) rectangle (\x+0.95,\hh);
   \node[above] at (\x+0.475,\hh) {\v};
@@ -523,9 +684,9 @@ ECE & 0.206 [0.128, 0.293] \\
 }
 \node[rotate=90,align=center] at (-0.55,1.85) {percent (\%)};
 \end{tikzpicture}
-\caption{Calibration and coverage (mean over five runs). The verifier is precise
-(0\% fixed-side false positives) yet abstains on half the inputs and misses most
-fixes; ECE is 0.206 [0.128, 0.293].}
+\caption{Calibration and coverage on the stratum (mean over five runs). The
+verifier is nearly precise (0.9\% fixed-side false positives) yet abstains on
+half the inputs and misses most fixes; ECE is 0.116 [0.106, 0.131].}
 \label{fig:calib}
 \end{figure}
 
@@ -596,10 +757,11 @@ evidence (a sanitizer) from the bounded slice. Error gating aside, verification
 here is coverage-bound and adds nothing over the analyzer.
 
 \section{Discussion}
-\textbf{The bottleneck is coverage.} Across the scaled run the verifier never
-false-positives on the fixed side and abstains on half of all judgements, but its
-confidence is not reliably calibrated (ECE 0.07--0.35) and it misses most fixes.
-Optimising a security agent for precision alone would miss this entirely. We argue
+\textbf{The bottleneck is coverage.} Across the scaled run the verifier
+false-positives on under 1\% of fixed revisions and abstains on half of all
+judgements, but its confidence is not reliably calibrated (ECE 0.116) and it
+misses 79.1\% of fixes. Optimising a security agent for precision alone would
+miss this entirely. We argue
 abstention should be reported as a first-class outcome alongside precision and
 recall, and that a verifier which silently declines most inputs is not ``accurate''
 in any deployment sense.
@@ -630,28 +792,65 @@ the strength of the evidence a model can already produce.
 (\code{finish\_reason}=length, empty content). Without the decomposition this is
 indistinguishable from a null result. We report it because it cost us a run.
 
+\section{Threat Model}
+\label{sec:threatmodel}
+\textbf{Assets.} The verdicts. A verifier sits on the gate between a warning
+and a fix, so the assets are (i) the \emph{integrity} of a verdict --- it must
+track the vulnerability, not the surrounding prose --- and (ii) its
+\emph{availability} --- a verdict that silently abstains is a verdict that does
+not gate anything.
+
+\textbf{Adversary.} Anyone who can influence what the verifier reads: a
+contributor who embeds adversarial comments in submitted source (measured
+here), a commit message that names or denies the vulnerability (label leakage,
+bounded by the blinded-message ablation), and a scanner whose rule, message,
+and CWE hints may be echoed rather than judged (bounded by the blind
+condition). We do not model an adversary who can modify the pinned analyzers,
+the rulesets, or the model provider; those are trusted, pinned by hash, and
+out of scope.
+
+\textbf{Trust boundary.} All code, comments, scanner output, and commit
+messages are untrusted \emph{data}, never instructions. The only components
+that turn data into a verdict-the-model cannot forge are the evidence gate
+(\code{path:line} resolution against the syntax graph) and the decomposition
+itself. The abuse cases this paper measures are therefore: steering a verdict
+into abstention with comments (Section~\ref{sec:results}), ungrounded
+positives (the gate), and hint-echo (the blind condition).
+
 \section{Threats to Validity}
 \label{sec:threats}
-\textbf{Scale.} The scaled result is 21 security pairs; the cross-language check is
-5 pairs, so the cross-family comparison is directional. \textbf{Labels.} JavaVFC is
-a screening corpus: a companion audit \cite{sastaudit} found only ${\sim}18\%$ of it
+\textbf{Scale.} The stratum is 151 screened security pairs from one corpus;
+the cross-language check is 5 pairs, so the cross-family comparison is
+directional. \textbf{Labels.} JavaVFC is
+a screening corpus: our companion audit \cite{sastaudit} found only ${\sim}18\%$ of it
 is a genuine security fix, so recall is a floor against a cleaner label set.
 \textbf{Input shape.} Each revision is an isolated file, which is a floor for tools
 that resolve types and near-neutral for pattern matchers. \textbf{Evidence graph.}
 Our gating uses a tree-sitter graph, not a sound dataflow engine
 \cite{yamaguchi2014modeling,avgustinov2016ql}; it can confirm that a cited
 \code{path:line} exists, not that taint flows. \textbf{Non-determinism.} Reasoning
-models vary run to run at temperature 0; we observed detection ranging 23.8--38.1\%
-and flip rate 19.0--42.9\% across five repeats of one configuration; the $k{=}5$
-bootstrap intervals are narrower than that observed range and are reported alongside
-it. \textbf{Single family at scale.} Only \code{deepseek-flash} was repeated on the
-scaled corpus ($k{=}5$); the other four families are checked only at $n{=}5$, so
-``verifier-dependent'' is established across vendors only on the small set.
+models vary run to run at temperature 0; on the legacy subset we observed flip
+rates 28.6--38.1\% across five repeats of one configuration; the $k{=}5$
+bootstrap intervals are reported alongside the observed range. \textbf{Families
+at scale.} Only \code{mimo-v2.6-flash} was repeated on the
+151-pair stratum ($k{=}5$); the cross-family check uses the legacy 21 pairs
+(\code{mimo} 31.4\% vs.\ \code{deepseek} 30.5\% on identical pairs), which bounds
+the family effect but does not replace a multi-family census.
 \textbf{Contamination.} Public fixes may appear in pretraining data; a temporal or
-private holdout is not yet used. \textbf{Benchmark.} OWASP Benchmark labels are
+private holdout is not yet used. \textbf{Candidate context.} The verdict request
+carries the commit message as bug-report-like context; a message that names or
+denies the vulnerability can leak the label directly to the model. The
+blinded-message ablation (Section~\ref{sec:results}) re-runs the same pairs
+with the message removed and measures a $-18.1$-point drop---the leakage is
+real and quantified, but residual leakage through code idioms cannot be ruled
+out. \textbf{Benchmark.} OWASP Benchmark labels are
 synthetic and single-method, and the verifier ablation is a 30-case sample; it tests
 precision behaviour, not recall. \textbf{Adversary.} Our templates are fixed; a
 single adaptive attacker was used, and its adaptivity is shallow.
+\textbf{CodeQL baseline.} The per-pair no-build mode is the only mode that
+completes on this corpus; under build-capable conditions CodeQL might cover
+more, so the 0\% flip rate is a measurement of this configuration, not of
+CodeQL in general.
 
 \section{Ethics and Responsible Release}
 The adversarial comment generator is dual-use. This work is defensive: its purpose
@@ -668,18 +867,19 @@ reported \emph{unchecked}. A whole-function LLM \emph{audit} surfaces issues wit
 a ruleset (file context curbs over-flagging), and dependency advisories refresh from
 the live OSV feed into immutable, dated snapshots. All assets are pinned by hash; the
 control reproduction (12/18 vulnerable, 1/3 safe) and the Python-pair measurement run
-fully offline; 144 tests accompany the code. A content-addressed verdict cache makes
+fully offline; 158 tests accompany the code. A content-addressed verdict cache makes
 repeat runs deterministic and free.
 
 \section{Conclusion and Future Work}
-LLM security verifiers track fixes far better than pattern matchers and are precise
-when they commit (0\% fixed-side false positives), but they are \emph{not} reliably
-calibrated and are nonetheless \emph{silent} on about half of their inputs---a
+LLM security verifiers track fixes far better than pattern matchers and CodeQL
+and are nearly precise when they commit (0.9\% fixed-side false positives), but
+they are \emph{not} reliably calibrated and are nonetheless \emph{silent} on
+about half of their inputs---a
 weakness that adversarial comments directly amplify, and that composition with
 deterministic tools does not fix. The actionable reframing is that the bottleneck of
 a security verifier is \emph{coverage}, and that its dominant adversarial target is
-\emph{abstention}. Future work must (i) scale to hundreds of genuine fixes across at
-least two languages and three model families with confidence intervals, (ii)
+\emph{abstention}. Future work must (i) replicate the 151-pair census across at
+least two more model families, (ii)
 evaluate path-level candidates on multi-file revisions, and (iii) treat abstention
 and coverage as first-class metrics for security agents.
 
