@@ -194,23 +194,15 @@ The chart is giving Table I a shape; three families sit at 100\% and two at 80\%
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{humanized_figs/img06}
-\caption{Over-reporting ratio on the 151-pair stratum, namely positives on the vulnerable revision divided by positives that are monitoring the fix.}
-\end{figure}
-
-\begin{figure}[t]
-\centering
 \includegraphics[width=\columnwidth]{humanized_figs/img07}
 \caption{Coverage gap: the share of fixes an strategy never reports (100\% minus the flip rate of Table II); and thus, v1g is, after all, the gated verifier.}
 \end{figure}
 
 Neither deterministic baseline tracks fixes. On the 151 pairs the pattern matcher flips once (0.7\%) and nine further pairs flip under the both revisions, giving a tenfold over-reporting ratio; CodeQL flips on none. The gated verifier flips on 17.6\% of pairs (95\% CI [16.7, 18.5] over five runs), roughly twenty-five times the pattern matcher, and reports at 1.02×.
 
-Over-report = (both + vuln\_only)/vuln\_only.
-
 Gating comes close to a true null - McNemar is giving 3:4 at p = 1.0; what's more, the false-positive rate falls from 0.8 to 0.6. Filtering unverifiable positives therefore costs almost nothing. Adding the tool as a second, weaker voice (V5) brings no proof and removes recall, because it can, in practice, only veto what the stronger verifier already accepted; indeed, composition goes the other way.
 
-Over-reporting is telling a scanner that reports code from a verifier that reports a vulnerability; the pattern matcher is reaching 0.7\% only by flagging the same build before and after the fix ten times for every pair it genuinely is following. Both model arms sit near 1.0, and yet, nearly every positive they issue belongs to the revision where the defect was removed. What codeQL reports is nothing on the vulnerable side, which is leaving its ratio undefined rather than perfect.
+Over-reporting is telling a scanner that reports code from a verifier that reports a vulnerability; the pattern matcher is reaching 0.7\% only by flagging the same build before and after the fix ten times for every pair it genuinely is following.
 
 CodeQL was the taint baseline. Over 151 pairs CodeQL flags no vulnerable revision; findings are appearing only in 22 fixed revisions; there's no deterministic taint result to compare on this data. The adapter is verified against a known case, java/sensitive-log (CWE-532) in commit efaa120ecc0d; a whole-directory, build-free database isn't workable for this corpus: javac exhausts memory and the export returns an empty SARIF, so each pair is analysed as two databases, as in our earlier study.
 
